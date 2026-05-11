@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #fdfaf4;
+    color: #3d300a;
+    font-family: system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #fdfaf4 inset;
+    -webkit-text-fill-color: #3d300a;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold
+           py-2.5 px-6 rounded-xl transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed
+           active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply bg-primary-50 hover:bg-primary-100 text-primary-700 font-semibold
+           py-2.5 px-6 rounded-xl border border-primary-200 transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2
+           active:scale-[0.98];
+  }
+
+  .input-field {
+    @apply w-full bg-white border border-primary-200 rounded-xl px-4 py-2.5
+           text-primary-900 placeholder-primary-300
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
+           transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white border border-primary-100 rounded-2xl shadow-sm;
+  }
+
+  .label {
+    @apply block text-sm font-semibold text-primary-700 mb-1.5;
+  }
+
+  .error-text {
+    @apply text-red-500 text-xs mt-1;
+  }
+
+  .auth-label {
+    @apply text-sm font-bold text-slate-700;
+  }
+
+  .auth-input {
+    @apply h-14 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-slate-900
+           placeholder-slate-400 shadow-sm outline-none transition-all duration-200
+           focus:border-[#B8842A] focus:bg-white focus:ring-4 focus:ring-[#D2A34E]/20;
+  }
+
+  .auth-primary-button {
+    @apply flex h-14 w-full items-center justify-center gap-2 rounded-lg bg-[#4B3A2F]
+           px-6 text-base font-bold text-white shadow-sm transition-all duration-200
+           hover:-translate-y-0.5 hover:bg-[#3D2F26] hover:shadow-lg
+           focus:outline-none focus:ring-4 focus:ring-[#D2A34E]/30
+           disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0;
+  }
+
+  .auth-outline-button {
+    @apply flex h-12 items-center justify-center rounded-full border border-[#4B3A2F]
+           bg-white px-5 text-sm font-bold text-[#4B3A2F] transition-all duration-200
+           hover:-translate-y-0.5 hover:bg-[#4B3A2F] hover:text-white hover:shadow-md;
+  }
+}

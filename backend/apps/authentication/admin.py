@@ -1,0 +1,27 @@
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User
+
+
+@admin.register(User)
+class UserAdmin(BaseUserAdmin):
+    list_display = ['email', 'nama_lengkap', 'role', 'tipe_akun', 'nrp', 'nip', 'is_active', 'tanggal_daftar']
+    list_filter = ['role', 'tipe_akun', 'is_active', 'is_email_verified', 'is_staff']
+    search_fields = ['email', 'nama_lengkap', 'nrp', 'nip', 'prodi', 'mata_kuliah']
+    ordering = ['-tanggal_daftar']
+
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Informasi Pribadi', {'fields': ('nama_lengkap', 'foto_profil')}),
+        ('Role & Data Akademik', {'fields': ('role', 'nrp', 'prodi', 'nip', 'mata_kuliah')}),
+        ('Tipe & Status Akun', {'fields': ('tipe_akun', 'is_active', 'is_email_verified')}),
+        ('Hak Akses', {'fields': ('is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Timestamps', {'fields': ('tanggal_daftar', 'last_login')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'nama_lengkap', 'role', 'tipe_akun', 'password1', 'password2'),
+        }),
+    )
+    readonly_fields = ['tanggal_daftar', 'last_login']
