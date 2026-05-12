@@ -13,6 +13,11 @@ Completed:
 - Role system
 - Frontend integration
 
+Testing Progress:
+- Authentication API tests added
+- JWT flow tests added
+- Protected route tests added
+
 Known Issues:
 - README outdated
 - No automated tests
