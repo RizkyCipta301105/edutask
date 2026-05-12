@@ -6,6 +6,7 @@ from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import AuthenticationFailed, ValidationError as DRFValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
@@ -134,10 +135,19 @@ class LoginView(TokenObtainPairView):
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
-        except Exception:
+        except AuthenticationFailed:
+            # Wrong credentials, inactive/disabled user, or other auth refusal
+            # from SimpleJWT TokenObtainSerializer (not confused with bad request shape).
             return error_response(
                 message='Email atau password salah.',
-                status_code=status.HTTP_401_UNAUTHORIZED
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+        except DRFValidationError as exc:
+            # Missing email/password, invalid types, etc. — client input issue (4xx).
+            return error_response(
+                errors=exc.detail,
+                message='Data login tidak valid.',
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         return success_response(
@@ -188,10 +198,25 @@ class TokenRefreshView(TokenRefreshView):
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError:
+            # Malformed / expired / cryptographically invalid refresh (library TokenError).
             return error_response(
                 message='Refresh token tidak valid atau sudah kedaluwarsa. Silakan login kembali.',
-                status_code=status.HTTP_401_UNAUTHORIZED
+                status_code=status.HTTP_401_UNAUTHORIZED,
             )
+        except AuthenticationFailed:
+            # Some SimpleJWT paths surface invalid refresh as DRF AuthenticationFailed.
+            return error_response(
+                message='Refresh token tidak valid atau sudah kedaluwarsa. Silakan login kembali.',
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+        except DRFValidationError as exc:
+            # Missing `refresh`, blacklist text validation, etc. — keep envelope + field errors.
+            return error_response(
+                errors=exc.detail,
+                message='Permintaan refresh token tidak valid.',
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
         return success_response(
             data=serializer.validated_data,
             message='Token berhasil diperbarui.'

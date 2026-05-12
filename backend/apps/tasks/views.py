@@ -144,6 +144,10 @@ class TaskDetailView(APIView):
         ser.save()
         return ok(ser.data, 'Task berhasil diperbarui.')
 
+    def patch(self, request, pk):
+        """Same as PUT: partial updates via TaskSerializer(partial=True)."""
+        return self.put(request, pk)
+
     def delete(self, request, pk):
         task = self.get_object(pk, request.user)
         task.delete()
