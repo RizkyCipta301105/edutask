@@ -10,6 +10,7 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # ======================
 # BACKEND
@@ -17,11 +18,25 @@ yarn-error.log*
 
 venv/
 env/
+ENV/
+.venv/
+
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 
 # Django
 db.sqlite3
+media/
+
+# ======================
+# PYTHON
+# ======================
+
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
 # ======================
 # ENVIRONMENT
@@ -32,6 +47,16 @@ db.sqlite3
 .env.production
 
 # ======================
+# IDE / EDITOR
+# ======================
+
+.vscode/
+.idea/
+
+# Cursor
+.cursor/
+
+# ======================
 # OS FILES
 # ======================
 
@@ -39,15 +64,16 @@ db.sqlite3
 Thumbs.db
 
 # ======================
-# IDE
-# ======================
-
-.vscode/
-.idea/
-
-# ======================
-# BUILD
+# BUILD / COVERAGE
 # ======================
 
 build/
 coverage/
+
+# ======================
+# TEMP FILES
+# ======================
+
+*.log
+*.tmp
+*.swp
