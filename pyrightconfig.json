@@ -1,0 +1,10 @@
+{
+  "include": ["backend"],
+  "exclude": ["backend/venv", "frontend", "**/__pycache__"],
+  "venvPath": "backend",
+  "venv": "venv",
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Darwin",
+  "reportMissingImports": true,
+  "reportMissingModuleSource": false
+}

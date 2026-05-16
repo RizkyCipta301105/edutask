@@ -4,6 +4,7 @@ FR-04: Pembuatan Task
 FR-05: Edit & Hapus Task
 FR-07: Kanban Board
 """
+import re
 from rest_framework import serializers
 from apps.common.serializers import DatetimeValidationMixin, OwnershipValidationMixin
 from .models import Task, MataKuliah
@@ -16,6 +17,29 @@ class MataKuliahSerializer(serializers.ModelSerializer):
         model  = MataKuliah
         fields = ['id', 'nama', 'nama_dosen', 'warna', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+    def validate_nama(self, value):
+        """Pastikan nama mata kuliah tidak kosong dan tidak duplikat per user."""
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('Nama mata kuliah tidak boleh kosong.')
+        # Cek duplikat hanya saat create atau saat nama diubah
+        request = self.context.get('request')
+        if request:
+            qs = MataKuliah.objects.filter(user=request.user, nama__iexact=value)
+            if self.instance:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError('Mata kuliah dengan nama ini sudah ada.')
+        return value
+
+    def validate_warna(self, value):
+        """Pastikan warna adalah kode hex yang valid (contoh: #1A2B3C)."""
+        if not re.fullmatch(r'#[0-9A-Fa-f]{6}', value):
+            raise serializers.ValidationError(
+                'Warna harus berupa kode hex 6 digit yang valid (contoh: #1A2B3C).'
+            )
+        return value.upper()
 
 
 # ── Task Serializer (List & Detail) ─────────────────────────────────────────
@@ -38,6 +62,17 @@ class TaskSerializer(DatetimeValidationMixin, OwnershipValidationMixin, serializ
         """Retrieve is_overdue property from model."""
         return obj.is_overdue
 
+    def validate_judul(self, value):
+        """Sanitize dan validasi judul task."""
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('Judul task tidak boleh kosong.')
+        return value
+
+    def validate_deskripsi(self, value):
+        """Sanitize deskripsi task."""
+        return value.strip() if value else value
+
     def validate_mata_kuliah(self, value):
         """Pastikan mata kuliah milik user yang sedang login."""
         return self.validate_resource_owner(value, 'Mata kuliah')
@@ -52,6 +87,17 @@ class TaskCreateSerializer(DatetimeValidationMixin, OwnershipValidationMixin, se
             'judul', 'deskripsi', 'deadline',
             'prioritas', 'status', 'mata_kuliah',
         ]
+
+    def validate_judul(self, value):
+        """Sanitize dan validasi judul task."""
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('Judul task tidak boleh kosong.')
+        return value
+
+    def validate_deskripsi(self, value):
+        """Sanitize deskripsi task."""
+        return value.strip() if value else value
 
     def validate_mata_kuliah(self, value):
         """Pastikan mata kuliah milik user yang sedang login."""

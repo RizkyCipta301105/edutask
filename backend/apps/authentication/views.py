@@ -4,12 +4,12 @@ Endpoints: Register, Login, Logout, Profile, Change Password, Token Refresh
 """
 from rest_framework import status, generics
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import AuthenticationFailed, ValidationError as DRFValidationError
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from apps.common.utils import success_response, error_response
 
 from .models import User
 from .serializers import (
@@ -21,24 +21,6 @@ from .serializers import (
     ChangePasswordSerializer,
     CustomTokenObtainPairSerializer,
 )
-
-
-def success_response(data=None, message='', status_code=status.HTTP_200_OK):
-    """Helper: format response sukses yang konsisten."""
-    return Response({
-        'success': True,
-        'message': message,
-        'data': data,
-    }, status=status_code)
-
-
-def error_response(errors=None, message='Terjadi kesalahan.', status_code=status.HTTP_400_BAD_REQUEST):
-    """Helper: format response error yang konsisten."""
-    return Response({
-        'success': False,
-        'message': message,
-        'errors': errors,
-    }, status=status_code)
 
 
 def build_auth_payload(user, request):

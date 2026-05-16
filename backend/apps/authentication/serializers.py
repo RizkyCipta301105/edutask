@@ -70,6 +70,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Email ini sudah terdaftar.')
         return value.lower()
 
+    def validate_nama_lengkap(self, value):
+        """Sanitize nama lengkap: hapus spasi berlebih, pastikan tidak kosong."""
+        value = ' '.join(value.split())
+        if not value:
+            raise serializers.ValidationError('Nama lengkap tidak boleh kosong.')
+        return value
+
     def validate_password(self, value):
         """Jalankan Django built-in password validators."""
         try:
@@ -115,6 +122,13 @@ class BaseRoleRegisterSerializer(serializers.ModelSerializer):
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError('Email ini sudah terdaftar.')
         return value.lower()
+
+    def validate_nama_lengkap(self, value):
+        """Sanitize nama lengkap: hapus spasi berlebih, pastikan tidak kosong."""
+        value = ' '.join(value.split())
+        if not value:
+            raise serializers.ValidationError('Nama lengkap tidak boleh kosong.')
+        return value
 
     def validate_password(self, value):
         try:
