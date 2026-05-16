@@ -35,12 +35,12 @@ def success_response(data=None, message='', status_code=status.HTTP_200_OK):
 def error_response(errors=None, message='Terjadi kesalahan.', status_code=status.HTTP_400_BAD_REQUEST):
     """
     Return standardized error response.
-    
+
     Args:
         errors: Error details (dict or list)
         message: User-friendly error message
         status_code: HTTP status code (default: 400)
-    
+
     Returns:
         Response with structure: {'success': False, 'message': str, 'errors': any}
     """
@@ -50,7 +50,16 @@ def error_response(errors=None, message='Terjadi kesalahan.', status_code=status
             'message': message,
             'errors': errors,
         },
-        status=status_code
+        status=status_code,
+    )
+
+
+def validation_error_response(errors, message='Data tidak valid. Periksa kembali input Anda.'):
+    """Serializer / field validation failures (HTTP 422)."""
+    return error_response(
+        errors=errors,
+        message=message,
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
     )
 
 

@@ -190,7 +190,7 @@ class TaskCRUDSecurityAPITestCase(APITestCase):
             },
             format='json',
         )
-        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(r.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(r.data['success'])
         self.assertIn('deadline', r.data['errors'])
 
@@ -249,7 +249,7 @@ class TaskCRUDSecurityAPITestCase(APITestCase):
             },
             format='json',
         )
-        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(r.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(r.data['success'])
         self.assertIn('mata_kuliah', r.data['errors'])
 

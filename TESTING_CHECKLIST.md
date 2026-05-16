@@ -31,6 +31,10 @@
   - [ ] Register: empty/whitespace `nama_lengkap` rejected
   - [ ] Task: empty `judul`, invalid `warna`, duplicate mata kuliah per user
   - [ ] Schedule: invalid `jam` format, empty `ruangan`/`dosen`/`mata_kuliah`
+- [x] API response envelope (`success`, `message`, `data` | `errors`)
+  - [ ] 404 on foreign resource returns `{ success: false, message, errors: null }`
+  - [ ] 401 without token returns standardized envelope
+  - [ ] Validation errors return HTTP 422 with `errors` object
 - [ ] Validation works (manual smoke on all forms)
 
 ## Security

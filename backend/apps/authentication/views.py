@@ -9,7 +9,7 @@ from rest_framework.exceptions import AuthenticationFailed, ValidationError as D
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from apps.common.utils import success_response, error_response
+from apps.common.utils import success_response, error_response, validation_error_response
 
 from .models import User
 from .serializers import (
@@ -52,10 +52,9 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if not serializer.is_valid():
-            return error_response(
-                errors=serializer.errors,
+            return validation_error_response(
+                serializer.errors,
                 message='Registrasi gagal. Periksa kembali data yang dimasukkan.',
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
             )
 
         user = serializer.save()
@@ -75,10 +74,9 @@ class RoleRegisterView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
-            return error_response(
-                errors=serializer.errors,
+            return validation_error_response(
+                serializer.errors,
                 message='Registrasi gagal. Periksa kembali data yang dimasukkan.',
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
             )
         user = serializer.save()
         return success_response(
@@ -235,7 +233,10 @@ class ProfileView(generics.RetrieveUpdateAPIView):
             context={'request': request}
         )
         if not serializer.is_valid():
-            return error_response(errors=serializer.errors, message='Update profil gagal.')
+            return validation_error_response(
+                serializer.errors,
+                message='Update profil gagal. Periksa kembali data yang dimasukkan.',
+            )
         serializer.save()
         return success_response(
             data=serializer.data,
@@ -258,7 +259,10 @@ class ChangePasswordView(APIView):
             context={'request': request}
         )
         if not serializer.is_valid():
-            return error_response(errors=serializer.errors, message='Ganti password gagal.')
+            return validation_error_response(
+                serializer.errors,
+                message='Ganti password gagal. Periksa kembali data yang dimasukkan.',
+            )
 
         request.user.set_password(serializer.validated_data['password_baru'])
         request.user.save()

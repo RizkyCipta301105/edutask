@@ -45,6 +45,11 @@ Completed:
   - Reusable helpers: text sanitization, hex color, schedule time slot format
   - Applied across authentication, tasks, and schedules serializers
   - Removed duplicate `validate_mata_kuliah` / judul rules between task serializers
+- Task 2: Standardized API response structure
+  - `validation_error_response()` helper (HTTP 422) for serializer failures
+  - DRF `EXCEPTION_HANDLER` wraps 401/403/404 and other DRF errors into `{ success, message, errors }`
+  - All task/schedule/auth views use keyword args with `success_response` / `validation_error_response`
+  - Consistent Indonesian user-facing messages on list/detail endpoints
 
 In Progress:
 - Responsive UI improvements
