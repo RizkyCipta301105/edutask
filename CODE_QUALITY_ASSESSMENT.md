@@ -20,7 +20,7 @@ The EduTask project demonstrates solid foundational architecture and clean separ
 - Good use of environment-based configuration
 
 **Areas for Improvement:**
-- Duplicate validation logic across serializers
+- Remaining view-layer response helper duplication (`ok`/`err` vs `success_response`)
 - Response helper functions duplicated in multiple views files
 - Limited test coverage
 - Inline Max queries in serializer `create()` methods
@@ -96,11 +96,7 @@ The EduTask project demonstrates solid foundational architecture and clean separ
   def err(errors=None, message='...', code=status.HTTP_400_BAD_REQUEST):
   ```
   
-- 🔴 **Issue:** Validation logic duplication in `TaskSerializer` vs `TaskCreateSerializer`:
-  ```python
-  # Both validate deadline identically
-  # Both validate mata_kuliah identically
-  ```
+- ✅ **Resolved (Sprint 2):** Task/schedule/auth field validation centralized in `apps/common/serializers.py` via mixins (`TaskInputValidationMixin`, `ScheduleInputValidationMixin`, etc.)
 
 #### Query Optimization
 - ⚠️ **Issue:** `TaskListCreateView` uses `.select_related('mata_kuliah')` (good)
@@ -180,25 +176,9 @@ def err(errors=None, message='Terjadi kesalahan.', code=status.HTTP_400_BAD_REQU
 **Impact:** Maintenance burden, inconsistency risk  
 **Recommendation:** Create `apps/common/responses.py` or `apps/common/utils.py`
 
-#### 2. **Validation Logic Duplication** (Backend)
-**Location:** `TaskSerializer` and `TaskCreateSerializer`
-```python
-# Both files contain identical validations:
-def validate_deadline(self, value):
-    if value < timezone.now().date():
-        raise serializers.ValidationError('Deadline tidak boleh di masa lalu.')
-    return value
-
-def validate_mata_kuliah(self, value):
-    if value is None:
-        return value
-    request = self.context.get('request')
-    if request and value.user != request.user:
-        raise serializers.ValidationError('Mata kuliah tidak ditemukan.')
-    return value
-```
-**Impact:** Validation drift risk, harder to maintain  
-**Recommendation:** Extract to base serializer or mixin
+#### 2. **Validation Logic Duplication** (Backend) — ✅ Addressed Sprint 2
+**Location:** `apps/common/serializers.py` (mixins + helpers), consumed by task/auth/schedule serializers  
+**Status:** Shared deadline, ownership, task input, mata kuliah, schedule, nama lengkap, and password validation; `OwnershipValidationMixin` delegates to `validate_resource_ownership()` in `utils.py`
 
 #### 3. **Token Claims Construction** (Backend)
 **Location:** `CustomTokenObtainPairSerializer`, `build_auth_payload()`

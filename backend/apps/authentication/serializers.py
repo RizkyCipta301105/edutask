@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from apps.common.serializers import NamaLengkapValidationMixin, PasswordValidationMixin
 from .models import User
 
 CAMPUS_EMAIL_DOMAINS = ('@student.pens.ac.id', '@pens.ac.id')
@@ -25,7 +26,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Tambah custom claims
         token['email'] = user.email
         token['role'] = user.role
         token['nama_lengkap'] = user.nama_lengkap
@@ -35,14 +35,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        # Tambahkan info user ke response body juga
         data['user'] = UserProfileSerializer(self.user).data
         return data
 
 
 # ─── Register Serializer ─────────────────────────────────────────────────────
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterSerializer(
+    NamaLengkapValidationMixin,
+    PasswordValidationMixin,
+    serializers.ModelSerializer,
+):
     """Serializer untuk registrasi akun baru."""
 
     password = serializers.CharField(
@@ -65,28 +68,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate_email(self, value):
-        """Cek duplikasi email (case-insensitive)."""
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError('Email ini sudah terdaftar.')
         return value.lower()
 
-    def validate_nama_lengkap(self, value):
-        """Sanitize nama lengkap: hapus spasi berlebih, pastikan tidak kosong."""
-        value = ' '.join(value.split())
-        if not value:
-            raise serializers.ValidationError('Nama lengkap tidak boleh kosong.')
-        return value
-
-    def validate_password(self, value):
-        """Jalankan Django built-in password validators."""
-        try:
-            validate_password(value)
-        except ValidationError as e:
-            raise serializers.ValidationError(list(e.messages))
-        return value
-
     def validate(self, attrs):
-        """Validasi password dan konfirmasi password sama."""
         if attrs['password'] != attrs['password_confirm']:
             raise serializers.ValidationError({
                 'password_confirm': 'Password dan konfirmasi password tidak cocok.'
@@ -94,18 +80,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        """Buat user baru dengan password terenkripsi (bcrypt via Django)."""
         validated_data.pop('password_confirm')
         password = validated_data.pop('password')
         tipe_akun = validated_data.get('tipe_akun')
         validated_data['role'] = User.Role.MAHASISWA if tipe_akun == User.TipeAkun.PENS else User.Role.UMUM
         user = User(**validated_data)
-        user.set_password(password)  # Django memakai hasher aktif dari PASSWORD_HASHERS.
+        user.set_password(password)
         user.save()
         return user
 
 
-class BaseRoleRegisterSerializer(serializers.ModelSerializer):
+class BaseRoleRegisterSerializer(
+    NamaLengkapValidationMixin,
+    PasswordValidationMixin,
+    serializers.ModelSerializer,
+):
     password = serializers.CharField(
         write_only=True,
         required=True,
@@ -122,20 +111,6 @@ class BaseRoleRegisterSerializer(serializers.ModelSerializer):
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError('Email ini sudah terdaftar.')
         return value.lower()
-
-    def validate_nama_lengkap(self, value):
-        """Sanitize nama lengkap: hapus spasi berlebih, pastikan tidak kosong."""
-        value = ' '.join(value.split())
-        if not value:
-            raise serializers.ValidationError('Nama lengkap tidak boleh kosong.')
-        return value
-
-    def validate_password(self, value):
-        try:
-            validate_password(value)
-        except ValidationError as e:
-            raise serializers.ValidationError(list(e.messages))
-        return value
 
     def create_user(self, validated_data, role, **extra_fields):
         password = validated_data.pop('password')
@@ -203,6 +178,10 @@ class RegisterDosenSerializer(BaseRoleRegisterSerializer):
             raise serializers.ValidationError('NIP sudah terdaftar.')
         return value
 
+    def validate_mata_kuliah(self, value):
+        from apps.common.serializers import validate_non_empty_text
+        return validate_non_empty_text(value, 'Mata kuliah')
+
     def create(self, validated_data):
         nip = validated_data.pop('nip')
         mata_kuliah = validated_data.pop('mata_kuliah')
@@ -216,7 +195,7 @@ class RegisterDosenSerializer(BaseRoleRegisterSerializer):
 
 # ─── Profile Serializer ──────────────────────────────────────────────────────
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(NamaLengkapValidationMixin, serializers.ModelSerializer):
     """Serializer untuk data profil user (read & update)."""
 
     foto_profil_url = serializers.SerializerMethodField()
@@ -261,13 +240,12 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        
-        # Check if new password is different from old password
+
         if user.check_password(attrs['password_baru']):
             raise serializers.ValidationError({
                 'password_baru': 'Password baru tidak boleh sama dengan password lama.'
             })
-        
+
         if attrs['password_baru'] != attrs['password_baru_confirm']:
             raise serializers.ValidationError({
                 'password_baru_confirm': 'Password baru dan konfirmasi tidak cocok.'

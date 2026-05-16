@@ -40,16 +40,18 @@ Goals:
 - Reduce technical debt
 
 Completed:
-- Task 1: Improve backend serializer validation
-  - Removed duplicate `success_response`/`error_response` from `authentication/views.py` → now imported from `apps.common.utils`
-  - Added `MataKuliahSerializer` validation: non-blank `nama`, unique per user, valid hex `warna`
-  - Added `TaskSerializer` + `TaskCreateSerializer` validation: strip/non-blank `judul`, sanitize `deskripsi`
-  - Added `JadwalKuliahSerializer` validation: `jam` format (HH:MM-HH:MM), non-blank `ruangan`/`dosen`/`mata_kuliah`
-  - Added `validate_nama_lengkap` in auth serializers: sanitize whitespace, non-blank check
+- Backend serializer validation centralized in `apps/common/serializers.py`
+  - Shared mixins: deadline, ownership, nama lengkap, password, task input, mata kuliah, schedule input
+  - Reusable helpers: text sanitization, hex color, schedule time slot format
+  - Applied across authentication, tasks, and schedules serializers
+  - Removed duplicate `validate_mata_kuliah` / judul rules between task serializers
+
+In Progress:
+- Responsive UI improvements
+- Additional API test coverage (schedules)
+- Documentation alignment
 
 Pending:
 - Interactive calendar
 - Reminder system
 - Progress tracker
-- Testing (automated)
-- Responsive UI improvements
