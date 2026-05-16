@@ -246,12 +246,20 @@ class ChangePasswordSerializer(serializers.Serializer):
         return value
 
     def validate(self, attrs):
+        user = self.context['request'].user
+        
+        # Check if new password is different from old password
+        if user.check_password(attrs['password_baru']):
+            raise serializers.ValidationError({
+                'password_baru': 'Password baru tidak boleh sama dengan password lama.'
+            })
+        
         if attrs['password_baru'] != attrs['password_baru_confirm']:
             raise serializers.ValidationError({
                 'password_baru_confirm': 'Password baru dan konfirmasi tidak cocok.'
             })
         try:
-            validate_password(attrs['password_baru'], self.context['request'].user)
+            validate_password(attrs['password_baru'], user)
         except ValidationError as e:
             raise serializers.ValidationError({'password_baru': list(e.messages)})
         return attrs

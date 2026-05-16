@@ -6,8 +6,35 @@ FR-07: Kanban Board Visual
 """
 import uuid
 from django.db import models
+from django.db.models import Max
 from django.utils import timezone
 from apps.authentication.models import User
+
+
+# ════════════════════════════════════════════════════════════════════════════
+#  TASK MANAGER
+# ════════════════════════════════════════════════════════════════════════════
+
+class TaskManager(models.Manager):
+    """Custom manager for Task model with business logic helpers."""
+    
+    def get_next_urutan(self, user, status):
+        """
+        Get the next urutan (ordering) for a task in a given status.
+        Used when creating new tasks to auto-assign position.
+        
+        Args:
+            user: User object
+            status: Task status
+        
+        Returns:
+            Next available urutan (int)
+        """
+        max_urutan = self.filter(
+            user=user,
+            status=status
+        ).aggregate(Max('urutan'))['urutan__max'] or -1
+        return max_urutan + 1
 
 
 class MataKuliah(models.Model):
@@ -41,6 +68,9 @@ class Task(models.Model):
         TODO       = 'todo',        'To Do'
         IN_PROGRESS= 'in_progress', 'In Progress'
         DONE       = 'done',        'Done'
+
+    # ── Managers ─────────────────────────────────────────────────────────────
+    objects = TaskManager()
 
     # ── Primary Key ──────────────────────────────────────────────────────────
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

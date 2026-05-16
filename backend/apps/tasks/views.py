@@ -4,25 +4,16 @@ FR-04: Pembuatan Task
 FR-05: Edit & Hapus Task
 FR-07: Kanban Board Visual
 """
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from apps.common.utils import success_response, error_response
 from .models import Task, MataKuliah
 from .serializers import (
     TaskSerializer, TaskCreateSerializer,
     MataKuliahSerializer, KanbanMoveSerializer,
 )
-
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def ok(data=None, message='', code=status.HTTP_200_OK):
-    return Response({'success': True, 'message': message, 'data': data}, status=code)
-
-def err(errors=None, message='Terjadi kesalahan.', code=status.HTTP_400_BAD_REQUEST):
-    return Response({'success': False, 'message': message, 'errors': errors}, status=code)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -38,14 +29,14 @@ class MataKuliahListCreateView(APIView):
 
     def get(self, request):
         qs = MataKuliah.objects.filter(user=request.user)
-        return ok(MataKuliahSerializer(qs, many=True).data)
+        return success_response(MataKuliahSerializer(qs, many=True).data)
 
     def post(self, request):
         ser = MataKuliahSerializer(data=request.data)
         if not ser.is_valid():
-            return err(errors=ser.errors, message='Gagal menambah mata kuliah.')
+            return error_response(errors=ser.errors, message='Gagal menambah mata kuliah.')
         ser.save(user=request.user)
-        return ok(ser.data, 'Mata kuliah berhasil ditambahkan.', status.HTTP_201_CREATED)
+        return success_response(ser.data, 'Mata kuliah berhasil ditambahkan.', status.HTTP_201_CREATED)
 
 
 class MataKuliahDetailView(APIView):
@@ -62,14 +53,14 @@ class MataKuliahDetailView(APIView):
         obj = self.get_object(pk, request.user)
         ser = MataKuliahSerializer(obj, data=request.data, partial=True)
         if not ser.is_valid():
-            return err(errors=ser.errors, message='Gagal update mata kuliah.')
+            return error_response(errors=ser.errors, message='Gagal update mata kuliah.')
         ser.save()
-        return ok(ser.data, 'Mata kuliah berhasil diperbarui.')
+        return success_response(ser.data, 'Mata kuliah berhasil diperbarui.')
 
     def delete(self, request, pk):
         obj = self.get_object(pk, request.user)
         obj.delete()
-        return ok(message='Mata kuliah berhasil dihapus.')
+        return success_response(message='Mata kuliah berhasil dihapus.')
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -107,14 +98,14 @@ class TaskListCreateView(APIView):
         if search_q:
             qs = qs.filter(judul__icontains=search_q)
 
-        return ok(TaskSerializer(qs, many=True, context={'request': request}).data)
+        return success_response(TaskSerializer(qs, many=True, context={'request': request}).data)
 
     def post(self, request):
         ser = TaskCreateSerializer(data=request.data, context={'request': request})
         if not ser.is_valid():
-            return err(errors=ser.errors, message='Gagal membuat task.')
+            return error_response(errors=ser.errors, message='Gagal membuat task.')
         task = ser.save()
-        return ok(
+        return success_response(
             TaskSerializer(task, context={'request': request}).data,
             'Task berhasil dibuat.',
             status.HTTP_201_CREATED
@@ -134,15 +125,15 @@ class TaskDetailView(APIView):
 
     def get(self, request, pk):
         task = self.get_object(pk, request.user)
-        return ok(TaskSerializer(task, context={'request': request}).data)
+        return success_response(TaskSerializer(task, context={'request': request}).data)
 
     def put(self, request, pk):
         task = self.get_object(pk, request.user)
         ser = TaskSerializer(task, data=request.data, partial=True, context={'request': request})
         if not ser.is_valid():
-            return err(errors=ser.errors, message='Gagal mengupdate task.')
+            return error_response(errors=ser.errors, message='Gagal mengupdate task.')
         ser.save()
-        return ok(ser.data, 'Task berhasil diperbarui.')
+        return success_response(ser.data, 'Task berhasil diperbarui.')
 
     def patch(self, request, pk):
         """Same as PUT: partial updates via TaskSerializer(partial=True)."""
@@ -151,7 +142,7 @@ class TaskDetailView(APIView):
     def delete(self, request, pk):
         task = self.get_object(pk, request.user)
         task.delete()
-        return ok(message='Task berhasil dihapus.')
+        return success_response(message='Task berhasil dihapus.')
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -178,7 +169,7 @@ class KanbanBoardView(APIView):
             'in_progress': [t for t in serialized if t['status'] == 'in_progress'],
             'done':        [t for t in serialized if t['status'] == 'done'],
         }
-        return ok(board)
+        return success_response(board)
 
 
 class KanbanMoveView(APIView):
@@ -194,7 +185,7 @@ class KanbanMoveView(APIView):
         ser  = KanbanMoveSerializer(data=request.data)
 
         if not ser.is_valid():
-            return err(errors=ser.errors, message='Gagal memindahkan task.')
+            return error_response(errors=ser.errors, message='Gagal memindahkan task.')
 
         new_status = ser.validated_data['status']
         new_urutan = ser.validated_data.get('urutan', 0)
@@ -203,7 +194,7 @@ class KanbanMoveView(APIView):
         task.urutan = new_urutan
         task.save(update_fields=['status', 'urutan', 'updated_at'])
 
-        return ok(
+        return success_response(
             TaskSerializer(task, context={'request': request}).data,
             f'Task dipindahkan ke kolom {task.get_status_display()}.'
         )

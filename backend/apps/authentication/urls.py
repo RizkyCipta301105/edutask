@@ -19,7 +19,7 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='auth-logout'),
 
     # Token management
-    path('token/refresh/', views.TokenRefreshView.as_view(), name='token-refresh'),
+    path('token/refresh/', views.CustomTokenRefreshView.as_view(), name='token-refresh'),
 
     # Profile
     path('profile/', views.ProfileView.as_view(), name='auth-profile'),

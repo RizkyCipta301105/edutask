@@ -186,7 +186,7 @@ class LogoutView(APIView):
 
 # ─── Token Refresh ────────────────────────────────────────────────────────────
 
-class TokenRefreshView(TokenRefreshView):
+class CustomTokenRefreshView(TokenRefreshView):
     """
     POST /api/auth/token/refresh/
     Perbarui access token menggunakan refresh token.

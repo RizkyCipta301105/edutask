@@ -5,7 +5,7 @@ FR-05: Edit & Hapus Task
 FR-07: Kanban Board
 """
 from rest_framework import serializers
-from django.utils import timezone
+from apps.common.serializers import DatetimeValidationMixin, OwnershipValidationMixin
 from .models import Task, MataKuliah
 
 
@@ -20,9 +20,9 @@ class MataKuliahSerializer(serializers.ModelSerializer):
 
 # ── Task Serializer (List & Detail) ─────────────────────────────────────────
 
-class TaskSerializer(serializers.ModelSerializer):
+class TaskSerializer(DatetimeValidationMixin, OwnershipValidationMixin, serializers.ModelSerializer):
     mata_kuliah_detail = MataKuliahSerializer(source='mata_kuliah', read_only=True)
-    is_overdue         = serializers.BooleanField(read_only=True)
+    is_overdue         = serializers.SerializerMethodField()
 
     class Meta:
         model  = Task
@@ -34,30 +34,18 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'is_overdue']
 
-    def validate_deadline(self, value):
-        """Deadline tidak boleh di masa lalu saat pertama kali dibuat."""
-        if self.instance is None:   # hanya saat CREATE
-            if value < timezone.now().date():
-                raise serializers.ValidationError(
-                    'Deadline tidak boleh di masa lalu.'
-                )
-        return value
+    def get_is_overdue(self, obj):
+        """Retrieve is_overdue property from model."""
+        return obj.is_overdue
 
     def validate_mata_kuliah(self, value):
         """Pastikan mata kuliah milik user yang sedang login."""
-        if value is None:
-            return value
-        request = self.context.get('request')
-        if request and value.user != request.user:
-            raise serializers.ValidationError(
-                'Mata kuliah tidak ditemukan.'
-            )
-        return value
+        return self.validate_resource_owner(value, 'Mata kuliah')
 
 
 # ── Task Create Serializer (FR-04) ───────────────────────────────────────────
 
-class TaskCreateSerializer(serializers.ModelSerializer):
+class TaskCreateSerializer(DatetimeValidationMixin, OwnershipValidationMixin, serializers.ModelSerializer):
     class Meta:
         model  = Task
         fields = [
@@ -65,27 +53,19 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             'prioritas', 'status', 'mata_kuliah',
         ]
 
-    def validate_deadline(self, value):
-        if value < timezone.now().date():
-            raise serializers.ValidationError('Deadline tidak boleh di masa lalu.')
-        return value
-
     def validate_mata_kuliah(self, value):
-        if value is None:
-            return value
-        request = self.context.get('request')
-        if request and value.user != request.user:
-            raise serializers.ValidationError('Mata kuliah tidak valid.')
-        return value
+        """Pastikan mata kuliah milik user yang sedang login."""
+        return self.validate_resource_owner(value, 'Mata kuliah')
 
     def create(self, validated_data):
+        """Create task with auto-assigned urutan based on status."""
         validated_data['user'] = self.context['request'].user
-        # Set urutan = total task user + 1
-        count = Task.objects.filter(
-            user=validated_data['user'],
-            status=validated_data.get('status', Task.Status.TODO)
-        ).count()
-        validated_data['urutan'] = count
+        status = validated_data.get('status', Task.Status.TODO)
+        # Use model manager to get next urutan
+        validated_data['urutan'] = Task.objects.get_next_urutan(
+            validated_data['user'],
+            status
+        )
         return super().create(validated_data)
 
 
