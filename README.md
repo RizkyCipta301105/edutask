@@ -1,4 +1,4 @@
-# EduTask – Sprint 1: Manajemen Tugas Mahasiswa
+# EduTask – Sprint 2 Stabilization
 
 > Aplikasi Web Manajemen Tugas & Jadwal Kuliah  
 > Tim Sumber Rejeki | Teknologi Rekayasa Internet | PENS 2026
@@ -133,7 +133,7 @@ npm run dev
 
 ---
 
-## 🔌 API Endpoints – Sprint 1
+## 🔌 API Endpoints
 
 Base URL: `http://localhost:8000`
 
@@ -157,6 +157,24 @@ Base URL: `http://localhost:8000`
 | POST   | `/api/schedules/`           | ✅ Bearer  | Tambah jadwal kuliah             |
 | PUT    | `/api/schedules/{id}/`      | ✅ Bearer  | Edit jadwal kuliah               |
 | DELETE | `/api/schedules/{id}/`      | ✅ Bearer  | Hapus jadwal kuliah              |
+
+---
+
+## ✅ Sprint 2 Stabilization Summary
+
+Sprint 2 focused on stabilizing existing behavior instead of adding major features.
+
+Completed:
+- Centralized serializer validation mixins for auth, tasks, and schedules
+- Standardized API response envelopes and validation error responses
+- Improved JWT claim consistency and role-based route protection
+- Added essential backend tests for auth, permissions, tasks, schedules, ownership, and validation
+- Improved frontend responsive behavior for auth, dashboard, profile, task, schedule, and navigation surfaces
+- Refactored frontend service helpers for response extraction and query parameters
+
+Verification:
+- Frontend production build: `npm run build`
+- Backend automated suite: `./venv/bin/python manage.py test apps.authentication.tests apps.tasks.tests apps.schedules.tests --settings=config.settings_test`
 
 ### Contoh Request: Register
 

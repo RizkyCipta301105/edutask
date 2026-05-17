@@ -6,6 +6,7 @@
 - [ ] JWT refresh works
 - [ ] Logout works
 - [ ] Protected routes work
+- [x] Automated suite passes: 44 backend tests
 - [x] Automated: role assignment on register (`test_auth_roles.py`)
 - [x] Automated: JWT access token includes `role` claim
 - [x] Automated: 401 uses API envelope (`test_permissions.py`)
@@ -28,20 +29,21 @@
 - [x] Automated: CRUD, ownership, invalid jam (`test_schedule_crud.py`)
 
 ## Frontend
-- [ ] No console errors
+- [x] No console errors on final unauthenticated login/register smoke check
 - [x] Manual smoke: login/register routes had no console errors after component refactor
 - [x] Manual smoke: login/register responsive routes render on mobile and desktop widths after responsive cleanup
-- [ ] Responsive mobile layout
-- [ ] API loading states work
+- [x] Responsive mobile layout smoke checked for login/register
+- [x] Shared API loading states implemented for key forms and task/schedule loading areas
 - [x] Production build passes: `npm run build`
 - [ ] Wrong-role dashboard URL redirects to correct role dashboard
+- [ ] Authenticated dashboard/task/schedule/Kanban browser smoke
 
 ## Backend
-- [ ] No serializer errors
-- [ ] No 500 errors
+- [x] No serializer errors in automated backend suite
+- [x] No 500 errors in automated backend suite
 - [x] Serializer validation (shared mixins in `apps/common/serializers.py`)
 - [x] API response envelope (`success`, `message`, `data` | `errors`)
-- [x] Automated test suite: `python manage.py test apps.authentication.tests apps.tasks.tests apps.schedules.tests --settings=config.settings_test`
+- [x] Automated test suite: `./venv/bin/python manage.py test apps.authentication.tests apps.tasks.tests apps.schedules.tests --settings=config.settings_test`
 - [ ] Validation works (manual smoke on all forms)
 
 ## Security

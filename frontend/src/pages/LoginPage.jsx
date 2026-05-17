@@ -112,7 +112,9 @@ export default function LoginPage({ mode = 'universal' }) {
                 />
                 Ingat saya
               </label>
-              <a href="#" className="font-semibold text-[#B8842A] transition hover:text-[#4B3A2F]">Lupa Password?</a>
+              <button type="button" className="font-semibold text-[#B8842A] transition hover:text-[#4B3A2F]">
+                Lupa Password?
+              </button>
             </div>
 
             <button type="submit" disabled={loading} className="auth-primary-button">

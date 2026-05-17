@@ -1,6 +1,6 @@
 # EduTask Code Quality Assessment
 
-**Date:** May 16, 2026  
+**Date:** May 17, 2026
 **Scope:** Backend (Django REST) + Frontend (React + Vite)  
 **Review Depth:** Architecture, organization, patterns, code health
 
@@ -8,9 +8,9 @@
 
 ## 📊 Executive Summary
 
-**Overall Status:** 🟡 **GOOD WITH MINOR CONCERNS**
+**Overall Status:** 🟢 **STABLE WITH MANAGEABLE TECHNICAL DEBT**
 
-The EduTask project demonstrates solid foundational architecture and clean separation of concerns. Code organization is logical, and core patterns are well-established. However, there are opportunities for improvement in consistency, reducing duplication, and strengthening validation. The codebase is maintainable and follows Django/React best practices reasonably well.
+The EduTask project demonstrates solid foundational architecture and clean separation of concerns. Sprint 2 resolved several consistency, validation, response-format, and frontend maintainability issues. The codebase is stable enough for Sprint 3 feature work, with remaining debt concentrated around authenticated browser smoke coverage, task ordering internals, and future feature architecture.
 
 **Key Strengths:**
 - Clear separation between services, components, and business logic
@@ -18,14 +18,15 @@ The EduTask project demonstrates solid foundational architecture and clean separ
 - JWT authentication with proper token refresh mechanism
 - Reusable serializers and custom hooks
 - Good use of environment-based configuration
+- Frontend API envelope extraction and query string construction centralized
+- Mobile navigation and core responsive layouts improved
 
 **Areas for Improvement:**
-- Remaining view-layer response helper duplication (`ok`/`err` vs `success_response`)
-- Response helper functions duplicated in multiple views files
-- Limited test coverage
-- Inline Max queries in serializer `create()` methods
-- Inconsistent import organization in some files
+- Authenticated frontend smoke tests are still manual / incomplete
+- Test coverage remains focused on backend critical paths
+- Task ordering logic still needs a clean owner-aware abstraction before scale
 - Missing business logic abstraction layer
+- No frontend error boundary yet
 
 ---
 
@@ -43,10 +44,9 @@ The EduTask project demonstrates solid foundational architecture and clean separ
 - **UUID primary keys** used consistently for better security
 
 **Issues:**
-- **No services/managers layer:** Business logic partially embedded in serializers and views
-  - Example: `TaskCreateSerializer.create()` contains DB query logic for ordering
-  - Example: Validation duplicated in `TaskSerializer` and `TaskCreateSerializer`
-- **Missing utils/helpers module:** No centralized location for common functions like response formatting (see next section)
+- **No services/managers layer:** Some business logic remains close to models/serializers
+  - Example: Task ordering should move behind a clearer task service or manager boundary before scale
+- **Limited ownership abstraction:** Detail views still repeat owner-scoped `get_object()` patterns
 
 ### ✅ **Frontend Organization: WELL-STRUCTURED**
 
@@ -74,27 +74,12 @@ The EduTask project demonstrates solid foundational architecture and clean separ
 #### Authentication Module
 - ✅ Serializers handle validation properly
 - ✅ Views separate auth logic from business logic
-- ⚠️ **Issue:** Helper function `build_auth_payload()` duplicated logic (rebuilding token claims):
-  ```python
-  # In CustomTokenObtainPairSerializer
-  token['email'] = user.email
-  token['role'] = user.role
-  # ... also in build_auth_payload()
-  ```
+- ✅ **Resolved (Sprint 2):** JWT claim construction centralized in `authentication/jwt_utils.py`.
 
 #### Task & MataKuliah Modules
 - ✅ Serializers separate validation
 - ✅ Views separate HTTP handling from business logic
-- 🔴 **Issue:** Duplicate response helpers in multiple files:
-  ```python
-  # tasks/views.py
-  def ok(data=None, message='', code=status.HTTP_200_OK):
-  def err(errors=None, message='...', code=status.HTTP_400_BAD_REQUEST):
-  
-  # schedules/views.py (identical)
-  def ok(data=None, message='', code=status.HTTP_200_OK):
-  def err(errors=None, message='...', code=status.HTTP_400_BAD_REQUEST):
-  ```
+- ✅ **Resolved (Sprint 2):** Task, schedule, auth, and exception flows use centralized helpers from `apps/common/utils.py`.
   
 - ✅ **Resolved (Sprint 2):** Task/schedule/auth field validation centralized in `apps/common/serializers.py` via mixins (`TaskInputValidationMixin`, `ScheduleInputValidationMixin`, etc.)
 
@@ -136,11 +121,7 @@ The EduTask project demonstrates solid foundational architecture and clean separ
 - Indonesian field names used consistently (aligned with project language preference)
 
 **Inconsistencies Found:**
-- Helper functions use shorthand names: `ok()` and `err()` instead of `success_response()` / `error_response()`
-  - `authentication/views.py` uses `success_response()` / `error_response()`
-  - `tasks/views.py` uses `ok()` / `err()`
-  - `schedules/views.py` uses `ok()` / `err()`
-  - **Should standardize to one approach**
+- ✅ **Resolved (Sprint 2):** Backend view helpers now consistently use `success_response()`, `error_response()`, and `validation_error_response()`.
 
 - Query parameter naming: Mixed snake_case usage:
   - `mata_kuliah` (snake_case) ✅
@@ -164,7 +145,7 @@ The EduTask project demonstrates solid foundational architecture and clean separ
 
 ### 🔴 **HIGH PRIORITY DUPLICATIONS**
 
-#### 1. **Response Helper Functions** (Backend)
+#### 1. **Response Helper Functions** (Backend) — ✅ Addressed Sprint 2
 **Location:** `tasks/views.py`, `schedules/views.py`
 ```python
 # Duplicated in 2 files
@@ -174,14 +155,13 @@ def ok(data=None, message='', code=status.HTTP_200_OK):
 def err(errors=None, message='Terjadi kesalahan.', code=status.HTTP_400_BAD_REQUEST):
     return Response({'success': False, 'message': message, 'errors': errors}, status=code)
 ```
-**Impact:** Maintenance burden, inconsistency risk  
-**Recommendation:** Create `apps/common/responses.py` or `apps/common/utils.py`
+**Status:** Standardized through `apps/common/utils.py` and used by auth, task, schedule, and exception handling code.
 
 #### 2. **Validation Logic Duplication** (Backend) — ✅ Addressed Sprint 2
 **Location:** `apps/common/serializers.py` (mixins + helpers), consumed by task/auth/schedule serializers  
 **Status:** Shared deadline, ownership, task input, mata kuliah, schedule, nama lengkap, and password validation; `OwnershipValidationMixin` delegates to `validate_resource_ownership()` in `utils.py`
 
-#### 3. **Token Claims Construction** (Backend)
+#### 3. **Token Claims Construction** (Backend) — ✅ Addressed Sprint 2
 **Location:** `CustomTokenObtainPairSerializer`, `build_auth_payload()`
 ```python
 # Claims added in 2 places:
@@ -190,8 +170,7 @@ token['role'] = user.role
 token['nama_lengkap'] = user.nama_lengkap
 token['tipe_akun'] = user.tipe_akun
 ```
-**Impact:** Inconsistency when updating claims  
-**Recommendation:** Extract to utility function
+**Status:** `apply_user_claims()` and `build_auth_tokens()` now centralize claim construction.
 
 #### 4. **`get_object()` Pattern** (Backend)
 **Location:** All detail views
@@ -225,34 +204,29 @@ Already has `setApiErrors()` to parse DRF errors - good pattern
 
 ## 5. CODE SMELLS & TECHNICAL DEBT
 
-### 🔴 **CRITICAL ISSUES**
+### 🟠 **REMAINING ISSUES**
 
-#### 1. **Inline Query Logic in Serializer** (High Priority)
-**File:** [tasks/serializers.py](tasks/serializers.py#L43-L55)
+#### 1. **Task Ordering Logic Placement** (Medium Priority)
+**File:** [tasks/models.py](tasks/models.py)
 ```python
-def create(self, validated_data):
-    from django.db.models import Max  # ← Import in method
-    validated_data['user'] = self.context['request'].user
-    status = validated_data.get('status', Task.Status.TODO)
-    max_urutan = Task.objects.filter(  # ← Business logic in serializer
-        user=validated_data['user'],
-        status=status
-    ).aggregate(Max('urutan'))['urutan__max'] or -1
-    validated_data['urutan'] = max_urutan + 1
-    return super().create(validated_data)
+class TaskManager(models.Manager):
+    def get_next_urutan(self, user, status):
+        max_urutan = self.filter(
+            user=user,
+            status=status,
+        ).aggregate(Max('urutan'))['urutan__max'] or -1
+        return max_urutan + 1
 ```
 **Issues:**
-- DB query in serializer (violates separation of concerns)
-- Import statement in method
-- Duplicated in multiple places likely
+- Ordering logic has moved out of the serializer, which is an improvement.
+- It still deserves a service/manager review before Kanban analytics, calendar, or reminders depend on ordering semantics.
 
-**Solution:** Move to model manager or service layer
+**Solution:** Keep current manager for Sprint 2, then introduce a small task service if Sprint 3 adds more task movement rules.
 
-#### 2. **Inconsistent Error Handling** (Medium Priority)
-**File:** Multiple auth views  
-- Some views return `AuthenticationFailed` with custom format
-- Some return DRF validation errors directly
-- No consistent error code mapping
+#### 2. **Authenticated Browser Smoke Coverage** (Medium Priority)
+- Backend automated tests cover critical auth/task/schedule paths.
+- Final browser smoke covered unauthenticated login/register responsive rendering.
+- Authenticated dashboard, task CRUD, schedule CRUD, and Kanban drag/drop still need manual or automated browser coverage.
 
 #### 3. **No Request Validation for User Ownership** (Medium Priority)
 **Pattern:** Most detail views check `user=request.user` but only at view level
@@ -267,22 +241,20 @@ def create(self, validated_data):
 #### 5. **Frontend: No Error Boundary** (Medium Priority)
 - React app has no error boundary for component crashes
 - Unhandled promise rejections not caught globally
-- useEffect in `TaskManagementPage` has empty dependencies in some cases
+- Route-level crashes would currently surface as a blank app
 
-#### 6. **Frontend: Direct localStorage Access** (Low-Medium Priority)
-- Multiple files access `localStorage` directly
-- No abstraction layer for token storage
-- Could be problematic for SSR or security-sensitive deployments
+#### 6. **Frontend Token Storage Abstraction** (Low-Medium Priority)
+- Token storage is centralized in `frontend/src/services/api.js`
+- A dedicated storage helper could make future security changes easier
+- Current approach is acceptable for this Vite SPA
 
 ---
 
 ### 🟡 **MODERATE ISSUES**
 
-#### 7. **Incomplete Validation Chain** (Backend)
-**Example:** `MataKuliah` creation doesn't validate:
-- Empty string names
-- Invalid hex color format
-- No duplicate prevention
+#### 7. **Validation Chain** (Backend) — ✅ Improved Sprint 2
+- Shared validation mixins cover task, mata kuliah, schedule, password, name, deadline, and ownership checks
+- Keep adding validation through `apps/common/serializers.py` rather than duplicating field-level checks
 
 #### 8. **Missing Index Hints** (Backend)
 - Models have no `db_index=True` on frequently queried fields

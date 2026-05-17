@@ -29,7 +29,7 @@ Known Issues:
 ---
 
 ## Sprint 2
-Status: In Progress
+Status: Completed
 
 Goals:
 - Stabilize existing features
@@ -70,12 +70,28 @@ Completed:
   - Centralized frontend API response extraction and query parameter building in `frontend/src/services/api.js`
   - Reduced duplicated task/schedule/auth service response and registration logic
   - Improved shared API error message parsing for nested validation errors
+- Final Sprint 2 audit and stabilization review
+  - Removed placeholder `href="#"` behavior from the login forgot-password control
+  - Verified frontend production build: `npm run build`
+  - Verified backend test suite: 44 tests passing with `./venv/bin/python manage.py test apps.authentication.tests apps.tasks.tests apps.schedules.tests --settings=config.settings_test`
+  - Verified final mobile/desktop login and register browser smoke check with no console errors
+  - Confirmed API response helpers, JWT claims, validation mixins, and frontend service helpers are centralized
 
 In Progress:
-- Documentation alignment
-- Authenticated browser smoke checks for dashboard, task, and schedule CRUD flows
+- Authenticated browser smoke checks for dashboard, task, schedule, and Kanban flows
 
 Pending:
 - Interactive calendar
 - Reminder system
 - Progress tracker
+- Email verification
+- Real OAuth integration
+
+## Sprint 3 Recommendations
+
+Recommended priorities:
+1. Interactive calendar for schedules and deadlines
+2. Reminder system foundation with clear backend scheduling strategy
+3. Progress tracker using real task completion data
+4. Authenticated end-to-end smoke tests for core flows
+5. Small backend maintainability pass for task ordering and owner lookup helpers

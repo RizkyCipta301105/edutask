@@ -39,6 +39,8 @@ Implemented:
 - Kanban board
 - Schedule CRUD
 - Profile management
+- Centralized backend validation and response envelopes
+- Role-based dashboard routing
 
 Partially implemented:
 - Dosen dashboard
@@ -61,17 +63,15 @@ Not implemented:
 - Some placeholder frontend metrics
 - OAuth labeling mismatch
 - Authenticated frontend CRUD smoke checks still need manual coverage
+- Task ordering logic should be reviewed before scale
+- No frontend error boundary yet
 
 ---
 
 ## Sprint Direction
 
-Sprint 2 priorities:
-1. Stabilization
-2. Testing
-3. Validation
-4. Cleanup
-5. Documentation consistency
+Sprint 2 status:
+- Completed stabilization, validation, testing, frontend cleanup, and documentation alignment pass
 
 Sprint 3 priorities:
 1. Calendar
