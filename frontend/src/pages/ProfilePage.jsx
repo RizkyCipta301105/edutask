@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useForm } from '../hooks/useForm'
 import InputField from '../components/common/InputField'
 import Navbar from '../components/common/Navbar'
+import SubmitButton from '../components/common/SubmitButton'
 import authService from '../services/authService'
 
 export default function ProfilePage() {
@@ -43,7 +44,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <Navbar />
-      <main className="mx-auto max-w-5xl px-6 py-10 lg:pl-[18rem] lg:pt-28">
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10 lg:pl-[18rem] lg:pt-28">
         <div className="flex items-center gap-3 mb-8">
           <button onClick={() => navigate('/dashboard')}
             className="text-primary-400 hover:text-primary-800 transition-colors">
@@ -72,9 +73,10 @@ export default function ProfilePage() {
         <div className="flex gap-1 bg-primary-50 p-1 rounded-xl mb-6">
           {[{ key: 'profile', label: 'Informasi Profil', icon: User }, { key: 'password', label: 'Ganti Password', icon: Lock }].map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setTab(key)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold rounded-lg transition-all duration-150
+              className={`flex-1 flex min-w-0 items-center justify-center gap-2 px-2 py-2 text-sm font-semibold rounded-lg transition-all duration-150
                 ${tab === key ? 'bg-white text-primary-700 shadow-sm' : 'text-primary-400 hover:text-primary-600'}`}>
-              <Icon size={15} />{label}
+              <Icon size={15} className="shrink-0" />
+              <span className="truncate">{label}</span>
             </button>
           ))}
         </div>
@@ -85,9 +87,10 @@ export default function ProfilePage() {
               <InputField label="Nama Lengkap" name="nama_lengkap" value={profileForm.values.nama_lengkap}
                 onChange={profileForm.handleChange} error={profileForm.errors.nama_lengkap} icon={User} required />
               <InputField label="Email" name="email" value={user?.email || ''} disabled hint="Email tidak dapat diubah." />
-              <button type="submit" disabled={profileForm.loading} className="btn-primary flex items-center justify-center gap-2">
-                {profileForm.loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Save size={16} /> Simpan Perubahan</>}
-              </button>
+              <SubmitButton loading={profileForm.loading} className="btn-primary flex items-center justify-center gap-2">
+                <Save size={16} />
+                Simpan Perubahan
+              </SubmitButton>
             </form>
           </div>
         )}
@@ -98,9 +101,10 @@ export default function ProfilePage() {
               <InputField label="Password Lama" name="password_lama" type="password" value={passForm.values.password_lama} onChange={passForm.handleChange} error={passForm.errors.password_lama} icon={Lock} required />
               <InputField label="Password Baru" name="password_baru" type="password" value={passForm.values.password_baru} onChange={passForm.handleChange} error={passForm.errors.password_baru} icon={Lock} hint="Minimal 8 karakter" required />
               <InputField label="Konfirmasi Password Baru" name="password_baru_confirm" type="password" value={passForm.values.password_baru_confirm} onChange={passForm.handleChange} error={passForm.errors.password_baru_confirm} icon={Lock} required />
-              <button type="submit" disabled={passForm.loading} className="btn-primary flex items-center justify-center gap-2">
-                {passForm.loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Lock size={16} /> Ubah Password</>}
-              </button>
+              <SubmitButton loading={passForm.loading} className="btn-primary flex items-center justify-center gap-2">
+                <Lock size={16} />
+                Ubah Password
+              </SubmitButton>
             </form>
           </div>
         )}

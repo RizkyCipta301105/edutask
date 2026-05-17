@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import GuestRoute from './components/common/GuestRoute'
+import RoleRoute from './components/common/RoleRoute'
 
 // Pages
 import LoginPage from './pages/LoginPage'
@@ -28,12 +29,18 @@ export default function App() {
         {/* Protected routes - redirect to login if not authenticated */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/dashboard/mahasiswa" element={<DashboardPage roleView="mahasiswa" />} />
-          <Route path="/dashboard/dosen"     element={<DashboardPage roleView="dosen" />} />
-          <Route path="/dashboard/umum"      element={<DashboardPage roleView="umum" />} />
-          <Route path="/tasks"     element={<TaskManagementPage />} />
-          <Route path="/schedule"  element={<SchedulePage />} />
-          <Route path="/profile"   element={<ProfilePage />} />
+          <Route element={<RoleRoute allowedRoles={['mahasiswa']} />}>
+            <Route path="/dashboard/mahasiswa" element={<DashboardPage roleView="mahasiswa" />} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={['dosen']} />}>
+            <Route path="/dashboard/dosen" element={<DashboardPage roleView="dosen" />} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={['umum']} />}>
+            <Route path="/dashboard/umum" element={<DashboardPage roleView="umum" />} />
+          </Route>
+          <Route path="/tasks" element={<TaskManagementPage />} />
+          <Route path="/schedule" element={<SchedulePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
         {/* Default redirects */}

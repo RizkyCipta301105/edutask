@@ -107,9 +107,10 @@ The EduTask project demonstrates solid foundational architecture and clean separ
 
 #### API Layer
 - ✅ `api.js` handles all HTTP concerns (interceptors, token management)
+- ✅ Shared helpers now centralize API envelope extraction and query parameter building
 - ✅ `authService.js` pure auth operations
 - ✅ `taskService.js` pure task operations
-- ✅ `scheduleService.js` (inferred) pure schedule operations
+- ✅ `scheduleService.js` pure schedule operations
 
 #### State Management
 - ✅ `AuthContext` cleanly manages auth state
@@ -202,7 +203,7 @@ def get_object(self, pk, user):
 **Impact:** DRY violation, could be abstracted to base class  
 **Recommendation:** Create base `UserOwnershipMixin` or similar
 
-#### 5. **Modal/Form State Management** (Frontend)
+#### 5. **Modal/Form State Management** (Frontend) — Partially Addressed Sprint 2
 **Location:** `TaskManagementPage`, `KanbanBoard`
 ```javascript
 // Both use similar patterns:
@@ -213,7 +214,8 @@ const saveTask = async (payload) => { ... }
 const deleteTask = async (id) => { ... }
 ```
 **Impact:** Code duplication in logic  
-**Recommendation:** Extract to custom hook `useTaskModal()` or similar
+**Status:** Shared presentational form primitives were added for loading buttons, password toggles, select fields, textarea fields, form errors, and loading states. Auth forms, `TaskModal`, and Kanban loading now reuse those pieces.
+**Remaining Recommendation:** Extract repeated modal open/edit/save/delete orchestration to a custom hook such as `useTaskModal()` when touching `TaskManagementPage` and `KanbanBoard` together.
 
 #### 6. **Validation/Error Setting** (Frontend)
 **Location:** `useForm.js` - Good consolidation here ✅  
@@ -290,8 +292,9 @@ def create(self, validated_data):
 - All endpoints at `/api/...` without version prefix
 - Makes future breaking changes harder
 
-#### 10. **Frontend: No Loading States on All Operations**
-- Modal doesn't show loading state during save
+#### 10. **Frontend: No Loading States on All Operations** — Partially Addressed Sprint 2
+- Shared `SubmitButton` standardizes save/login/register loading indicators
+- Shared `LoadingState` standardizes component-level loading display
 - Filters in `TaskManagementPage` could show loading skeletons
 
 ---
@@ -369,7 +372,7 @@ def create(self, validated_data):
 All API calls follow pattern:
 ```javascript
 const res = await api.get(...)
-return res.data.data  // Consistent extraction
+return getResponseData(res)  // Consistent envelope extraction
 ```
 
 #### 2. **Context Usage** (Frontend)
@@ -417,7 +420,8 @@ class Status(models.TextChoices):
 - UI rendering
 - Modal state
 
-**Could split:** Extract to custom hooks
+**Status:** Partially improved with shared loading/error handling and `useCallback` data fetching.
+**Could split:** Extract remaining filtering/data/modal orchestration to custom hooks.
 
 #### 3. **Implicit Dependencies** (Frontend)
 `useTasks` calls `fetchBoard()` on mount with no dependency array awareness
@@ -484,7 +488,7 @@ class Status(models.TextChoices):
    - Time: 4-6 hours
 
 ### **Phase 3: Nice-to-Have**
-9. **Extract Frontend Modal Logic** → Custom hook
+9. **Extract Remaining Frontend Modal Logic** → Custom hook
 10. **Add Error Boundary** to React app
 11. **Implement Request/Response Logging** middleware
 12. **Add Field-level Indexes** to models
@@ -525,4 +529,3 @@ class Status(models.TextChoices):
 3. Create tickets for each recommendation
 4. Establish code review checklist based on findings
 5. Consider implementing linting rules to prevent duplication patterns
-

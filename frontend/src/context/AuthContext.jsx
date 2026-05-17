@@ -5,24 +5,29 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import authService from '../services/authService'
 import { getAccessToken, clearTokens } from '../services/api'
+import { normalizeUserRole } from '../utils/authHelpers'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null)
-  const [loading, setLoading] = useState(true)  // cek session saat mount
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Cek sesi yang masih aktif saat aplikasi pertama dibuka
+  const loadProfile = useCallback(async () => {
+    const token = getAccessToken()
+    if (!token) {
+      setUser(null)
+      return null
+    }
+    const profile = await authService.getProfile()
+    setUser(profile)
+    return profile
+  }, [])
+
   useEffect(() => {
     const initAuth = async () => {
-      const token = getAccessToken()
-      if (!token) {
-        setLoading(false)
-        return
-      }
       try {
-        const profile = await authService.getProfile()
-        setUser(profile)
+        await loadProfile()
       } catch {
         clearTokens()
         setUser(null)
@@ -31,36 +36,36 @@ export function AuthProvider({ children }) {
       }
     }
     initAuth()
-  }, [])
+  }, [loadProfile])
 
   const login = useCallback(async (credentials) => {
-    const { user } = await authService.login(credentials)
-    setUser(user)
-    return user
+    const { user: loggedInUser } = await authService.login(credentials)
+    setUser(loggedInUser)
+    return loggedInUser
   }, [])
 
   const register = useCallback(async (data) => {
-    const { user } = await authService.register(data)
-    setUser(user)
-    return user
+    const { user: newUser } = await authService.register(data)
+    setUser(newUser)
+    return newUser
   }, [])
 
   const registerUmum = useCallback(async (data) => {
-    const { user } = await authService.registerUmum(data)
-    setUser(user)
-    return user
+    const { user: newUser } = await authService.registerUmum(data)
+    setUser(newUser)
+    return newUser
   }, [])
 
   const registerMahasiswa = useCallback(async (data) => {
-    const { user } = await authService.registerMahasiswa(data)
-    setUser(user)
-    return user
+    const { user: newUser } = await authService.registerMahasiswa(data)
+    setUser(newUser)
+    return newUser
   }, [])
 
   const registerDosen = useCallback(async (data) => {
-    const { user } = await authService.registerDosen(data)
-    setUser(user)
-    return user
+    const { user: newUser } = await authService.registerDosen(data)
+    setUser(newUser)
+    return newUser
   }, [])
 
   const logout = useCallback(async () => {
@@ -72,8 +77,11 @@ export function AuthProvider({ children }) {
     setUser((prev) => ({ ...prev, ...updatedData }))
   }, [])
 
+  const userRole = normalizeUserRole(user)
+
   const value = {
     user,
+    userRole,
     loading,
     isAuthenticated: !!user,
     login,
@@ -88,7 +96,6 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-// Custom hook
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth harus digunakan di dalam AuthProvider')

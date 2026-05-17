@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, User, UserPlus, Building2 } from 'lucide-react'
+import { Mail, Lock, User, UserPlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
 import { useForm } from '../../hooks/useForm'
 import InputField from '../common/InputField'
+import PasswordToggleButton from '../common/PasswordToggleButton'
+import SubmitButton from '../common/SubmitButton'
 
 const TIPE_AKUN_OPTIONS = [
   { value: 'umum',  label: 'Pengguna Umum',  desc: 'Tanpa afiliasi institusi' },
@@ -18,7 +20,7 @@ export default function RegisterForm() {
   const [showPass, setShowPass]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const { values, errors, loading, handleChange, setValue, handleSubmit, setApiErrors } = useForm({
+  const { values, errors, loading, handleChange, handleSubmit, setApiErrors } = useForm({
     nama_lengkap: '',
     email: '',
     tipe_akun: 'umum',
@@ -64,6 +66,7 @@ export default function RegisterForm() {
         error={errors.email}
         placeholder="nama@email.com"
         icon={Mail}
+        autoComplete="email"
         required
       />
 
@@ -110,13 +113,11 @@ export default function RegisterForm() {
         error={errors.password}
         placeholder="Minimal 8 karakter"
         icon={Lock}
+        autoComplete="new-password"
         hint="Gunakan kombinasi huruf, angka, dan simbol"
         required
         rightElement={
-          <button type="button" onClick={() => setShowPass((v) => !v)}
-            className="text-primary-400 hover:text-primary-600 transition-colors" tabIndex={-1}>
-            {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
+          <PasswordToggleButton visible={showPass} onToggle={() => setShowPass((v) => !v)} />
         }
       />
 
@@ -130,26 +131,17 @@ export default function RegisterForm() {
         error={errors.password_confirm}
         placeholder="Ulangi password"
         icon={Lock}
+        autoComplete="new-password"
         required
         rightElement={
-          <button type="button" onClick={() => setShowConfirm((v) => !v)}
-            className="text-primary-400 hover:text-primary-600 transition-colors" tabIndex={-1}>
-            {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
+          <PasswordToggleButton visible={showConfirm} onToggle={() => setShowConfirm((v) => !v)} />
         }
       />
 
-      {/* Submit */}
-      <button type="submit" disabled={loading} className="btn-primary flex items-center justify-center gap-2 mt-1">
-        {loading ? (
-          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <>
-            <UserPlus size={17} />
-            Buat Akun EduTask
-          </>
-        )}
-      </button>
+      <SubmitButton loading={loading}>
+        <UserPlus size={17} />
+        Buat Akun EduTask
+      </SubmitButton>
 
       <p className="text-center text-sm text-primary-500">
         Sudah punya akun?{' '}

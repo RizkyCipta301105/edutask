@@ -14,6 +14,8 @@ export default function InputField({
   rightElement,
   disabled,
   hint,
+  autoComplete,
+  className = '',
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -40,12 +42,14 @@ export default function InputField({
           placeholder={placeholder}
           disabled={disabled}
           required={required}
+          autoComplete={autoComplete}
           className={`
             input-field
             ${Icon ? 'pl-10' : ''}
             ${rightElement ? 'pr-10' : ''}
             ${error ? 'border-red-400 focus:ring-red-300' : ''}
             ${disabled ? 'opacity-50 cursor-not-allowed bg-primary-50' : ''}
+            ${className}
           `}
         />
 

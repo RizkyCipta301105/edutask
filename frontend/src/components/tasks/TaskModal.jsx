@@ -6,6 +6,9 @@ import { useEffect } from 'react'
 import { X, Calendar, BookOpen, AlignLeft, Save, CircleDashed } from 'lucide-react'
 import { useForm } from '../../hooks/useForm'
 import InputField from '../common/InputField'
+import SelectField from '../common/SelectField'
+import SubmitButton from '../common/SubmitButton'
+import TextareaField from '../common/TextareaField'
 import { PRIORITAS_STYLE } from '../../utils/taskHelpers'
 
 const PRIORITAS_OPTIONS = ['tinggi', 'sedang', 'rendah']
@@ -117,65 +120,55 @@ export default function TaskModal({ task = null, mataKuliah = [], onSave, onClos
             {errors.prioritas && <p className="error-text">{errors.prioritas}</p>}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="label">
-              <CircleDashed size={14} className="inline mr-1" />
-              Status
-            </label>
-            <select name="status" value={values.status} onChange={handleChange} className="input-field">
-              {STATUS_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
+          <SelectField
+            label="Status"
+            name="status"
+            value={values.status}
+            onChange={handleChange}
+            error={errors.status}
+            icon={CircleDashed}
+          >
+            {STATUS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </SelectField>
 
           {/* Mata Kuliah */}
-          <div className="flex flex-col gap-1.5">
-            <label className="label">
-              <BookOpen size={14} className="inline mr-1" />
-              Mata Kuliah
-              <span className="text-primary-400 font-normal text-xs ml-1">(opsional)</span>
-            </label>
-            <select
-              name="mata_kuliah"
-              value={values.mata_kuliah}
-              onChange={handleChange}
-              className="input-field"
-            >
-              <option value="">— Tanpa mata kuliah —</option>
-              {mataKuliah.map(mk => (
-                <option key={mk.id} value={mk.id}>{mk.nama}</option>
-              ))}
-            </select>
-            {errors.mata_kuliah && <p className="error-text">{errors.mata_kuliah}</p>}
-          </div>
+          <SelectField
+            label="Mata Kuliah"
+            name="mata_kuliah"
+            value={values.mata_kuliah}
+            onChange={handleChange}
+            error={errors.mata_kuliah}
+            icon={BookOpen}
+            optional
+          >
+            <option value="">— Tanpa mata kuliah —</option>
+            {mataKuliah.map(mk => (
+              <option key={mk.id} value={mk.id}>{mk.nama}</option>
+            ))}
+          </SelectField>
 
           {/* Deskripsi */}
-          <div className="flex flex-col gap-1.5">
-            <label className="label">Deskripsi
-              <span className="text-primary-400 font-normal text-xs ml-1">(opsional)</span>
-            </label>
-            <textarea
-              name="deskripsi"
-              value={values.deskripsi}
-              onChange={handleChange}
-              rows={3}
-              placeholder="Tambahkan catatan atau detail task..."
-              className="input-field resize-none"
-            />
-          </div>
+          <TextareaField
+            label="Deskripsi"
+            name="deskripsi"
+            value={values.deskripsi}
+            onChange={handleChange}
+            error={errors.deskripsi}
+            placeholder="Tambahkan catatan atau detail task..."
+            optional
+          />
 
           {/* Actions */}
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="btn-secondary flex-1">
               Batal
             </button>
-            <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2">
-              {loading
-                ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <><Save size={16} /> {isEdit ? 'Simpan Perubahan' : 'Buat Task'}</>
-              }
-            </button>
+            <SubmitButton loading={loading} className="btn-primary flex-1 flex items-center justify-center gap-2">
+              <Save size={16} />
+              {isEdit ? 'Simpan Perubahan' : 'Buat Task'}
+            </SubmitButton>
           </div>
         </form>
       </div>

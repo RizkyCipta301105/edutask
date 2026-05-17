@@ -3,8 +3,15 @@
  * Axios instance dengan JWT auto-refresh interceptor
  */
 import axios from 'axios'
+import { redirectToLogin } from '../utils/authHelpers'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Dev: use Vite proxy (/api → localhost:8000). Prod: use VITE_API_URL.
+export const API_BASE_URL = import.meta.env.DEV
+  ? ''
+  : (import.meta.env.VITE_API_URL || 'http://localhost:8000')
+
+const BASE_URL = API_BASE_URL
+const REFRESH_ENDPOINT = '/api/auth/token/refresh/'
 
 // ─── Axios instance utama ────────────────────────────────────────────────────
 const api = axios.create({
@@ -68,16 +75,19 @@ api.interceptors.response.use(
       if (!refreshToken) {
         isRefreshing = false
         clearTokens()
-        window.location.href = '/login'
+        redirectToLogin(window.location.pathname + window.location.search)
         return Promise.reject(error)
       }
 
       try {
-        const response = await axios.post(`${BASE_URL}/api/auth/token/refresh/`, {
+        const response = await axios.post(`${BASE_URL}${REFRESH_ENDPOINT}`, {
           refresh: refreshToken,
         })
 
-        const newAccessToken = response.data.data.access
+        const newAccessToken = getResponseData(response)?.access
+        if (!newAccessToken) {
+          throw new Error('Token refresh tidak ditemukan dalam respons.')
+        }
         localStorage.setItem('access_token', newAccessToken)
         api.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`
         processQueue(null, newAccessToken)
@@ -87,7 +97,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null)
         clearTokens()
-        window.location.href = '/login'
+        redirectToLogin(window.location.pathname + window.location.search)
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
@@ -110,5 +120,21 @@ export const clearTokens = () => {
 }
 
 export const getAccessToken = () => localStorage.getItem('access_token')
+
+export const getRefreshToken = () => localStorage.getItem('refresh_token')
+
+export const getResponseData = (response) => response.data?.data
+
+export const buildQueryParams = (filters = {}) => {
+  const params = new URLSearchParams()
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params.append(key, value)
+    }
+  })
+
+  return params
+}
 
 export default api

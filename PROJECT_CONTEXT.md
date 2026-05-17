@@ -54,12 +54,13 @@ Not implemented:
 
 ## Current Technical Debt
 
-- No automated testing
+- Limited automated testing
 - No CI/CD
-- Documentation inconsistency
+- Documentation consistency still needs ongoing maintenance
 - Schedule model uses string instead of FK
 - Some placeholder frontend metrics
 - OAuth labeling mismatch
+- Authenticated frontend CRUD smoke checks still need manual coverage
 
 ---
 

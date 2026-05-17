@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom'
-import { BarChart3, BookOpen, CalendarDays, CheckCircle2, Clock, GraduationCap, ListChecks, Users } from 'lucide-react'
+import { BarChart3, BookOpen, CalendarDays, CheckCircle2, Clock, ListChecks, Users } from 'lucide-react'
 import Navbar from '../components/common/Navbar'
 import KanbanBoard from '../components/kanban/KanbanBoard'
 import { useAuth } from '../context/AuthContext'
@@ -14,12 +14,12 @@ function StatCard({ icon: Icon, label, value, tone = 'gold' }) {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-lg ${tones[tone]}`}>
         <Icon size={22} />
       </div>
       <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold text-slate-950">{value}</p>
+      <p className="mt-1 text-2xl font-bold text-slate-950 sm:text-3xl">{value}</p>
     </div>
   )
 }
@@ -44,10 +44,10 @@ function RoleHeader({ role, user }) {
     <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-[#B8842A]">{role}</p>
-        <h1 className="text-4xl font-bold tracking-tight text-slate-950">{copy.title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{copy.title}</h1>
         <p className="mt-2 text-slate-500">{copy.subtitle}</p>
       </div>
-      <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
+      <div className="w-fit max-w-full truncate rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">
         {user?.nama_lengkap}
       </div>
     </div>
@@ -57,7 +57,7 @@ function RoleHeader({ role, user }) {
 function MahasiswaDashboard() {
   return (
     <>
-      <div className="mb-8 grid gap-4 md:grid-cols-3">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard icon={ListChecks} label="Task aktif" value="Aktif" />
         <StatCard icon={CalendarDays} label="Jadwal kuliah" value="Mingguan" tone="blue" />
         <StatCard icon={Clock} label="Deadline" value="Prioritas" tone="green" />
@@ -70,7 +70,7 @@ function MahasiswaDashboard() {
 function DosenDashboard() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard icon={BookOpen} label="Jadwal mengajar" value="Hari ini" tone="blue" />
         <StatCard icon={CheckCircle2} label="Tugas diberikan" value="Terpantau" />
         <StatCard icon={Users} label="Statistik mahasiswa" value="Aktif" tone="green" />
@@ -85,7 +85,7 @@ function DosenDashboard() {
             <p className="text-sm text-slate-500">Fondasi dashboard dosen untuk Sprint berikutnya.</p>
           </div>
         </div>
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {['Jadwal mengajar tersimpan', 'Daftar tugas yang diberikan', 'Statistik mahasiswa siap dikembangkan'].map(item => (
             <div key={item} className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-700">
               {item}
@@ -100,7 +100,7 @@ function DosenDashboard() {
 function UmumDashboard() {
   return (
     <>
-      <div className="mb-8 grid gap-4 md:grid-cols-3">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard icon={ListChecks} label="Personal task" value="Board" />
         <StatCard icon={Clock} label="Deadline" value="Terjadwal" tone="blue" />
         <StatCard icon={CheckCircle2} label="Progress" value="Tracked" tone="green" />
@@ -125,7 +125,7 @@ export default function DashboardPage({ roleView = null }) {
   return (
     <div className="min-h-screen bg-zinc-50">
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pl-[18rem] lg:pt-28">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:pl-[18rem] lg:pt-28">
         <RoleHeader role={roleView} user={user} />
         {roleView === 'dosen' ? <DosenDashboard /> : roleView === 'umum' ? <UmumDashboard /> : <MahasiswaDashboard />}
       </main>

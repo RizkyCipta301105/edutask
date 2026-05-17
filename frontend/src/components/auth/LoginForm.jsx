@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react'
+import { Mail, Lock, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
 import { useForm } from '../../hooks/useForm'
+import FormError from '../common/FormError'
 import InputField from '../common/InputField'
+import PasswordToggleButton from '../common/PasswordToggleButton'
+import SubmitButton from '../common/SubmitButton'
 
 export default function LoginForm() {
   const { login } = useAuth()
@@ -40,6 +43,7 @@ export default function LoginForm() {
         error={errors.email}
         placeholder="nama@email.com"
         icon={Mail}
+        autoComplete="email"
         required
       />
 
@@ -52,36 +56,19 @@ export default function LoginForm() {
         error={errors.password}
         placeholder="Masukkan password"
         icon={Lock}
+        autoComplete="current-password"
         required
         rightElement={
-          <button
-            type="button"
-            onClick={() => setShowPass((v) => !v)}
-            className="text-primary-400 hover:text-primary-600 transition-colors"
-            tabIndex={-1}
-          >
-            {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
+          <PasswordToggleButton visible={showPass} onToggle={() => setShowPass((v) => !v)} />
         }
       />
 
-      {/* Global error */}
-      {errors.non_field_errors && (
-        <p className="text-red-500 text-sm bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
-          {errors.non_field_errors}
-        </p>
-      )}
+      <FormError>{errors.non_field_errors}</FormError>
 
-      <button type="submit" disabled={loading} className="btn-primary flex items-center justify-center gap-2 mt-1">
-        {loading ? (
-          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <>
-            <LogIn size={17} />
-            Masuk ke EduTask
-          </>
-        )}
-      </button>
+      <SubmitButton loading={loading}>
+        <LogIn size={17} />
+        Masuk ke EduTask
+      </SubmitButton>
 
       <p className="text-center text-sm text-primary-500">
         Belum punya akun?{' '}

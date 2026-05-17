@@ -2,61 +2,55 @@
  * EduTask Auth Service
  * Semua API call yang berhubungan dengan autentikasi
  */
-import api, { saveTokens, clearTokens } from './api'
+import api, {
+  clearTokens,
+  getRefreshToken,
+  getResponseData,
+  saveTokens,
+} from './api'
 
 const AUTH_BASE = '/api/auth'
 
+function extractAuthPayload(response) {
+  const payload = getResponseData(response)
+  if (!payload) {
+    throw new Error('Respons autentikasi tidak valid.')
+  }
+  return payload
+}
+
+async function registerWithEndpoint(endpoint, data) {
+  const response = await api.post(endpoint, data)
+  const payload = extractAuthPayload(response)
+  const { tokens, user } = payload
+  saveTokens(tokens)
+  return { user, tokens }
+}
+
 const authService = {
-  register: async (data) => {
-    const response = await api.post(`${AUTH_BASE}/register/`, data)
-    const { tokens, user } = response.data.data
-    saveTokens(tokens)
-    return { user, tokens }
-  },
+  register: (data) => registerWithEndpoint(`${AUTH_BASE}/register/`, data),
 
-  registerUmum: async (data) => {
-    const response = await api.post(`${AUTH_BASE}/register/umum`, data)
-    const { tokens, user } = response.data.data
-    saveTokens(tokens)
-    return { user, tokens }
-  },
+  registerUmum: (data) => registerWithEndpoint(`${AUTH_BASE}/register/umum/`, data),
 
-  registerMahasiswa: async (data) => {
-    const response = await api.post(`${AUTH_BASE}/register/mahasiswa`, data)
-    const { tokens, user } = response.data.data
-    saveTokens(tokens)
-    return { user, tokens }
-  },
+  registerMahasiswa: (data) => registerWithEndpoint(`${AUTH_BASE}/register/mahasiswa/`, data),
 
-  registerDosen: async (data) => {
-    const response = await api.post(`${AUTH_BASE}/register/dosen`, data)
-    const { tokens, user } = response.data.data
-    saveTokens(tokens)
-    return { user, tokens }
-  },
+  registerDosen: (data) => registerWithEndpoint(`${AUTH_BASE}/register/dosen/`, data),
 
-  /**
-   * Login dengan email + password
-   * @param {{ email, password }} credentials
-   */
   login: async (credentials) => {
-  const response = await api.post(`${AUTH_BASE}/login`, credentials)
+    const response = await api.post(`${AUTH_BASE}/login/`, credentials)
+    const payload = extractAuthPayload(response)
+    const { access, refresh, user } = payload
 
-  const { access, refresh, user } = response.data.data
+    if (!access || !refresh) {
+      throw new Error('Token login tidak ditemukan dalam respons.')
+    }
 
-  saveTokens({
-    access,
-    refresh
-  })
+    saveTokens({ access, refresh })
+    return { user }
+  },
 
-  return { user }
-},
-
-  /**
-   * Logout - blacklist refresh token
-   */
   logout: async () => {
-    const refresh = localStorage.getItem('refresh_token')
+    const refresh = getRefreshToken()
     try {
       await api.post(`${AUTH_BASE}/logout/`, { refresh })
     } finally {
@@ -64,30 +58,19 @@ const authService = {
     }
   },
 
-  /**
-   * Ambil profil user yang sedang login
-   */
   getProfile: async () => {
     const response = await api.get(`${AUTH_BASE}/profile/`)
-    return response.data.data
+    return getResponseData(response)
   },
 
-  /**
-   * Update profil (nama / foto)
-   * @param {FormData|Object} data
-   */
   updateProfile: async (data) => {
     const isFormData = data instanceof FormData
     const response = await api.patch(`${AUTH_BASE}/profile/`, data, {
       headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
     })
-    return response.data.data
+    return getResponseData(response)
   },
 
-  /**
-   * Ganti password
-   * @param {{ password_lama, password_baru, password_baru_confirm }} data
-   */
   changePassword: async (data) => {
     const response = await api.post(`${AUTH_BASE}/change-password/`, data)
     return response.data

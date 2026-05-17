@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, GraduationCap, Lightbulb, Mail, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
-import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
+import { consumeAuthReturnPath, getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
+import { getApiErrorMessage } from '../utils/apiErrors'
 
 export default function LoginPage({ mode = 'universal' }) {
   const { login, logout } = useAuth()
@@ -29,9 +30,10 @@ export default function LoginPage({ mode = 'universal' }) {
         return
       }
       toast.success('Selamat datang kembali!')
-      navigate(getRoleDashboardPath(role), { replace: true })
+      const destination = consumeAuthReturnPath(getRoleDashboardPath(role))
+      navigate(destination, { replace: true })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Email atau password salah.')
+      toast.error(getApiErrorMessage(err, 'Email atau password salah.'))
     } finally {
       setLoading(false)
     }
@@ -39,27 +41,22 @@ export default function LoginPage({ mode = 'universal' }) {
 
   return (
     <main className="min-h-screen bg-zinc-50 md:grid md:grid-cols-2">
-      <section className="flex min-h-[300px] flex-col items-center justify-center bg-[#4B3A2F] px-8 py-12 text-center text-white md:min-h-screen">
-        <div className="relative mb-8 flex h-32 w-32 items-center justify-center">
-          <img
-            src="/sumber-rezeki-logo.jpeg"
-            alt="Sumber Rezeki"
-            className="absolute inset-0 h-full w-full rounded-full object-cover opacity-0"
-          />
+      <section className="flex min-h-[260px] flex-col items-center justify-center bg-[#4B3A2F] px-6 py-10 text-center text-white sm:min-h-[300px] md:min-h-screen md:px-8 md:py-12">
+        <div className="relative mb-6 flex h-28 w-28 items-center justify-center sm:mb-8 sm:h-32 sm:w-32">
           <Lightbulb size={84} className="text-white" strokeWidth={1.8} />
           <GraduationCap size={88} className="absolute -top-6 left-1/2 -translate-x-1/2 text-[#D2A34E]" strokeWidth={1.9} />
         </div>
-        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">Sumber Rezeki</h1>
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">Sumber Rezeki</h1>
         <p className="mt-4 text-sm font-semibold tracking-[0.24em] text-[#D2A34E]">INNOVATE. AUTOMATE. ELEVATE.</p>
       </section>
 
-      <section className="flex items-center justify-center px-6 py-12">
+      <section className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-md">
           <div className="mb-10">
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#B8842A]">
               {mode === 'dosen' ? 'Portal Dosen' : 'EduTask'}
             </p>
-            <h2 className="text-4xl font-bold text-slate-950">Selamat Datang</h2>
+            <h2 className="text-3xl font-bold text-slate-950 sm:text-4xl">Selamat Datang</h2>
             <p className="mt-2 text-slate-500">Masuk ke EduTask untuk mengelola project kamu.</p>
           </div>
 
@@ -104,7 +101,7 @@ export default function LoginPage({ mode = 'universal' }) {
               </span>
             </label>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
               <label className="flex items-center gap-2 text-slate-600">
                 <input
                   name="remember"

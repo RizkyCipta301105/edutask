@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from apps.common.utils import success_response, error_response, validation_error_response
 
+from .jwt_utils import build_auth_tokens
 from .models import User
 from .serializers import (
     RegisterSerializer,
@@ -24,18 +25,9 @@ from .serializers import (
 
 
 def build_auth_payload(user, request):
-    refresh = RefreshToken.for_user(user)
-    access = refresh.access_token
-    access['email'] = user.email
-    access['role'] = user.role
-    access['nama_lengkap'] = user.nama_lengkap
-    access['tipe_akun'] = user.tipe_akun
     return {
         'user': UserProfileSerializer(user, context={'request': request}).data,
-        'tokens': {
-            'access': str(access),
-            'refresh': str(refresh),
-        }
+        'tokens': build_auth_tokens(user),
     }
 
 

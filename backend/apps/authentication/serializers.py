@@ -7,6 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from apps.common.serializers import NamaLengkapValidationMixin, PasswordValidationMixin
+from .jwt_utils import apply_user_claims
 from .models import User
 
 CAMPUS_EMAIL_DOMAINS = ('@student.pens.ac.id', '@pens.ac.id')
@@ -25,13 +26,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     @classmethod
     def get_token(cls, user):
-        token = super().get_token(user)
-        token['email'] = user.email
-        token['role'] = user.role
-        token['nama_lengkap'] = user.nama_lengkap
-        token['tipe_akun'] = user.tipe_akun
-        token['is_email_verified'] = user.is_email_verified
-        return token
+        return apply_user_claims(super().get_token(user), user)
 
     def validate(self, attrs):
         data = super().validate(attrs)

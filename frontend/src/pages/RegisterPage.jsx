@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { ArrowRight, Check, GraduationCap, Mail, User, CreditCard, BookOpen, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
+import { getApiErrorMessage } from '../utils/apiErrors'
 
 const PRODI_OPTIONS = [
   'Teknologi Rekayasa Internet',
@@ -12,7 +13,7 @@ const PRODI_OPTIONS = [
   'Sistem Informasi',
 ]
 
-function AuthInput({ label, name, value, onChange, placeholder, type = 'text', icon: Icon, required = true }) {
+function AuthInput({ label, name, value, onChange, placeholder, type = 'text', icon: Icon, required = true, autoComplete }) {
   return (
     <label className="block">
       <span className="auth-label">{label}</span>
@@ -25,6 +26,7 @@ function AuthInput({ label, name, value, onChange, placeholder, type = 'text', i
           onChange={onChange}
           placeholder={placeholder}
           required={required}
+          autoComplete={autoComplete}
           className={`auth-input ${Icon ? 'pl-11' : ''}`}
         />
       </span>
@@ -34,10 +36,10 @@ function AuthInput({ label, name, value, onChange, placeholder, type = 'text', i
 
 function RegisterShell({ children, title, subtitle, wide = false }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-      <section className={`w-full rounded-[22px] border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}>
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-6 sm:py-10">
+      <section className={`w-full rounded-2xl border border-slate-200 bg-white px-4 py-7 shadow-sm sm:px-10 sm:py-8 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}>
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-950">{title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{title}</h1>
           <p className="mt-2 text-slate-500">{subtitle}</p>
         </div>
         {children}
@@ -128,9 +130,7 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
       toast.success(config.success)
       navigate(getRoleDashboardPath(normalizeUserRole(user)), { replace: true })
     } catch (err) {
-      const errors = err.response?.data?.errors
-      const firstError = errors && Object.values(errors)[0]
-      toast.error(Array.isArray(firstError) ? firstError[0] : firstError || err.response?.data?.message || 'Registrasi gagal.')
+      toast.error(getApiErrorMessage(err, 'Registrasi gagal.'))
     } finally {
       setLoading(false)
     }
@@ -140,9 +140,9 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     return (
       <RegisterShell title={config.title} subtitle={config.subtitle}>
         <form onSubmit={handleSubmit} className="space-y-5">
-          <AuthInput label="Full Name" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Enter your full name" icon={User} />
-          <AuthInput label="Email Address" name="email" type="email" value={values.email} onChange={handleChange} placeholder="example@email.com" icon={Mail} />
-          <AuthInput label="Password" name="password" type="password" value={values.password} onChange={handleChange} placeholder="Min. 8 characters" icon={Lock} />
+          <AuthInput label="Full Name" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Enter your full name" icon={User} autoComplete="name" />
+          <AuthInput label="Email Address" name="email" type="email" value={values.email} onChange={handleChange} placeholder="example@email.com" icon={Mail} autoComplete="email" />
+          <AuthInput label="Password" name="password" type="password" value={values.password} onChange={handleChange} placeholder="Min. 8 characters" icon={Lock} autoComplete="new-password" />
           <label className="flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="h-4 w-4 rounded border-slate-300" />
             I accept the <span className="text-[#B8842A]">Terms and Conditions</span>
@@ -158,10 +158,10 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     <RegisterShell title={config.title} subtitle={config.subtitle} wide>
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid gap-5 md:grid-cols-2">
-          <AuthInput label="Nama Lengkap" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Masukkan nama lengkap anda" icon={User} />
+          <AuthInput label="Nama Lengkap" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Masukkan nama lengkap anda" icon={User} autoComplete="name" />
           <AuthInput label={type === 'dosen' ? 'NIP' : 'NRP / NIM'} name={type === 'dosen' ? 'nip' : 'nrp'} value={type === 'dosen' ? values.nip : values.nrp} onChange={handleChange} placeholder={type === 'dosen' ? 'Masukkan NIP anda' : 'Masukkan NRP Anda'} icon={CreditCard} />
-          <AuthInput label={type === 'dosen' ? 'Email Dosen' : 'Email Kampus'} name="email" type="email" value={values.email} onChange={handleChange} placeholder={type === 'dosen' ? 'Masukkan email dosen' : 'Masukkan Email kampus'} icon={Mail} />
-          <AuthInput label="Password" name="password" type="password" value={values.password} onChange={handleChange} placeholder="Masukkan Password anda" icon={Lock} />
+          <AuthInput label={type === 'dosen' ? 'Email Dosen' : 'Email Kampus'} name="email" type="email" value={values.email} onChange={handleChange} placeholder={type === 'dosen' ? 'Masukkan email dosen' : 'Masukkan Email kampus'} icon={Mail} autoComplete="email" />
+          <AuthInput label="Password" name="password" type="password" value={values.password} onChange={handleChange} placeholder="Masukkan Password anda" icon={Lock} autoComplete="new-password" />
         </div>
 
         {type === 'dosen' ? (
@@ -190,7 +190,7 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
           </div>
         )}
 
-        <label className="flex items-center gap-3 text-sm text-slate-600">
+        <label className="flex items-start gap-3 text-sm text-slate-600 sm:items-center">
           <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="h-4 w-4 rounded border-slate-300" />
           {config.terms}
         </label>
