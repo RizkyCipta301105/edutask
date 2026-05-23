@@ -27,8 +27,8 @@ import DosenBroadcastView from '../components/dashboard/DosenBroadcastView'
 import CalendarView from '../components/dashboard/CalendarView'
 import Inbox from '../components/dashboard/Inbox'
 
-// Premium layout styles scoped under .yahya-dashboard
-import '../styles/yahya-dashboard.css'
+// Premium layout styles scoped under .edutask-dashboard
+import '../styles/dashboard.css'
 
 const STATUS_MAP = {
   todo: 'To Do',
@@ -333,7 +333,7 @@ export default function DashboardPage({ roleView = null }) {
   }
 
   return (
-    <div className="yahya-dashboard" style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
+    <div className="edutask-dashboard" style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
       <div className="app-container">
         {/* Sidebar Mobile Overlay */}
         <div className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={() => setSidebarOpen(false)} />
@@ -541,7 +541,7 @@ export default function DashboardPage({ roleView = null }) {
         </main>
       </div>
 
-      {/* --- MODALS (inside .yahya-dashboard scope) --- */}
+      {/* --- MODALS (inside .edutask-dashboard scope) --- */}
       {modalType === 'addTask' && (
         <AddTaskModal
           onClose={() => setModalType(null)}

@@ -1,0 +1,1195 @@
+/* ==========================================
+   Yahya Dashboard Styles
+   Scoped under .edutask-dashboard to avoid
+   conflicts with existing TailwindCSS.
+   ========================================== */
+
+.edutask-dashboard {
+  --bg-dark: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --border-color: #e5e7eb;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --accent: #111827;
+  --accent-hover: #374151;
+  --bg-hover: #f3f4f6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-main);
+}
+
+/* ── Page Header & Controls ────────────────── */
+.edutask-dashboard .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.edutask-dashboard .page-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111827;
+}
+
+.edutask-dashboard .page-controls {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.edutask-dashboard .control-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.edutask-dashboard .control-item:hover { color: #111827; }
+.edutask-dashboard .control-item.active-filter {
+  color: #111827;
+  font-weight: 700;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* ── Buttons ────────────────────────────────── */
+.edutask-dashboard .btn-dark {
+  background: #4b5563;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.edutask-dashboard .btn-dark:hover { background: #374151; }
+
+.edutask-dashboard .btn-outline {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.edutask-dashboard .btn-outline:hover { background: #f9fafb; }
+
+.edutask-dashboard .btn-icon {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.edutask-dashboard .btn-icon:hover { color: #111827; background: #f3f4f6; }
+
+/* ── Labels ─────────────────────────────────── */
+.edutask-dashboard .label {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* ── Backlog ────────────────────────────────── */
+.edutask-dashboard .yd-backlog {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.edutask-dashboard .section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  cursor: pointer;
+  color: #111827;
+}
+
+.edutask-dashboard .section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.edutask-dashboard .task-count {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.edutask-dashboard .section-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  color: #6b7280;
+}
+
+.edutask-dashboard .task-list-container {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.edutask-dashboard .task-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.edutask-dashboard .task-row:last-child { border-bottom: none; }
+.edutask-dashboard .task-row:hover { background: #f9fafb; }
+
+.edutask-dashboard .task-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edutask-dashboard .task-title {
+  font-size: 0.9rem;
+  color: #111827;
+  font-weight: 400;
+}
+
+.edutask-dashboard .task-labels {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.edutask-dashboard .unassigned {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.edutask-dashboard .add-task-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 0.9rem;
+  padding: 8px 0;
+  margin-top: 8px;
+  cursor: pointer;
+  margin-left: 24px;
+}
+.edutask-dashboard .add-task-inline:hover { color: #111827; }
+
+/* ── Kanban Board ───────────────────────────── */
+.edutask-dashboard .board-wrapper {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
+}
+
+.edutask-dashboard .kanban-board {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 24px;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.edutask-dashboard .kanban-col {
+  width: 320px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.edutask-dashboard .kanban-col-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.edutask-dashboard .kanban-col-count {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin-left: 8px;
+}
+
+.edutask-dashboard .kanban-col-actions {
+  display: flex;
+  gap: 8px;
+  color: #6b7280;
+}
+
+.edutask-dashboard .kanban-cards-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 60px;
+  padding: 2px;
+}
+
+.edutask-dashboard .kanban-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.edutask-dashboard .kanban-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-color: #d1d5db;
+}
+.edutask-dashboard .kanban-card.compact { padding: 8px 12px; min-height: auto; }
+
+.edutask-dashboard .kanban-card-drag-handle {
+  position: absolute;
+  top: 12px; right: 12px;
+  cursor: grab;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.edutask-dashboard .kanban-card:hover .kanban-card-drag-handle { opacity: 1; }
+.edutask-dashboard .kanban-card-drag-handle:active { cursor: grabbing; }
+.edutask-dashboard .kanban-card.compact .kanban-card-drag-handle { top: 8px; }
+
+.edutask-dashboard .kanban-card-body { cursor: pointer; }
+
+.edutask-dashboard .kanban-card-overlay {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border-color: #9ca3af;
+  transform: rotate(2deg);
+  opacity: 0.95;
+}
+
+.edutask-dashboard .kanban-card-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.edutask-dashboard .kanban-card-labels {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.edutask-dashboard .kanban-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.edutask-dashboard .kanban-add-card {
+  border: 1px dashed #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  color: #4b5563;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.edutask-dashboard .kanban-add-card:hover { background: #f9fafb; border-color: #9ca3af; }
+
+/* ── Inbox ──────────────────────────────────── */
+.edutask-dashboard .inbox-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.edutask-dashboard .inbox-sidebar {
+  width: 380px;
+  min-width: 380px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.edutask-dashboard .inbox-search {
+  padding: 20px 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.edutask-dashboard .inbox-search-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.edutask-dashboard .inbox-search-input input {
+  border: none;
+  outline: none;
+  margin-left: 10px;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.edutask-dashboard .inbox-edit-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  width: 44px; height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.2s;
+}
+.edutask-dashboard .inbox-edit-btn:hover { background: #e5e7eb; }
+
+.edutask-dashboard .inbox-list { flex: 1; overflow-y: auto; }
+
+.edutask-dashboard .inbox-item {
+  display: flex;
+  gap: 16px;
+  padding: 20px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+}
+.edutask-dashboard .inbox-item:hover { background: #f9fafb; }
+.edutask-dashboard .inbox-item.active { background: #f3f4f6; }
+
+.edutask-dashboard .inbox-item-icon { margin-top: 4px; color: #374151; }
+.edutask-dashboard .inbox-item-content { flex: 1; min-width: 0; }
+.edutask-dashboard .inbox-item-header { margin-bottom: 6px; }
+.edutask-dashboard .inbox-item-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111827;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.edutask-dashboard .inbox-item-user { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.edutask-dashboard .small-avatar-inbox {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.edutask-dashboard .inbox-item-name { font-weight: 500; font-size: 0.85rem; color: #374151; }
+.edutask-dashboard .inbox-item-text { font-size: 0.85rem; color: #6b7280; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.edutask-dashboard .inbox-item-time { font-size: 0.75rem; color: #9ca3af; }
+.edutask-dashboard .unread-dot { width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; position: absolute; top: 50%; right: 16px; transform: translateY(-50%); }
+
+.edutask-dashboard .inbox-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.edutask-dashboard .inbox-main-header {
+  padding: 16px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.edutask-dashboard .collab-label { font-size: 0.9rem; font-weight: 500; color: #374151; }
+.edutask-dashboard .collaborators { display: flex; align-items: center; }
+.edutask-dashboard .small-avatar-collab {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-right: -4px;
+}
+.edutask-dashboard .collab-add {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px dashed #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.edutask-dashboard .inbox-thread { flex: 1; overflow-y: auto; padding: 40px; }
+.edutask-dashboard .thread-content-wrapper { max-width: 800px; margin: 0 auto; }
+.edutask-dashboard .thread-header-info { margin-bottom: 40px; }
+.edutask-dashboard .thread-title { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 8px; }
+.edutask-dashboard .thread-meta { font-size: 0.9rem; color: #6b7280; }
+.edutask-dashboard .mention { color: #111827; font-weight: 500; cursor: pointer; }
+
+.edutask-dashboard .chat-messages-list { display: flex; flex-direction: column; gap: 32px; }
+.edutask-dashboard .chat-message { display: flex; gap: 16px; }
+.edutask-dashboard .chat-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.edutask-dashboard .chat-content { flex: 1; }
+.edutask-dashboard .chat-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.edutask-dashboard .chat-name { font-weight: 600; font-size: 1rem; color: #111827; }
+.edutask-dashboard .chat-time { font-size: 0.85rem; color: #9ca3af; }
+.edutask-dashboard .chat-text { font-size: 1rem; color: #374151; line-height: 1.5; }
+
+.edutask-dashboard .chat-input-area {
+  padding: 24px 32px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.edutask-dashboard .chat-icons { display: flex; gap: 8px; }
+.edutask-dashboard .chat-icon-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.edutask-dashboard .chat-icon-btn:hover { background: #f3f4f6; color: #374151; }
+
+.edutask-dashboard .chat-input-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 16px;
+}
+.edutask-dashboard .chat-input-box input { flex: 1; border: none; outline: none; font-size: 0.95rem; padding-right: 12px; }
+
+.edutask-dashboard .chat-send-btn {
+  background: #374151;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.edutask-dashboard .chat-send-btn:hover { background: #1f2937; }
+.edutask-dashboard .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.edutask-dashboard .emoji-picker-simple {
+  position: absolute;
+  bottom: 100%; right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 8px;
+  z-index: 10;
+}
+.edutask-dashboard .emoji-picker-simple span { cursor: pointer; font-size: 1.2rem; transition: transform 0.1s; }
+.edutask-dashboard .emoji-picker-simple span:hover { transform: scale(1.2); }
+
+/* ── Settings ───────────────────────────────── */
+.edutask-dashboard .settings-page { padding-bottom: 40px; }
+
+.edutask-dashboard .settings-row {
+  display: flex;
+  margin-bottom: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.edutask-dashboard .settings-row:last-child { border-bottom: none; }
+
+.edutask-dashboard .settings-left {
+  width: 300px;
+  padding-right: 40px;
+}
+.edutask-dashboard .settings-left h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+.edutask-dashboard .settings-left p { font-size: 0.9rem; color: #6b7280; line-height: 1.5; }
+
+.edutask-dashboard .settings-card {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+.edutask-dashboard .settings-card-content { padding: 24px; }
+.edutask-dashboard .settings-form-group { margin-bottom: 16px; }
+.edutask-dashboard .settings-form-group label { display: block; font-size: 0.9rem; margin-bottom: 8px; color: #374151; }
+
+.edutask-dashboard .settings-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+.edutask-dashboard .settings-input-wrapper input { flex: 1; border: none; outline: none; font-size: 0.95rem; }
+
+.edutask-dashboard .settings-card-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.edutask-dashboard .auth-status {
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.edutask-dashboard .auth-desc { display: flex; gap: 16px; padding: 24px; }
+
+.edutask-dashboard .session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.edutask-dashboard .session-item:last-child { border-bottom: none; }
+.edutask-dashboard .session-info { display: flex; gap: 16px; }
+.edutask-dashboard .session-icon { margin-top: 4px; }
+.edutask-dashboard .session-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.edutask-dashboard .session-badge {
+  font-size: 0.7rem;
+  border: 1px solid #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: #6b7280;
+}
+.edutask-dashboard .session-meta { font-size: 0.85rem; color: #6b7280; }
+
+.edutask-dashboard .deactivate-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: #f9fafb;
+}
+
+.edutask-dashboard .btn-danger-bg {
+  background: #e5e7eb;
+  color: #4b5563;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ── Report ─────────────────────────────────── */
+.edutask-dashboard .report-container { padding: 0 0 40px 0; max-width: 1200px; }
+.edutask-dashboard .report-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+}
+.edutask-dashboard .report-title { font-size: 1.75rem; font-weight: 700; color: #111827; margin-bottom: 4px; }
+.edutask-dashboard .report-subtitle { color: #6b7280; font-size: 0.95rem; }
+.edutask-dashboard .report-time-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.edutask-dashboard .report-time-filter:hover { border-color: #d1d5db; background: #f9fafb; }
+
+.edutask-dashboard .report-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.edutask-dashboard .report-stat-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.edutask-dashboard .report-stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.05); }
+
+.edutask-dashboard .stat-card-inner { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.edutask-dashboard .stat-icon-wrapper { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.edutask-dashboard .stat-trend { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 20px; }
+.edutask-dashboard .stat-trend.positive { background: #ecfdf5; color: #10b981; }
+.edutask-dashboard .stat-trend.negative { background: #fef2f2; color: #ef4444; }
+.edutask-dashboard .stat-label { font-size: 0.875rem; font-weight: 500; color: #6b7280; margin-bottom: 4px; display: block; }
+.edutask-dashboard .stat-value { font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 12px; }
+.edutask-dashboard .stat-desc { font-size: 0.8125rem; color: #9ca3af; }
+.edutask-dashboard .stat-progress-bar { height: 6px; background: #f3f4f6; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+.edutask-dashboard .stat-progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.edutask-dashboard .stat-footer { font-size: 0.75rem; color: #6b7280; }
+
+.edutask-dashboard .report-main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+.edutask-dashboard .report-chart-card,
+.edutask-dashboard .report-details-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+}
+.edutask-dashboard .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.edutask-dashboard .card-header h4,
+.edutask-dashboard .report-details-card h4 { font-size: 1.125rem; font-weight: 700; color: #111827; }
+.edutask-dashboard .legend-pills { display: flex; gap: 16px; }
+.edutask-dashboard .legend-pill { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 500; color: #6b7280; }
+.edutask-dashboard .legend-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.edutask-dashboard .modern-chart-area {
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  padding: 0 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.edutask-dashboard .chart-bar-column { flex: 1; display: flex; flex-direction: column; align-items: center; max-width: 80px; height: 100%; justify-content: flex-end; }
+.edutask-dashboard .bar-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; margin-bottom: 12px; }
+.edutask-dashboard .bar-fill { width: 32px; border-radius: 6px 6px 0 0; transition: height 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
+.edutask-dashboard .bar-fill:hover { filter: brightness(1.1); }
+.edutask-dashboard .bar-value-tooltip { position: absolute; top: -30px; background: #111827; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; opacity: 0; transform: translateY(10px); transition: all 0.2s; pointer-events: none; }
+.edutask-dashboard .bar-wrapper:hover .bar-value-tooltip { opacity: 1; transform: translateY(0); }
+.edutask-dashboard .bar-label { font-size: 0.75rem; font-weight: 600; color: #9ca3af; text-align: center; white-space: nowrap; }
+
+.edutask-dashboard .health-metrics { margin-top: 24px; display: flex; flex-direction: column; gap: 20px; }
+.edutask-dashboard .health-item { display: flex; flex-direction: column; gap: 8px; }
+.edutask-dashboard .health-info { display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500; color: #374151; }
+.edutask-dashboard .health-bar { height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden; }
+.edutask-dashboard .health-fill { height: 100%; border-radius: 4px; transition: width 1s ease-out; }
+.edutask-dashboard .view-full-report-btn {
+  width: 100%;
+  margin-top: 32px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.edutask-dashboard .view-full-report-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
+
+/* ── Notification Dropdown ──────────────────── */
+.edutask-dashboard .notif-dropdown {
+  position: absolute;
+  top: 100%; right: 0;
+  width: 320px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  z-index: 100;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.edutask-dashboard .notif-header { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; }
+.edutask-dashboard .notif-header span { color: #3b82f6; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+.edutask-dashboard .notif-item { padding: 12px 16px; border-bottom: 1px solid #f9fafb; font-size: 0.85rem; color: #374151; transition: background 0.2s; }
+.edutask-dashboard .notif-item.unread { background: #f0f9ff; }
+.edutask-dashboard .notif-item:hover { background: #f9fafb; }
+.edutask-dashboard .notif-time { font-size: 0.75rem; color: #9ca3af; margin-top: 4px; }
+
+/* ── Small Avatar ───────────────────────────── */
+.edutask-dashboard .small-avatar {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 1px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Dashboard Sub-Tabs ─────────────────────── */
+.edutask-dashboard .dashboard-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0;
+}
+
+.edutask-dashboard .dashboard-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.2s;
+}
+.edutask-dashboard .dashboard-tab:hover { color: #111827; }
+.edutask-dashboard .dashboard-tab.active {
+  color: #111827;
+  font-weight: 600;
+  border-bottom-color: #111827;
+}
+
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 1024px) {
+  .edutask-dashboard .control-label { display: none; }
+  .edutask-dashboard .kanban-col { width: 280px; min-width: 280px; }
+  .edutask-dashboard .inbox-sidebar { width: 300px; min-width: 300px; }
+  .edutask-dashboard .settings-row { flex-direction: column; }
+  .edutask-dashboard .settings-left { width: 100%; padding-right: 0; margin-bottom: 16px; }
+}
+
+/* ── Profile Dropdown ───────────────────────── */
+.edutask-dashboard .profile-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 220px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.edutask-dashboard .profile-header { padding: 16px; border-bottom: 1px solid #e5e7eb; }
+.edutask-dashboard .profile-name { font-weight: 600; color: #111827; font-size: 0.95rem; }
+.edutask-dashboard .profile-email { color: #6b7280; font-size: 0.85rem; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; }
+.edutask-dashboard .profile-menu { padding: 8px 0; display: flex; flex-direction: column; }
+.edutask-dashboard .profile-menu a { padding: 10px 16px; color: #374151; text-decoration: none; font-size: 0.9rem; transition: background 0.15s; }
+.edutask-dashboard .profile-menu a:hover { background: #f3f4f6; }
+.edutask-dashboard .profile-menu a.logout-link { color: #ef4444; border-top: 1px solid #f3f4f6; }
+.edutask-dashboard .profile-menu a.logout-link:hover { background: #fef2f2; }
+
+@media (max-width: 768px) {
+  .edutask-dashboard .mobile-menu-btn { display: inline-flex !important; align-items: center; justify-content: center; order: 1; color: #111827; }
+  .edutask-dashboard .sidebar-overlay { display: block !important; }
+  .edutask-dashboard .sidebar {
+    position: fixed;
+    z-index: 50;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    transition: left 0.3s ease;
+  }
+  .edutask-dashboard .sidebar.open { left: 0; box-shadow: 4px 0 24px rgba(0,0,0,0.1); }
+  .edutask-dashboard .header { padding-top: 16px; gap: 12px; flex-wrap: wrap; }
+  .edutask-dashboard .search-bar { display: flex; width: 100%; order: 3; margin-top: 4px; }
+  .edutask-dashboard .header-actions { margin-left: auto; order: 2; }
+  .edutask-dashboard .page-header { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+  .edutask-dashboard .page-title { font-size: 1.3rem; }
+  .edutask-dashboard .page-controls { width: 100%; overflow-x: auto; gap: 12px; padding-bottom: 4px; }
+  .edutask-dashboard .control-label { display: none; }
+  .edutask-dashboard .kanban-board { height: 100%; gap: 16px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding-bottom: 16px; }
+  .edutask-dashboard .kanban-col { width: 280px; min-width: 280px; scroll-snap-align: start; }
+  .edutask-dashboard .inbox-layout { flex-direction: column; }
+  .edutask-dashboard .inbox-sidebar { width: 100%; min-width: 100%; max-height: 40vh; border-right: none; border-bottom: 1px solid #e5e7eb; }
+  .edutask-dashboard .chat-input-area { padding: 16px; flex-wrap: wrap; gap: 8px; }
+  .edutask-dashboard .chat-input-box { width: 100%; order: 1; }
+  .edutask-dashboard .chat-icons { order: 2; }
+  .edutask-dashboard .chat-send-btn { order: 3; margin-left: auto; }
+  .edutask-dashboard .settings-row { flex-direction: column; }
+  .edutask-dashboard .settings-left { width: 100%; padding-right: 0; margin-bottom: 16px; }
+  .edutask-dashboard .report-stats-grid { grid-template-columns: 1fr; gap: 16px; }
+  .edutask-dashboard .report-main-grid { grid-template-columns: 1fr; }
+  .edutask-dashboard .task-row { flex-direction: column; gap: 12px; padding: 12px; }
+  .edutask-dashboard .task-labels { flex-wrap: wrap; }
+  .edutask-dashboard .dashboard-tabs { overflow-x: auto; }
+}
+
+@media (max-width: 480px) {
+  .edutask-dashboard .page-title { font-size: 1.1rem; }
+  .edutask-dashboard .kanban-col { width: 240px; min-width: 240px; }
+  .edutask-dashboard .kanban-card { padding: 12px; }
+  .edutask-dashboard .btn-dark { padding: 6px 12px; font-size: 0.8rem; }
+}
+
+/* ── Layout & Sidebar (Yahya) ───────────────── */
+.edutask-dashboard .app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #f9fafb !important;
+}
+
+.edutask-dashboard .sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: #ffffff !important;
+  border-right: 1px solid var(--border-color);
+}
+
+.edutask-dashboard .main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f9fafb !important;
+  padding: 24px 40px;
+}
+
+@media (max-width: 768px) {
+  .edutask-dashboard .main-content {
+    padding: 16px 20px;
+  }
+}
+
+.edutask-dashboard .page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.edutask-dashboard .page-content.no-scroll {
+  overflow: hidden;
+}
+
+.edutask-dashboard .page-content.scroll-y {
+  overflow-y: auto;
+}
+
+.edutask-dashboard .profile-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.edutask-dashboard .project-logo {
+  width: 32px;
+  height: 32px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edutask-dashboard .triangle {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid #111827;
+}
+
+.edutask-dashboard .profile-info h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.edutask-dashboard .profile-info p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.edutask-dashboard .nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edutask-dashboard .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.edutask-dashboard .nav-item:hover {
+  background: var(--bg-hover);
+}
+
+.edutask-dashboard .nav-item.active {
+  font-weight: 600;
+  color: #111827;
+  background: var(--bg-hover);
+}
+
+.edutask-dashboard .nav-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #111827;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+  padding: 0 12px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 24px;
+}
+
+.edutask-dashboard .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.edutask-dashboard .search-bar {
+  display: flex;
+  align-items: center;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 8px 16px;
+  width: 320px;
+}
+
+.edutask-dashboard .search-bar input {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  outline: none;
+  margin-left: 10px;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+/* ── Buttons ───────────────────────────── */
+.edutask-dashboard .btn-dark {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.edutask-dashboard .btn-dark:hover {
+  background: #374151;
+}
+
+.edutask-dashboard .invite-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.edutask-dashboard .invite-btn:hover {
+  background: #e5e7eb;
+}
+
+/* ── Header Actions & Mobile Sidebar ───────────────── */
+.edutask-dashboard .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.edutask-dashboard .user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.edutask-dashboard .mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.edutask-dashboard .sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.edutask-dashboard .sidebar-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Custom Scrollbars ─────────────────────────── */
+.edutask-dashboard .scroll-y::-webkit-scrollbar,
+.edutask-dashboard .kanban-cards-container::-webkit-scrollbar,
+.edutask-dashboard .kanban-board::-webkit-scrollbar,
+.edutask-dashboard .inbox-list::-webkit-scrollbar,
+.edutask-dashboard .inbox-thread::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.edutask-dashboard .scroll-y::-webkit-scrollbar-track,
+.edutask-dashboard .kanban-cards-container::-webkit-scrollbar-track,
+.edutask-dashboard .kanban-board::-webkit-scrollbar-track,
+.edutask-dashboard .inbox-list::-webkit-scrollbar-track,
+.edutask-dashboard .inbox-thread::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.edutask-dashboard .scroll-y::-webkit-scrollbar-thumb,
+.edutask-dashboard .kanban-cards-container::-webkit-scrollbar-thumb,
+.edutask-dashboard .kanban-board::-webkit-scrollbar-thumb,
+.edutask-dashboard .inbox-list::-webkit-scrollbar-thumb,
+.edutask-dashboard .inbox-thread::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+.edutask-dashboard .scroll-y::-webkit-scrollbar-thumb:hover,
+.edutask-dashboard .kanban-cards-container::-webkit-scrollbar-thumb:hover,
+.edutask-dashboard .kanban-board::-webkit-scrollbar-thumb:hover,
+.edutask-dashboard .inbox-list::-webkit-scrollbar-thumb:hover,
+.edutask-dashboard .inbox-thread::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+/* Firefox compatibility */
+.edutask-dashboard .scroll-y,
+.edutask-dashboard .kanban-cards-container,
+.edutask-dashboard .kanban-board,
+.edutask-dashboard .inbox-list,
+.edutask-dashboard .inbox-thread {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
