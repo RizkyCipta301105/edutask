@@ -13,12 +13,12 @@ const PRIORITIES = [
   { value: 'rendah', label: 'Rendah', color: '#16a34a' },
 ]
 
-export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [] }) {
+export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], initialDeadline = '' }) {
   const [judul, setJudul] = useState('')
   const [deskripsi, setDeskripsi] = useState('')
   const [status, setStatus] = useState('todo')
   const [prioritas, setPrioritas] = useState('sedang')
-  const [deadline, setDeadline] = useState('')
+  const [deadline, setDeadline] = useState(initialDeadline)
   const [mataKuliahId, setMataKuliahId] = useState('')
   const [showStatusDrop, setShowStatusDrop] = useState(false)
   const [showPriorityDrop, setShowPriorityDrop] = useState(false)

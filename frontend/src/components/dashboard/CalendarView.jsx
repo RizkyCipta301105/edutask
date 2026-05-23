@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-export default function CalendarView({ tasks = [], mataKuliah = [], onTaskClick, roleView = 'umum' }) {
+export default function CalendarView({ tasks = [], mataKuliah = [], onTaskClick, onDateClick, roleView = 'umum' }) {
   const [currentDate, setCurrentDate] = useState(new Date())
 
   const year = currentDate.getFullYear()
@@ -54,7 +54,13 @@ export default function CalendarView({ tasks = [], mataKuliah = [], onTaskClick,
       const dayClasses = (mataKuliah || []).filter(mk => mk.hari !== null && mk.hari !== undefined && Number(mk.hari) === currentDayOfWeek)
 
       cells.push(
-        <div key={i} className={`calendar-cell ${isToday ? 'today' : ''}`}>
+        <div 
+          key={i} 
+          className={`calendar-cell ${isToday ? 'today' : ''}`}
+          onClick={() => {
+            if (onDateClick) onDateClick(dateString)
+          }}
+        >
           <div className="calendar-date">{i}</div>
           <div className="calendar-events">
             {dayClasses.map(mk => (

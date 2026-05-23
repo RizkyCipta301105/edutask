@@ -152,7 +152,11 @@ class Task(models.Model):
 
     @property
     def is_overdue(self):
+        if not self.deadline:
+            return False
         return self.deadline < timezone.now().date() and self.status != self.Status.DONE
+
+
 
 
 class PenugasanDosen(models.Model):
@@ -191,15 +195,23 @@ class TaskComment(models.Model):
         ordering = ['created_at']
 
 class Notification(models.Model):
+    """Sistem notifikasi untuk user, misal: reminder deadline."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-    pesan = models.CharField(max_length=255)
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications')
+    title = models.CharField(max_length=255)
+    message = models.TextField(blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'notification'
+        db_table = 'task_notification'
         ordering = ['-created_at']
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+
+    def __str__(self):
+        return f"{self.title} - {self.user.email}"
 
 # Register signals
 import apps.tasks.signals  # noqa

@@ -1193,3 +1193,60 @@
   scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
 }
 
+
+.edutask-dashboard .calendar-cell {
+  background: white;
+  border: 1px solid #e5e7eb;
+  min-height: 100px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.edutask-dashboard .calendar-cell:not(.empty) {
+  cursor: pointer;
+}
+.edutask-dashboard .calendar-cell:not(.empty):hover {
+  background: #f9fafb;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+}
+.edutask-dashboard .calendar-cell.today {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+.edutask-dashboard .calendar-date {
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.edutask-dashboard .calendar-cell.today .calendar-date {
+  color: #2563eb;
+}
+.edutask-dashboard .calendar-events {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.edutask-dashboard .calendar-event {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: white;
+  font-weight: 500;
+}
+.edutask-dashboard .calendar-class-event {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 0 4px 4px 0;
+  background: #f3f4f6;
+  margin-bottom: 2px;
+}
+.edutask-dashboard .calendar-event.status-todo { background: #9ca3af; }
+.edutask-dashboard .calendar-event.status-in-progress { background: #3b82f6; }
+.edutask-dashboard .calendar-event.status-done { background: #10b981; }
+

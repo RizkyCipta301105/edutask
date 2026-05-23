@@ -129,7 +129,7 @@ class TaskCRUDSecurityAPITestCase(APITestCase):
         )
         self._login('bob_detail@example.com', 'Pass12345!')
         r = self.client.get(self._task_detail_url(t))
-        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_cannot_update_another_users_task(self):
         alice = User.objects.create_user(
@@ -150,7 +150,7 @@ class TaskCRUDSecurityAPITestCase(APITestCase):
             {'judul': 'Hijacked'},
             format='json',
         )
-        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
         t.refresh_from_db()
         self.assertEqual(t.judul, 'No hijack')
 
@@ -169,7 +169,7 @@ class TaskCRUDSecurityAPITestCase(APITestCase):
         )
         self._login('bob_del@example.com', 'Pass12345!')
         r = self.client.delete(self._task_detail_url(t))
-        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(r.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(Task.objects.filter(pk=t.pk).exists())
 
     # ── 7. Deadline on create ───────────────────────────────────────────────

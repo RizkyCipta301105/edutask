@@ -53,7 +53,9 @@ def broadcast_penugasan_ke_mahasiswa(sender, instance, action, pk_set, **kwargs)
                     # Buat Notifikasi
                     Notification.objects.create(
                         user=mhs,
-                        pesan=f'Tugas baru: "{instance.judul}" dari {instance.dosen.nama_lengkap}.'
+                        task=Task.objects.filter(user=mhs, source_assignment=instance).first(),
+                        title="Tugas Baru dari Dosen",
+                        message=f'Tugas baru: "{instance.judul}" dari {instance.dosen.nama_lengkap}.'
                     )
 
 @receiver(post_delete, sender=Task)

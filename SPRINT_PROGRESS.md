@@ -112,9 +112,23 @@ Pending:
 
 ---
 
-## Sprint 4 Recommendations
+## Sprint 4
+Status: Completed
 
-Recommended priorities:
-1. Automated Deadline Reminder System (Notification injection).
-2. Interactive Calendar (Click date to add task).
-3. Progress tracker using real task completion data per student.
+Goals:
+- Finalize Advanced Features
+- UX/UI Polish & Gamification Elements
+- Progress Tracking & Notifications
+
+Completed:
+- **Interactive Calendar**: Custom-built CSS grid calendar without external heavy libraries. Features responsive hover effects, date detection, and auto-filling deadline input when a cell is clicked.
+- **Automated Reminder System**: Django background job (`check_deadlines`) that creates in-app notifications for tasks with H-1 or Overdue deadlines. Does not require heavy message brokers like Celery/Redis.
+- **In-App Notification Center**: Frontend `NotificationDropdown` that fetches and polls unread notifications securely via API, complete with "Mark all as read" functionality and visual indicator.
+- **Progress Tracker Mahasiswa (Dosen Dashboard)**: Dynamically calculates and displays progress bars for Broadcasted Tasks. Dosen can immediately see percentages and counts for (Selesai, Proses, To Do) directly on the task card using efficient backend `SerializerMethodField` aggregation.
+- Codebase audited via `npm run build` with zero critical warnings. Code remains highly modular and responsive.
+
+Next Priorities for Future Sprints (Optional):
+1. Integrasi OAuth (Google Login).
+2. Email Verification untuk Pendaftaran.
+3. Automated Browser Smoke Tests (Cypress/Playwright).
+

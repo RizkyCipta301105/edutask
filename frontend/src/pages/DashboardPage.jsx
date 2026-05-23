@@ -26,6 +26,7 @@ import SettingsView from '../components/dashboard/SettingsView'
 import DosenBroadcastView from '../components/dashboard/DosenBroadcastView'
 import CalendarView from '../components/dashboard/CalendarView'
 import Inbox from '../components/dashboard/Inbox'
+import NotificationDropdown from '../components/dashboard/NotificationDropdown'
 
 // Premium layout styles scoped under .edutask-dashboard
 import '../styles/dashboard.css'
@@ -57,30 +58,15 @@ export default function DashboardPage({ roleView = null }) {
   const [selectedTask, setSelectedTask] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(null)
   
   // Modals
   const [showMataKuliahModal, setShowMataKuliahModal] = useState(false)
 
-  const [showNotifications, setShowNotifications] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   
-  // Real-time notifications from API
-  const [notifications, setNotifications] = useState([])
-
   // State khusus Dosen
   const [dosenReportStats, setDosenReportStats] = useState(null)
-
-  // Fetch Notifications with Polling
-  useEffect(() => {
-    const fetchNotifs = () => {
-      taskService.getNotifications()
-        .then(res => setNotifications(res))
-        .catch(err => console.error("Gagal memuat notifikasi:", err))
-    }
-    fetchNotifs()
-    const intervalId = setInterval(fetchNotifs, 30000)
-    return () => clearInterval(intervalId)
-  }, [])
 
   // Mengambil Rekap Report Dosen saat tab Report dibuka
   useEffect(() => {
@@ -184,12 +170,9 @@ export default function DashboardPage({ roleView = null }) {
       .slice(0, 2)
   }, [user])
 
-  // Utility to push local notifications
+  // Utility to push local notifications (Disabled since migrated to API-based NotificationDropdown)
   const addNotification = (text) => {
-    setNotifications(prev => [
-      { id: Date.now(), pesan: text, is_read: false, created_at: new Date().toISOString() },
-      ...prev
-    ])
+    // No-op
   }
 
   // --- CRUD Handlers ---
@@ -207,8 +190,20 @@ export default function DashboardPage({ roleView = null }) {
     setModalType('taskDetail')
   }
 
-  const handleAddTaskClick = () => {
+  const handleAddTask = () => {
+    setSelectedDate(null)
     setModalType('addTask')
+  }
+
+  const handleDateClick = (dateString) => {
+    setSelectedDate(dateString)
+    setModalType('addTask')
+  }
+
+  const handleCloseModal = () => {
+    setModalType(null)
+    setSelectedTask(null)
+    setSelectedDate(null)
   }
 
   const handleCreateTask = async (data) => {
@@ -298,7 +293,7 @@ export default function DashboardPage({ roleView = null }) {
             <Backlog
               tasks={tasks}
               onTaskClick={handleTaskClick}
-              onAddTask={handleAddTaskClick}
+              onAddTask={handleAddTask}
               searchQuery={searchQuery}
               roleView={roleView}
             />
@@ -316,13 +311,13 @@ export default function DashboardPage({ roleView = null }) {
           <Board
             tasks={tasks}
             onTaskClick={handleTaskClick}
-            onAddTask={handleAddTaskClick}
+            onAddTask={handleAddTask}
             onMoveTask={handleMoveTask}
             roleView={roleView}
           />
         )
       case 'Calendar':
-        return <CalendarView tasks={tasks} mataKuliah={mataKuliah} onTaskClick={handleTaskClick} roleView={roleView} />
+        return <CalendarView tasks={tasks} mataKuliah={mataKuliah} onTaskClick={handleTaskClick} onDateClick={handleDateClick} roleView={roleView} />
       case 'Inbox':
         return <Inbox user={user} roleView={roleView} />
       case 'Settings':
@@ -450,52 +445,17 @@ export default function DashboardPage({ roleView = null }) {
 
             {/* Header Right Actions */}
             <div className="header-actions">
+              <NotificationDropdown />
               {/* Help Center */}
               <button className="btn-icon" onClick={() => setModalType('help')} title="Bantuan">
                 <HelpCircle size={20} />
               </button>
 
-              {/* Real-time Notifications Bell */}
-              <div style={{ position: 'relative' }}>
-                <button className="btn-icon" onClick={() => setShowNotifications(!showNotifications)}>
-                  <Bell size={20} />
-                  {notifications.some(n => !n.read) && (
-                    <span style={{ position: 'absolute', top: 2, right: 2, width: 8, height: 8, background: '#ef4444', borderRadius: '50%' }}></span>
-                  )}
-                </button>
-                
-                {showNotifications && (
-                  <div className="notif-dropdown">
-                    <div className="notif-header">
-                      <strong>Notifikasi</strong>
-                      <span style={{cursor: 'pointer'}} onClick={async () => {
-                        await taskService.markNotificationRead();
-                        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-                      }}>Tandai semua dibaca</span>
-                    </div>
-                    <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
-                      {notifications.map(n => (
-                        <div key={n.id} className={`notif-item ${n.is_read ? '' : 'unread'}`} onClick={async () => {
-                            if (!n.is_read) {
-                                await taskService.markNotificationRead(n.id);
-                                setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, is_read: true } : item));
-                            }
-                        }}>
-                          <div>{n.pesan}</div>
-                          <div className="notif-time">{new Date(n.created_at).toLocaleString('id-ID')}</div>
-                        </div>
-                      ))}
-                      {notifications.length === 0 && (
-                        <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>Tidak ada notifikasi</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+
 
               {/* Add Task Button (Scoped to Task Views) */}
               {(activeTab === 'Projects' || activeTab === 'Board') && (
-                <button className="btn-dark" onClick={handleAddTaskClick}>
+                <button className="btn-dark" onClick={handleAddTask}>
                   <Plus size={16} /> <span>Tambah task</span>
                 </button>
               )}
@@ -544,9 +504,10 @@ export default function DashboardPage({ roleView = null }) {
       {/* --- MODALS (inside .edutask-dashboard scope) --- */}
       {modalType === 'addTask' && (
         <AddTaskModal
-          onClose={() => setModalType(null)}
+          onClose={handleCloseModal}
           onCreateTask={handleCreateTask}
           mataKuliah={mataKuliah}
+          initialDeadline={selectedDate}
         />
       )}
 
@@ -624,10 +585,7 @@ export default function DashboardPage({ roleView = null }) {
         </div>
       )}
 
-      {/* Click Outside Notifications Handler */}
-      {showNotifications && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setShowNotifications(false)} />
-      )}
+
 
       {showMataKuliahModal && (
         <MataKuliahModal

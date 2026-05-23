@@ -220,9 +220,33 @@ export default function DosenBroadcastView({ user, onTaskClick }) {
                 <Calendar size={14} /> <span>Deadline: {new Date(tugas.deadline).toLocaleDateString('id-ID')}</span>
               </div>
 
+              {/* Progress Tracker Bar */}
+              {tugas.progress_stats && (
+                <div className="mb-4">
+                  <div className="mb-1 flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-700">Progress Pengerjaan</span>
+                    <span className="text-[#4B3A2F]">{tugas.progress_stats.percentage}% Selesai</span>
+                  </div>
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-inset ring-slate-200/50">
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-1000 ease-out"
+                      style={{ width: `${tugas.progress_stats.percentage}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-[10px] font-medium text-slate-500">
+                    <div className="flex gap-3">
+                      <span className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-emerald-500"></div> {tugas.progress_stats.done} Selesai</span>
+                      <span className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-amber-400"></div> {tugas.progress_stats.in_progress} Proses</span>
+                      <span className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-slate-300"></div> {tugas.progress_stats.todo} Belum</span>
+                    </div>
+                    <span className="text-slate-400 font-bold">{tugas.progress_stats.total} Total</span>
+                  </div>
+                </div>
+              )}
+
               {!progressData[tugas.id] ? (
-                <button onClick={() => fetchProgress(tugas.id)} className="w-full rounded border border-slate-200 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
-                  Lihat Progress Kelas
+                <button onClick={() => fetchProgress(tugas.id)} className="w-full rounded border border-slate-200 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                  <Users size={14} /> Lihat Detail Tiap Mahasiswa
                 </button>
               ) : (
                 <div className="rounded-lg bg-slate-50 p-3">

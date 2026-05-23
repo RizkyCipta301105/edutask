@@ -94,12 +94,13 @@ class PenugasanDosenSerializer(serializers.ModelSerializer):
         queryset=RuangEdukasi.objects.all(), many=True
     )
     ruang_detail = serializers.SerializerMethodField()
+    progress_stats = serializers.SerializerMethodField()
 
     class Meta:
         model = PenugasanDosen
         fields = [
             'id', 'dosen_nama', 'ruang_tujuan', 'ruang_detail', 'mata_kuliah',
-            'judul', 'deskripsi', 'deadline', 'prioritas', 'created_at'
+            'judul', 'deskripsi', 'deadline', 'prioritas', 'progress_stats', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
         
@@ -115,6 +116,21 @@ class PenugasanDosenSerializer(serializers.ModelSerializer):
                 'mahasiswa_count': mhs_count
             })
         return detail
+
+    def get_progress_stats(self, obj):
+        tasks = Task.objects.filter(source_assignment=obj)
+        total = tasks.count()
+        done = tasks.filter(status=Task.Status.DONE).count()
+        in_progress = tasks.filter(status=Task.Status.IN_PROGRESS).count()
+        todo = tasks.filter(status=Task.Status.TODO).count()
+        
+        return {
+            'total': total,
+            'done': done,
+            'in_progress': in_progress,
+            'todo': todo,
+            'percentage': int((done / total * 100)) if total > 0 else 0
+        }
 
     def create(self, validated_data):
         ruang_tujuan_data = validated_data.pop('ruang_tujuan', [])
@@ -138,5 +154,5 @@ class TaskCommentSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'user', 'pesan', 'is_read', 'created_at']
-        read_only_fields = ['id', 'user', 'created_at']
+        fields = ['id', 'user', 'task', 'title', 'message', 'is_read', 'created_at']
+        read_only_fields = ['id', 'user', 'task', 'created_at']
