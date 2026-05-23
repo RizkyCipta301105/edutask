@@ -6,8 +6,48 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
 from django.utils import timezone
+from django.utils import timezone
 
 
+import random
+import string
+
+def generate_join_code():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+class RuangEdukasi(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    kode_join = models.CharField(max_length=10, unique=True, default=generate_join_code)
+    nama_ruang = models.CharField(max_length=100, verbose_name='Nama Ruang')
+    deskripsi = models.TextField(blank=True, verbose_name='Deskripsi')
+    kreator = models.ForeignKey('User', on_delete=models.CASCADE, related_name='ruang_dibuat')
+    anggota = models.ManyToManyField('User', related_name='ruang_diikuti', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ruang_edukasi'
+        verbose_name = 'Ruang Edukasi'
+        verbose_name_plural = 'Ruang Edukasi'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.nama_ruang} ({self.kode_join})"
+
+class Kelas(models.Model):
+    """Model untuk kelas/rombongan belajar mahasiswa."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nama = models.CharField(max_length=50, unique=True, verbose_name='Nama Kelas')
+    tingkat = models.PositiveIntegerField(verbose_name='Tingkat / Tahun')
+    prodi = models.CharField(max_length=100, verbose_name='Program Studi')
+    
+    class Meta:
+        db_table = 'kelas'
+        verbose_name = 'Kelas'
+        verbose_name_plural = 'Kelas'
+        ordering = ['tingkat', 'nama']
+
+    def __str__(self):
+        return self.nama
 class UserManager(BaseUserManager):
     """Custom manager for EduTask User model."""
 
@@ -80,6 +120,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=100,
         blank=True,
         verbose_name='Program Studi'
+    )
+    kelas = models.ForeignKey(
+        Kelas,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='mahasiswa_list',
+        verbose_name='Kelas Mahasiswa'
     )
     nip = models.CharField(
         max_length=30,

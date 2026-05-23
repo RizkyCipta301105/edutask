@@ -87,11 +87,34 @@ Pending:
 - Email verification
 - Real OAuth integration
 
-## Sprint 3 Recommendations
+## Sprint 3
+Status: Completed
+
+Goals:
+- Implement Multi-role Dashboard (Umum, Mahasiswa, Dosen)
+- Ruang Edukasi (Classrooms)
+- Task Broadcast (Penugasan)
+- Advanced Analytics & Reporting
+
+Completed:
+- Adjusted Registration for specific roles (NIP/NRP replaced by email-based validation).
+- Dosen can create "Ruang Edukasi" and generate unique Join Codes.
+- Mahasiswa can join "Ruang Edukasi" using the Join Code.
+- Dosen can broadcast tasks (Penugasan) to all students in a Ruang Edukasi.
+- Separated Dosen Dashboard into "Penugasan" (Broadcast) and "Tugas Pribadi" (Personal Kanban Board).
+- Integrated `recharts` for advanced visualization (PieChart for Completion Rate, BarChart for Task Distribution).
+- Security Audit Passed (Zero Data Leakage confirmed via JWT and Queryset filtering).
+
+Pending:
+- Automated Reminder System (Backend)
+- Interactive Calendar (Drag & Drop, Click to Add)
+- Progress Tracker details per student
+
+---
+
+## Sprint 4 Recommendations
 
 Recommended priorities:
-1. Interactive calendar for schedules and deadlines
-2. Reminder system foundation with clear backend scheduling strategy
-3. Progress tracker using real task completion data
-4. Authenticated end-to-end smoke tests for core flows
-5. Small backend maintainability pass for task ordering and owner lookup helpers
+1. Automated Deadline Reminder System (Notification injection).
+2. Interactive Calendar (Click date to add task).
+3. Progress tracker using real task completion data per student.

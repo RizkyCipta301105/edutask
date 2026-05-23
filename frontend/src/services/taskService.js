@@ -37,8 +37,16 @@ const taskService = {
     const res = await api.post(`${BASE}/`, data)
     return getResponseData(res)
   },
+  getTaskDetail: async (id) => {
+    const res = await api.get(`${BASE}/${id}/`)
+    return getResponseData(res)
+  },
   updateTask: async (id, data) => {
-    const res = await api.put(`${BASE}/${id}/`, data)
+    let headers = {}
+    if (data instanceof FormData) {
+        headers = { 'Content-Type': 'multipart/form-data' }
+    }
+    const res = await api.put(`${BASE}/${id}/`, data, { headers })
     return getResponseData(res)
   },
   deleteTask: async (id) => {
@@ -54,6 +62,38 @@ const taskService = {
     const res = await api.patch(`${BASE}/${id}/move/`, { status, urutan })
     return getResponseData(res)
   },
+
+  // ── Penugasan Dosen (Khusus Dosen) ─────────────────────────────────────
+  getDosenReport: async () => {
+    const res = await api.get(`${BASE}/penugasan/report/`)
+    return getResponseData(res)
+  },
+
+  deletePenugasan: async (id) => {
+    const res = await api.delete(`${BASE}/penugasan/${id}/`)
+    return getResponseData(res)
+  },
+
+  // ── Comments (Sprint 3) ──────────────────────────────────────────────────
+  getComments: async (taskId) => {
+    const res = await api.get(`${BASE}/${taskId}/comments/`)
+    return getResponseData(res)
+  },
+  addComment: async (taskId, komentar) => {
+    const res = await api.post(`${BASE}/${taskId}/comments/`, { komentar })
+    return getResponseData(res)
+  },
+
+  // ── Notifications (Sprint 3) ─────────────────────────────────────────────
+  getNotifications: async () => {
+    const res = await api.get(`${BASE}/notifications/`)
+    return getResponseData(res)
+  },
+  markNotificationRead: async (id = null) => {
+    const url = id ? `${BASE}/notifications/${id}/read/` : `${BASE}/notifications/read/`
+    const res = await api.patch(url)
+    return getResponseData(res)
+  }
 }
 
 export default taskService

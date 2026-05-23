@@ -13,7 +13,9 @@ from .models import Task, MataKuliah
 from .serializers import (
     TaskSerializer, TaskCreateSerializer,
     MataKuliahSerializer, KanbanMoveSerializer,
+    PenugasanDosenSerializer, TaskCommentSerializer, NotificationSerializer
 )
+from .models import PenugasanDosen, TaskComment, Notification
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -144,7 +146,13 @@ class TaskDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self, pk, user):
-        return get_object_or_404(Task, pk=pk, user=user)
+        task = get_object_or_404(Task, pk=pk)
+        if task.user == user:
+            return task
+        if task.source_assignment and task.source_assignment.dosen == user:
+            return task
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Anda tidak memiliki akses ke tugas ini.")
 
     def get(self, request, pk):
         task = self.get_object(pk, request.user)
@@ -238,3 +246,170 @@ class KanbanMoveView(APIView):
             data=TaskSerializer(task, context={'request': request}).data,
             message=f'Task dipindahkan ke kolom {task.get_status_display()}.',
         )
+
+# ════════════════════════════════════════════════════════════════════════════
+#  PENUGASAN DOSEN (LMS)
+# ════════════════════════════════════════════════════════════════════════════
+
+class PenugasanDosenListCreateView(APIView):
+    """
+    GET  /api/tasks/penugasan/  → List semua penugasan yang dibuat dosen ini
+    POST /api/tasks/penugasan/  → Dosen membuat penugasan (Broadcast ke Mahasiswa)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'dosen':
+            return validation_error_response({}, message='Akses ditolak. Hanya untuk Dosen.')
+        
+        qs = PenugasanDosen.objects.filter(dosen=request.user).prefetch_related('ruang_tujuan')
+        return success_response(
+            data=PenugasanDosenSerializer(qs, many=True).data,
+            message='Daftar penugasan berhasil diambil.'
+        )
+
+    def post(self, request):
+        if request.user.role != 'dosen':
+            return validation_error_response({}, message='Akses ditolak. Hanya untuk Dosen.')
+            
+        ser = PenugasanDosenSerializer(data=request.data, context={'request': request})
+        if not ser.is_valid():
+            return validation_error_response(ser.errors, message='Gagal membuat penugasan.')
+            
+        penugasan = ser.save()
+        return success_response(
+            data=PenugasanDosenSerializer(penugasan).data,
+            message='Penugasan berhasil disebarkan ke Kanban seluruh Mahasiswa terkait!',
+            status_code=status.HTTP_201_CREATED
+        )
+
+
+class PenugasanDosenDetailView(APIView):
+    """
+    DELETE /api/tasks/penugasan/<id>/
+    Menghapus penugasan dosen sekaligus (cascade) menghapus tugas mahasiswa terkait.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        if request.user.role != 'dosen':
+            return validation_error_response({}, message='Akses ditolak.')
+            
+        penugasan = get_object_or_404(PenugasanDosen, pk=pk, dosen=request.user)
+        penugasan.delete()
+        
+        return success_response(
+            data={},
+            message='Penugasan beserta seluruh tugas di Kanban mahasiswa telah dihapus.'
+        )
+
+
+class PenugasanProgressView(APIView):
+    """
+    GET /api/tasks/penugasan/<id>/progress/
+    Melihat status penyelesaian tugas oleh mahasiswa di kelas yang dituju.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        penugasan = get_object_or_404(PenugasanDosen, pk=pk, dosen=request.user)
+        
+        # Ambil semua task turunan dari penugasan ini
+        tasks = Task.objects.filter(source_assignment=penugasan).select_related('user')
+        
+        progress_data = []
+        stats = {'todo': 0, 'in_progress': 0, 'done': 0}
+        
+        for t in tasks:
+            stats[t.status] += 1
+            progress_data.append({
+                'task_id': t.id,
+                'mahasiswa_nama': t.user.nama_lengkap,
+                'mahasiswa_kelas': '-',
+                'status': t.get_status_display(),
+                'status_raw': t.status,
+                'is_overdue': t.is_overdue,
+                'has_attachment': bool(t.attachment)
+            })
+            
+        return success_response(
+            data={'stats': stats, 'details': progress_data},
+            message='Progres mahasiswa berhasil diambil.'
+        )
+
+class PenugasanReportView(APIView):
+    """
+    GET /api/tasks/penugasan/report/
+    Merekap total progres seluruh mahasiswa dari SEMUA penugasan milik dosen ini.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'dosen':
+            return validation_error_response({}, message='Akses ditolak.')
+
+        tasks = Task.objects.filter(source_assignment__dosen=request.user)
+        stats = {'todo': 0, 'in_progress': 0, 'done': 0}
+        
+        for t in tasks:
+            if t.status in stats:
+                stats[t.status] += 1
+                
+        return success_response(
+            data={'stats': stats},
+            message='Rekap progres dosen berhasil diambil.'
+        )
+
+# ════════════════════════════════════════════════════════════════════════════
+#  TASK COMMENTS (Inbox/Diskusi)
+# ════════════════════════════════════════════════════════════════════════════
+
+class TaskCommentListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        comments = TaskComment.objects.filter(task=task)
+        return success_response(
+            data=TaskCommentSerializer(comments, many=True).data,
+            message='Komentar berhasil diambil.'
+        )
+
+    def post(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        ser = TaskCommentSerializer(data=request.data)
+        if ser.is_valid():
+            ser.save(task=task, user=request.user)
+            return success_response(
+                data=ser.data,
+                message='Komentar berhasil ditambahkan.',
+                status_code=status.HTTP_201_CREATED
+            )
+        return validation_error_response(ser.errors, message='Gagal menambahkan komentar.')
+
+# ════════════════════════════════════════════════════════════════════════════
+#  NOTIFICATIONS
+# ════════════════════════════════════════════════════════════════════════════
+
+class NotificationListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notifs = Notification.objects.filter(user=request.user)[:50] # limit 50
+        return success_response(
+            data=NotificationSerializer(notifs, many=True).data,
+            message='Notifikasi berhasil diambil.'
+        )
+
+class NotificationMarkReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk=None):
+        if pk:
+            notif = get_object_or_404(Notification, pk=pk, user=request.user)
+            notif.is_read = True
+            notif.save(update_fields=['is_read'])
+        else:
+            Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        
+        return success_response(message='Notifikasi ditandai telah dibaca.')

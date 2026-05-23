@@ -1,17 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ArrowRight, Check, GraduationCap, Mail, User, CreditCard, BookOpen, Lock } from 'lucide-react'
+import { ArrowRight, Check, GraduationCap, Mail, User, CreditCard, BookOpen, Lock, Lightbulb, ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
 import { getApiErrorMessage } from '../utils/apiErrors'
-
-const PRODI_OPTIONS = [
-  'Teknologi Rekayasa Internet',
-  'Teknik Informatika',
-  'Teknik Elektro',
-  'Sistem Informasi',
-]
+import authService from '../services/authService'
 
 function AuthInput({ label, name, value, onChange, placeholder, type = 'text', icon: Icon, required = true, autoComplete }) {
   return (
@@ -34,15 +28,26 @@ function AuthInput({ label, name, value, onChange, placeholder, type = 'text', i
   )
 }
 
-function RegisterShell({ children, title, subtitle, wide = false }) {
+function RegisterShell({ children, title, subtitle }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-6 sm:py-10">
-      <section className={`w-full rounded-2xl border border-slate-200 bg-white px-4 py-7 shadow-sm sm:px-10 sm:py-8 ${wide ? 'max-w-5xl' : 'max-w-xl'}`}>
-        <div className="mb-10 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{title}</h1>
-          <p className="mt-2 text-slate-500">{subtitle}</p>
+    <main className="min-h-screen bg-zinc-50 md:grid md:grid-cols-2">
+      <section className="flex min-h-[180px] flex-col items-center justify-center bg-[#4B3A2F] px-6 py-8 text-center text-white sm:min-h-[240px] md:min-h-screen md:px-8 md:py-12">
+        <div className="relative mb-4 flex h-20 w-20 items-center justify-center sm:mb-6 sm:h-28 sm:w-28 md:mb-8 md:h-32 md:w-32">
+          <Lightbulb className="h-full w-full text-white" strokeWidth={1.8} />
+          <GraduationCap className="absolute -top-3 left-1/2 h-[110%] w-[110%] -translate-x-1/2 text-[#D2A34E] md:-top-6" strokeWidth={1.9} />
         </div>
-        {children}
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">Sumber Rezeki</h1>
+        <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-[#D2A34E] sm:text-sm sm:tracking-[0.24em]">INNOVATE. AUTOMATE. ELEVATE.</p>
+      </section>
+
+      <section className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+        <div className="w-full max-w-xl">
+          <div className="mb-10 text-center md:text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{title}</h2>
+            <p className="mt-2 text-slate-500">{subtitle}</p>
+          </div>
+          {children}
+        </div>
       </section>
     </main>
   )
@@ -53,15 +58,16 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
   const auth = useAuth()
   const [loading, setLoading] = useState(false)
   const [accepted, setAccepted] = useState(false)
+  const [kelasList, setKelasList] = useState([])
   const [values, setValues] = useState({
     nama_lengkap: '',
-    nrp: '',
-    nip: '',
     email: '',
     password: '',
-    prodi: PRODI_OPTIONS[0],
-    mata_kuliah: '',
   })
+
+  useEffect(() => {
+    // No longer fetching kelas list
+  }, [type])
 
   const config = useMemo(() => {
     if (type === 'umum') {
@@ -115,14 +121,6 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
       email: values.email,
       password: values.password,
     }
-    if (type === 'mahasiswa') {
-      payload.nrp = values.nrp
-      payload.prodi = values.prodi
-    }
-    if (type === 'dosen') {
-      payload.nip = values.nip
-      payload.mata_kuliah = values.mata_kuliah
-    }
 
     try {
       setLoading(true)
@@ -157,38 +155,11 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
   return (
     <RegisterShell title={config.title} subtitle={config.subtitle} wide>
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-1">
           <AuthInput label="Nama Lengkap" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Masukkan nama lengkap anda" icon={User} autoComplete="name" />
-          <AuthInput label={type === 'dosen' ? 'NIP' : 'NRP / NIM'} name={type === 'dosen' ? 'nip' : 'nrp'} value={type === 'dosen' ? values.nip : values.nrp} onChange={handleChange} placeholder={type === 'dosen' ? 'Masukkan NIP anda' : 'Masukkan NRP Anda'} icon={CreditCard} />
           <AuthInput label={type === 'dosen' ? 'Email Dosen' : 'Email Kampus'} name="email" type="email" value={values.email} onChange={handleChange} placeholder={type === 'dosen' ? 'Masukkan email dosen' : 'Masukkan Email kampus'} icon={Mail} autoComplete="email" />
           <AuthInput label="Password" name="password" type="password" value={values.password} onChange={handleChange} placeholder="Masukkan Password anda" icon={Lock} autoComplete="new-password" />
         </div>
-
-        {type === 'dosen' ? (
-          <AuthInput label="Mata Kuliah" name="mata_kuliah" value={values.mata_kuliah} onChange={handleChange} placeholder="Contoh: Pemrograman Web" icon={BookOpen} />
-        ) : (
-          <div>
-            <p className="auth-label mb-3">Pilih Program Studi (Geser untuk memilih)</p>
-            <div className="flex gap-3 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              {PRODI_OPTIONS.map(prodi => (
-                <button
-                  key={prodi}
-                  type="button"
-                  onClick={() => setValues(prev => ({ ...prev, prodi }))}
-                  className={`whitespace-nowrap rounded-full border px-6 py-3 text-sm font-semibold transition-all duration-200 ${
-                    values.prodi === prodi
-                      ? 'border-[#4B3A2F] bg-[#4B3A2F] text-white shadow-sm'
-                      : 'border-slate-300 bg-white text-slate-600 hover:border-[#4B3A2F] hover:text-[#4B3A2F]'
-                  }`}
-                >
-                  {values.prodi === prodi && <Check size={15} className="mr-1 inline" />}
-                  {prodi}
-                </button>
-              ))}
-              <ArrowRight size={20} className="my-auto shrink-0 text-slate-400" />
-            </div>
-          </div>
-        )}
 
         <label className="flex items-start gap-3 text-sm text-slate-600 sm:items-center">
           <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} className="h-4 w-4 rounded border-slate-300" />

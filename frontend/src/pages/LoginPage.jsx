@@ -41,13 +41,13 @@ export default function LoginPage({ mode = 'universal' }) {
 
   return (
     <main className="min-h-screen bg-zinc-50 md:grid md:grid-cols-2">
-      <section className="flex min-h-[260px] flex-col items-center justify-center bg-[#4B3A2F] px-6 py-10 text-center text-white sm:min-h-[300px] md:min-h-screen md:px-8 md:py-12">
-        <div className="relative mb-6 flex h-28 w-28 items-center justify-center sm:mb-8 sm:h-32 sm:w-32">
-          <Lightbulb size={84} className="text-white" strokeWidth={1.8} />
-          <GraduationCap size={88} className="absolute -top-6 left-1/2 -translate-x-1/2 text-[#D2A34E]" strokeWidth={1.9} />
+      <section className="flex min-h-[180px] flex-col items-center justify-center bg-[#4B3A2F] px-6 py-8 text-center text-white sm:min-h-[240px] md:min-h-screen md:px-8 md:py-12">
+        <div className="relative mb-4 flex h-20 w-20 items-center justify-center sm:mb-6 sm:h-28 sm:w-28 md:mb-8 md:h-32 md:w-32">
+          <Lightbulb className="h-full w-full text-white" strokeWidth={1.8} />
+          <GraduationCap className="absolute -top-3 left-1/2 h-[110%] w-[110%] -translate-x-1/2 text-[#D2A34E] md:-top-6" strokeWidth={1.9} />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">Sumber Rezeki</h1>
-        <p className="mt-4 text-sm font-semibold tracking-[0.24em] text-[#D2A34E]">INNOVATE. AUTOMATE. ELEVATE.</p>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">Sumber Rezeki</h1>
+        <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-[#D2A34E] sm:text-sm sm:tracking-[0.24em]">INNOVATE. AUTOMATE. ELEVATE.</p>
       </section>
 
       <section className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
@@ -112,7 +112,16 @@ export default function LoginPage({ mode = 'universal' }) {
                 />
                 Ingat saya
               </label>
-              <button type="button" className="font-semibold text-[#B8842A] transition hover:text-[#4B3A2F]">
+              <button 
+                type="button" 
+                onClick={() => {
+                  const isDosen = mode === 'dosen'
+                  const contact = isDosen ? 'admin@pens.ac.id' : 'support@edutask.com'
+                  const target = isDosen ? 'administrator kampus' : 'tim bantuan EduTask'
+                  toast(`Silakan hubungi ${target} (${contact}) untuk bantuan reset password.`, { icon: 'ℹ️', duration: 5000 })
+                }}
+                className="font-semibold text-[#B8842A] transition hover:text-[#4B3A2F]"
+              >
                 Lupa Password?
               </button>
             </div>

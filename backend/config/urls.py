@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/auth/', include('apps.authentication.urls')),
     path('api/tasks/', include('apps.tasks.urls')),
     path('api/schedules/', include('apps.schedules.urls')),
+    path('api/inbox/', include('apps.inbox.urls')),
 ]
 
 if settings.DEBUG:

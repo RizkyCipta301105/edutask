@@ -8,7 +8,15 @@ import uuid
 from django.db import models
 from django.db.models import Max
 from django.utils import timezone
-from apps.authentication.models import User
+from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
+from apps.authentication.models import User, Kelas
+
+def validate_file_size(value):
+    filesize = value.size
+    if filesize > 10485760: # 10MB
+        raise ValidationError("Ukuran file maksimal adalah 10MB")
+    return value
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -44,6 +52,21 @@ class MataKuliah(models.Model):
     nama = models.CharField(max_length=100, verbose_name='Nama Mata Kuliah')
     nama_dosen = models.CharField(max_length=100, blank=True, verbose_name='Nama Dosen')
     warna = models.CharField(max_length=7, default='#8B6914', verbose_name='Warna (hex)')
+    
+    class HariPilihan(models.IntegerChoices):
+        SENIN = 1, 'Senin'
+        SELASA = 2, 'Selasa'
+        RABU = 3, 'Rabu'
+        KAMIS = 4, 'Kamis'
+        JUMAT = 5, 'Jumat'
+        SABTU = 6, 'Sabtu'
+        MINGGU = 0, 'Minggu'
+
+    hari = models.IntegerField(choices=HariPilihan.choices, null=True, blank=True, verbose_name='Hari Kuliah')
+    jam_mulai = models.TimeField(null=True, blank=True, verbose_name='Jam Mulai')
+    jam_selesai = models.TimeField(null=True, blank=True, verbose_name='Jam Selesai')
+    ruangan = models.CharField(max_length=150, blank=True, null=True, verbose_name='Ruangan / Link Zoom')
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -84,6 +107,11 @@ class Task(models.Model):
         null=True, blank=True, related_name='tasks',
         verbose_name='Mata Kuliah'
     )
+    source_assignment = models.ForeignKey(
+        'PenugasanDosen', on_delete=models.CASCADE,
+        null=True, blank=True, related_name='distributed_tasks',
+        verbose_name='Sumber Penugasan Dosen'
+    )
 
     # ── Data Task ─────────────────────────────────────────────────────────────
     judul       = models.CharField(max_length=200, verbose_name='Judul Task')
@@ -96,6 +124,14 @@ class Task(models.Model):
     status      = models.CharField(
         max_length=15, choices=Status.choices,
         default=Status.TODO, verbose_name='Status'
+    )
+    attachment  = models.FileField(
+        upload_to='task_attachments/', null=True, blank=True,
+        verbose_name='Lampiran Berkas',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx', 'zip', 'png', 'jpg', 'jpeg', 'xls', 'xlsx']),
+            validate_file_size
+        ]
     )
 
     # ── Kanban order (urutan kartu dalam kolom) ────────────────────────────
@@ -117,3 +153,53 @@ class Task(models.Model):
     @property
     def is_overdue(self):
         return self.deadline < timezone.now().date() and self.status != self.Status.DONE
+
+
+class PenugasanDosen(models.Model):
+    """Master penugasan yang dibuat oleh dosen untuk disebar ke kelas (Broadcast)."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dosen = models.ForeignKey(User, on_delete=models.CASCADE, related_name='penugasan_dibuat')
+    ruang_tujuan = models.ManyToManyField('authentication.RuangEdukasi', related_name='penugasan_diterima')
+    mata_kuliah = models.CharField(max_length=120, verbose_name='Mata Kuliah')
+    
+    judul = models.CharField(max_length=200, verbose_name='Judul Tugas')
+    deskripsi = models.TextField(blank=True, verbose_name='Deskripsi')
+    deadline = models.DateField(null=True, blank=True, verbose_name='Deadline')
+    prioritas = models.CharField(max_length=10, choices=Task.Prioritas.choices, default=Task.Prioritas.SEDANG)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'penugasan_dosen'
+        ordering = ['-created_at']
+        verbose_name = 'Penugasan Dosen'
+        verbose_name_plural = 'Penugasan Dosen'
+
+    def __str__(self):
+        return f"{self.judul} - {self.dosen.nama_lengkap}"
+
+class TaskComment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='task_comments')
+    komentar = models.TextField(verbose_name='Komentar')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'task_comment'
+        ordering = ['created_at']
+
+class Notification(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    pesan = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'notification'
+        ordering = ['-created_at']
+
+# Register signals
+import apps.tasks.signals  # noqa

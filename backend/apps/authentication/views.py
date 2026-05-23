@@ -12,7 +12,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from apps.common.utils import success_response, error_response, validation_error_response
 
 from .jwt_utils import build_auth_tokens
-from .models import User
+from .models import User, Kelas, RuangEdukasi
 from .serializers import (
     RegisterSerializer,
     RegisterMahasiswaSerializer,
@@ -21,6 +21,9 @@ from .serializers import (
     UserProfileSerializer,
     ChangePasswordSerializer,
     CustomTokenObtainPairSerializer,
+    KelasSerializer,
+    RuangEdukasiSerializer,
+    JoinRuangSerializer
 )
 
 
@@ -148,7 +151,7 @@ class LogoutView(APIView):
         try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return success_response(message='Logout berhasil.')
+            return success_response(message='Token berhasil dihapus (Logout).')
         except TokenError:
             return error_response(
                 message='Token tidak valid atau sudah kedaluwarsa.',
@@ -262,3 +265,124 @@ class ChangePasswordView(APIView):
         return success_response(
             message='Password berhasil diubah. Silakan login kembali dengan password baru.'
         )
+
+# ─── Data Master ─────────────────────────────────────────────────────────────
+
+class KelasListView(generics.ListAPIView):
+    """
+    GET /api/auth/kelas/
+    Mengambil daftar semua kelas yang tersedia untuk pendaftaran mahasiswa.
+    """
+    queryset = Kelas.objects.all()
+    serializer_class = KelasSerializer
+    permission_classes = [AllowAny]
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(
+            data=serializer.data,
+            message='Daftar kelas berhasil diambil.'
+        )
+
+# ─── Ruang Edukasi (Workspace Public) ───────────────────────────────────────────
+
+class RuangEdukasiListCreateView(generics.ListCreateAPIView):
+    """
+    GET /api/auth/ruang/ -> List ruang yang dikelola (dosen) atau diikuti (mhs).
+    POST /api/auth/ruang/ -> Buat ruang baru (Dosen/Umum).
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = RuangEdukasiSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == User.Role.DOSEN:
+            return RuangEdukasi.objects.filter(kreator=user)
+        else:
+            return RuangEdukasi.objects.filter(anggota=user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return success_response(data=serializer.data, message='Daftar ruang edukasi berhasil diambil.')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return validation_error_response(serializer.errors)
+        ruang = serializer.save(kreator=request.user)
+        return success_response(data=self.get_serializer(ruang).data, message=f'Ruang {ruang.nama_ruang} berhasil dibuat.')
+
+class RuangEdukasiDetailView(APIView):
+    """
+    DELETE /api/auth/ruang/<id>/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        from django.shortcuts import get_object_or_404
+        ruang = get_object_or_404(RuangEdukasi, pk=pk)
+        
+        # Hanya kreator yang bisa menghapus
+        if ruang.kreator != request.user:
+            return validation_error_response({}, message='Anda tidak memiliki akses untuk menghapus ruang ini.')
+            
+        ruang.delete()
+        return success_response(message='Ruang edukasi berhasil dihapus.')
+
+class RuangEdukasiJoinView(APIView):
+    """
+    POST /api/auth/ruang/join/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = JoinRuangSerializer(data=request.data)
+        if not serializer.is_valid():
+            return validation_error_response(serializer.errors)
+        
+        kode = serializer.validated_data['kode_join'].strip().upper()
+        try:
+            ruang = RuangEdukasi.objects.get(kode_join=kode)
+        except RuangEdukasi.DoesNotExist:
+            return error_response(message='Kode join tidak valid atau ruang tidak ditemukan.', status_code=status.HTTP_404_NOT_FOUND)
+        
+        ruang.anggota.add(request.user)
+        return success_response(message=f'Berhasil bergabung dengan ruang {ruang.nama_ruang}.')
+
+class RuangEdukasiMemberView(APIView):
+    """
+    GET /api/auth/ruang/<id>/members/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        from django.shortcuts import get_object_or_404
+        ruang = get_object_or_404(RuangEdukasi, pk=pk)
+        
+        # Harus kreator atau anggota
+        if ruang.kreator != request.user and not ruang.anggota.filter(id=request.user.id).exists():
+            return validation_error_response({}, message='Anda tidak memiliki akses ke ruang ini.')
+            
+        kreator_data = {
+            'id': ruang.kreator.id,
+            'nama': ruang.kreator.nama_lengkap,
+            'email': ruang.kreator.email,
+            'role': ruang.kreator.role
+        }
+        
+        anggota_qs = ruang.anggota.all()
+        anggota_data = [
+            {
+                'id': a.id,
+                'nama': a.nama_lengkap,
+                'email': a.email,
+                'role': a.role
+            } for a in anggota_qs
+        ]
+        
+        return success_response({
+            'kreator': kreator_data,
+            'anggota': anggota_data
+        }, message='Data anggota berhasil diambil.')

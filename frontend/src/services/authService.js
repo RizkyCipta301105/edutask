@@ -75,6 +75,37 @@ const authService = {
     const response = await api.post(`${AUTH_BASE}/change-password/`, data)
     return response.data
   },
+
+  getKelas: async () => {
+    const response = await api.get(`${AUTH_BASE}/kelas/`)
+    return getResponseData(response)
+  },
+
+  // ── Ruang Edukasi ─────────────────────────────────────────────────────────
+  getRuang: async () => {
+    const response = await api.get(`${AUTH_BASE}/ruang/`)
+    return getResponseData(response)
+  },
+  
+  createRuang: async (data) => {
+    const response = await api.post(`${AUTH_BASE}/ruang/`, data)
+    return getResponseData(response)
+  },
+
+  deleteRuang: async (id) => {
+    const response = await api.delete(`${AUTH_BASE}/ruang/${id}/`)
+    return getResponseData(response)
+  },
+
+  getRuangMembers: async (id) => {
+    const response = await api.get(`${AUTH_BASE}/ruang/${id}/members/`)
+    return getResponseData(response)
+  },
+
+  joinRuang: async (kode_join) => {
+    const response = await api.post(`${AUTH_BASE}/ruang/join/`, { kode_join })
+    return response.data
+  }
 }
 
 export default authService

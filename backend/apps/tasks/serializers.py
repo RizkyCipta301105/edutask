@@ -5,13 +5,17 @@ FR-05: Edit & Hapus Task
 FR-07: Kanban Board
 """
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from apps.common.serializers import (
     DatetimeValidationMixin,
     MataKuliahInputValidationMixin,
     OwnershipValidationMixin,
     TaskInputValidationMixin,
 )
-from .models import Task, MataKuliah
+from .models import Task, MataKuliah, PenugasanDosen, TaskComment, Notification
+from apps.authentication.models import User, Kelas, RuangEdukasi
+
+User = get_user_model()
 
 
 # ── MataKuliah Serializer ────────────────────────────────────────────────────
@@ -19,7 +23,7 @@ from .models import Task, MataKuliah
 class MataKuliahSerializer(MataKuliahInputValidationMixin, serializers.ModelSerializer):
     class Meta:
         model  = MataKuliah
-        fields = ['id', 'nama', 'nama_dosen', 'warna', 'created_at']
+        fields = ['id', 'nama', 'nama_dosen', 'warna', 'hari', 'jam_mulai', 'jam_selesai', 'ruangan', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 
@@ -40,6 +44,7 @@ class TaskSerializer(
             'id', 'judul', 'deskripsi', 'deadline',
             'prioritas', 'status', 'urutan',
             'mata_kuliah', 'mata_kuliah_detail',
+            'attachment',
             'is_overdue', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'is_overdue']
@@ -60,7 +65,7 @@ class TaskCreateSerializer(
         model  = Task
         fields = [
             'judul', 'deskripsi', 'deadline',
-            'prioritas', 'status', 'mata_kuliah',
+            'prioritas', 'status', 'mata_kuliah', 'attachment',
         ]
 
     def create(self, validated_data):
@@ -79,3 +84,59 @@ class KanbanMoveSerializer(serializers.Serializer):
     """Serializer untuk memindahkan task antar kolom Kanban (drag & drop)."""
     status = serializers.ChoiceField(choices=Task.Status.choices)
     urutan = serializers.IntegerField(min_value=0, required=False)
+
+
+# ── Penugasan Dosen Serializer ───────────────────────────────────────────────
+
+class PenugasanDosenSerializer(serializers.ModelSerializer):
+    dosen_nama = serializers.CharField(source='dosen.nama_lengkap', read_only=True)
+    ruang_tujuan = serializers.PrimaryKeyRelatedField(
+        queryset=RuangEdukasi.objects.all(), many=True
+    )
+    ruang_detail = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PenugasanDosen
+        fields = [
+            'id', 'dosen_nama', 'ruang_tujuan', 'ruang_detail', 'mata_kuliah',
+            'judul', 'deskripsi', 'deadline', 'prioritas', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+        
+    def get_ruang_detail(self, obj):
+        detail = []
+        # Pre-fetched via prefetch_related in view, so this is fast
+        for ruang in obj.ruang_tujuan.all():
+            mhs_count = ruang.anggota.filter(is_active=True).count()
+            detail.append({
+                'id': str(ruang.id),
+                'nama': ruang.nama_ruang,
+                'kode_join': ruang.kode_join,
+                'mahasiswa_count': mhs_count
+            })
+        return detail
+
+    def create(self, validated_data):
+        ruang_tujuan_data = validated_data.pop('ruang_tujuan', [])
+        validated_data['dosen'] = self.context['request'].user
+        penugasan = PenugasanDosen.objects.create(**validated_data)
+        penugasan.ruang_tujuan.set(ruang_tujuan_data)
+        return penugasan
+
+# ── Task Comment Serializer ──────────────────────────────────────────────────
+
+class TaskCommentSerializer(serializers.ModelSerializer):
+    user_nama = serializers.CharField(source='user.nama_lengkap', read_only=True)
+    
+    class Meta:
+        model = TaskComment
+        fields = ['id', 'task', 'user', 'user_nama', 'komentar', 'created_at']
+        read_only_fields = ['id', 'task', 'user', 'created_at']
+
+# ── Notification Serializer ──────────────────────────────────────────────────
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'user', 'pesan', 'is_read', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']

@@ -7,6 +7,14 @@
     box-sizing: border-box;
   }
 
+  .chat-icon-btn.small:hover {
+    background: #f3f4f6 !important;
+  }
+
+  .msg-container:hover .msg-actions {
+    opacity: 1 !important;
+  }
+
   body {
     background-color: #fdfaf4;
     color: #3d300a;
@@ -80,5 +88,15 @@
     @apply flex h-12 items-center justify-center rounded-full border border-[#4B3A2F]
            bg-white px-5 text-sm font-bold text-[#4B3A2F] transition-all duration-200
            hover:-translate-y-0.5 hover:bg-[#4B3A2F] hover:text-white hover:shadow-md;
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
 }

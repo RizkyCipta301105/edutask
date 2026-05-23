@@ -8,7 +8,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from apps.common.serializers import NamaLengkapValidationMixin, PasswordValidationMixin
 from .jwt_utils import apply_user_claims
-from .models import User
+from .models import User, Kelas, RuangEdukasi
 
 CAMPUS_EMAIL_DOMAINS = ('@student.pens.ac.id', '@pens.ac.id')
 PRODI_CHOICES = {
@@ -32,6 +32,32 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate(attrs)
         data['user'] = UserProfileSerializer(self.user).data
         return data
+
+
+# ─── Kelas Serializer ────────────────────────────────────────────────────────
+
+class KelasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Kelas
+        fields = ['id', 'nama', 'tingkat', 'prodi']
+
+
+# ─── Ruang Edukasi Serializer ────────────────────────────────────────────────────────
+
+class RuangEdukasiSerializer(serializers.ModelSerializer):
+    kreator_nama = serializers.CharField(source='kreator.nama_lengkap', read_only=True)
+    jumlah_anggota = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RuangEdukasi
+        fields = ['id', 'kode_join', 'nama_ruang', 'deskripsi', 'kreator_nama', 'jumlah_anggota', 'created_at']
+        read_only_fields = ['id', 'kode_join', 'kreator_nama', 'jumlah_anggota', 'created_at']
+
+    def get_jumlah_anggota(self, obj):
+        return obj.anggota.count()
+
+class JoinRuangSerializer(serializers.Serializer):
+    kode_join = serializers.CharField(required=True, max_length=10)
 
 
 # ─── Register Serializer ─────────────────────────────────────────────────────
@@ -112,7 +138,7 @@ class BaseRoleRegisterSerializer(
         user = User(
             **validated_data,
             role=role,
-            tipe_akun=User.TipeAkun.PENS if role == User.Role.MAHASISWA else User.TipeAkun.UMUM,
+            tipe_akun=User.TipeAkun.PENS if role in [User.Role.MAHASISWA, User.Role.DOSEN] else User.TipeAkun.UMUM,
             **extra_fields,
         )
         user.set_password(password)
@@ -126,64 +152,39 @@ class RegisterUmumSerializer(BaseRoleRegisterSerializer):
 
 
 class RegisterMahasiswaSerializer(BaseRoleRegisterSerializer):
-    nrp = serializers.CharField(required=True, max_length=30)
-    prodi = serializers.CharField(required=True, max_length=100)
-
     class Meta(BaseRoleRegisterSerializer.Meta):
-        fields = ['nama_lengkap', 'nrp', 'email', 'password', 'prodi']
+        fields = ['nama_lengkap', 'email', 'password']
 
     def validate_email(self, value):
         value = super().validate_email(value)
         if not value.endswith(CAMPUS_EMAIL_DOMAINS):
-            raise serializers.ValidationError('Email harus menggunakan domain kampus PENS.')
-        return value
-
-    def validate_nrp(self, value):
-        value = value.strip()
-        if User.objects.filter(nrp__iexact=value).exists():
-            raise serializers.ValidationError('NRP/NIM sudah terdaftar.')
-        return value
-
-    def validate_prodi(self, value):
-        if value not in PRODI_CHOICES:
-            raise serializers.ValidationError('Program studi tidak valid.')
+            raise serializers.ValidationError('Email harus menggunakan domain kampus.')
         return value
 
     def create(self, validated_data):
-        nrp = validated_data.pop('nrp')
-        prodi = validated_data.pop('prodi')
         return self.create_user(
             validated_data,
             User.Role.MAHASISWA,
-            nrp=nrp,
-            prodi=prodi,
         )
 
 
 class RegisterDosenSerializer(BaseRoleRegisterSerializer):
-    nip = serializers.CharField(required=True, max_length=30)
     mata_kuliah = serializers.CharField(required=True, max_length=120)
 
     class Meta(BaseRoleRegisterSerializer.Meta):
-        fields = ['nama_lengkap', 'nip', 'email', 'mata_kuliah', 'password']
+        fields = ['nama_lengkap', 'email', 'mata_kuliah', 'password']
 
-    def validate_nip(self, value):
-        value = value.strip()
-        if User.objects.filter(nip__iexact=value).exists():
-            raise serializers.ValidationError('NIP sudah terdaftar.')
+    def validate_email(self, value):
+        value = super().validate_email(value)
+        if not value.endswith(CAMPUS_EMAIL_DOMAINS):
+            raise serializers.ValidationError('Email dosen harus menggunakan domain kampus.')
         return value
 
-    def validate_mata_kuliah(self, value):
-        from apps.common.serializers import validate_non_empty_text
-        return validate_non_empty_text(value, 'Mata kuliah')
-
     def create(self, validated_data):
-        nip = validated_data.pop('nip')
         mata_kuliah = validated_data.pop('mata_kuliah')
         return self.create_user(
             validated_data,
             User.Role.DOSEN,
-            nip=nip,
             mata_kuliah=mata_kuliah,
         )
 

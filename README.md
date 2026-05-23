@@ -1,4 +1,4 @@
-# EduTask – Sprint 2 Stabilization
+# EduTask – Sprint 3 Completed
 
 > Aplikasi Web Manajemen Tugas & Jadwal Kuliah  
 > Tim Sumber Rejeki | Teknologi Rekayasa Internet | PENS 2026
@@ -160,21 +160,21 @@ Base URL: `http://localhost:8000`
 
 ---
 
-## ✅ Sprint 2 Stabilization Summary
+## ✅ Sprint 3 Summary
 
-Sprint 2 focused on stabilizing existing behavior instead of adding major features.
+Sprint 3 focused on building the core academic collaboration features and visual analytics.
 
 Completed:
-- Centralized serializer validation mixins for auth, tasks, and schedules
-- Standardized API response envelopes and validation error responses
-- Improved JWT claim consistency and role-based route protection
-- Added essential backend tests for auth, permissions, tasks, schedules, ownership, and validation
-- Improved frontend responsive behavior for auth, dashboard, profile, task, schedule, and navigation surfaces
-- Refactored frontend service helpers for response extraction and query parameters
+- Multi-role Dashboards (Dosen, Mahasiswa, Umum).
+- **Ruang Edukasi:** Dosen can create classes; Mahasiswa can join via unique codes.
+- **Task Broadcast (Penugasan):** Dosen can distribute tasks to entire classes at once.
+- **Advanced Reports:** Recharts integration (PieChart & BarChart) for visualizing task completion and distribution.
+- **Security Validation:** Passed final audit ensuring Zero Data Leakage (strict queryset filtering by JWT).
 
 Verification:
-- Frontend production build: `npm run build`
-- Backend automated suite: `./venv/bin/python manage.py test apps.authentication.tests apps.tasks.tests apps.schedules.tests --settings=config.settings_test`
+- Frontend production build verified.
+- Backend automated suite passing.
+- End-to-end multi-role browser smoke tests passed.
 
 ### Contoh Request: Register
 
@@ -248,20 +248,22 @@ Authorization: Bearer eyJ...
 
 ---
 
-## 🗂️ FR yang Diimplementasikan (Sprint 1)
+## 🗂️ FR yang Diimplementasikan (Sprint 1 - 3)
 
 | Kode | Fitur | Status |
 |------|-------|--------|
-| FR-01 | Registrasi Akun (email/Gmail/PENS) | ✅ Done |
+| FR-01 | Registrasi Akun Multi-Role | ✅ Done |
 | FR-02 | Login & Logout dengan JWT | ✅ Done |
 | FR-03 | Manajemen Profil Pengguna | ✅ Done |
+| FR-04 | Pembuatan Task Pribadi & Broadcast | ✅ Done |
+| FR-05 | Ruang Edukasi & Join Code | ✅ Done |
+| FR-07 | Kanban Board Visual | ✅ Done |
+| FR-08 | Visualisasi Analitik (Recharts) | ✅ Done |
 
 ---
 
-## 🚀 Sprint Berikutnya
+## 🚀 Sprint Berikutnya (Sprint 4)
 
-- FR-04 – FR-07: Pembuatan Task + Kanban Board
-- FR-08: Progress Tracker per Mata Kuliah  
-- FR-09: Kalender Interaktif
-- FR-10: Manajemen Jadwal Kuliah
-- FR-11: Custom Reminder Email (SMTP)
+- FR-09: Kalender Interaktif (Klik & Drag)
+- FR-10: Sistem Pengingat (Reminder) Otomatis H-1
+- FR-11: Progress Tracker Spesifik Individu Mahasiswa
