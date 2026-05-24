@@ -73,6 +73,12 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
+  const googleLogin = useCallback(async (data) => {
+    const { user: loggedInUser } = await authService.googleLogin(data)
+    setUser(loggedInUser)
+    return loggedInUser
+  }, [])
+
   const updateUser = useCallback((updatedData) => {
     setUser((prev) => ({ ...prev, ...updatedData }))
   }, [])
@@ -89,6 +95,7 @@ export function AuthProvider({ children }) {
     registerUmum,
     registerMahasiswa,
     registerDosen,
+    googleLogin,
     logout,
     updateUser,
   }

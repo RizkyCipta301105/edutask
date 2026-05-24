@@ -11,6 +11,9 @@ import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import TaskManagementPage from './pages/TaskManagementPage'
 import SchedulePage from './pages/SchedulePage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
 
 export default function App() {
   return (
@@ -24,7 +27,12 @@ export default function App() {
           <Route path="/register/mahasiswa"  element={<RegisterPage type="mahasiswa" />} />
           <Route path="/register/umum"       element={<RegisterPage type="umum" />} />
           <Route path="/register/dosen"      element={<RegisterPage type="dosen" />} />
+          <Route path="/forgot-password"     element={<ForgotPasswordPage />} />
+          <Route path="/reset-password"      element={<ResetPasswordPage />} />
         </Route>
+
+        {/* Public routes accessible to both guests and logged-in users */}
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Protected routes - redirect to login if not authenticated */}
         <Route element={<ProtectedRoute />}>

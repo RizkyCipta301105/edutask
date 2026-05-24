@@ -1,11 +1,11 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { GoogleLogin } from '@react-oauth/google'
 import { ArrowRight, Check, GraduationCap, Mail, User, CreditCard, BookOpen, Lock, Lightbulb, ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
 import { getApiErrorMessage } from '../utils/apiErrors'
-import authService from '../services/authService'
 
 function AuthInput({ label, name, value, onChange, placeholder, type = 'text', icon: Icon, required = true, autoComplete }) {
   return (
@@ -134,6 +134,19 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     }
   }
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true)
+      const user = await auth.googleLogin({ id_token: credentialResponse.credential, role: type })
+      toast.success(config.success)
+      navigate(getRoleDashboardPath(normalizeUserRole(user)), { replace: true })
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Gagal masuk dengan Google.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (type === 'umum') {
     return (
       <RegisterShell title={config.title} subtitle={config.subtitle}>
@@ -146,6 +159,25 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
             I accept the <span className="text-[#B8842A]">Terms and Conditions</span>
           </label>
           <button className="auth-primary-button" disabled={loading}>{loading ? 'Memproses...' : config.button}</button>
+
+          <div className="my-6 flex items-center gap-5">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">ATAU</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <div className="flex justify-center mb-6">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error('Gagal terhubung dengan Google.')}
+              useOneTap
+              theme="outline"
+              size="large"
+              shape="rectangular"
+              text="signup_with"
+            />
+          </div>
+
           <p className="text-center text-sm text-slate-500">Already have an account? <Link to="/login" className="font-semibold text-[#B8842A]">Log in here</Link></p>
         </form>
       </RegisterShell>
@@ -170,6 +202,24 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
           <GraduationCap size={18} />
           {loading ? 'Memproses...' : config.button}
         </button>
+
+        <div className="my-6 flex items-center gap-5">
+          <div className="h-px flex-1 bg-slate-200" />
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">ATAU</span>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+
+        <div className="flex justify-center mb-6">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => toast.error('Gagal terhubung dengan Google.')}
+            useOneTap
+            theme="outline"
+            size="large"
+            shape="rectangular"
+            text="signup_with"
+          />
+        </div>
 
         <p className="text-center text-sm text-slate-500">Sudah punya akun? <Link to="/login" className="font-semibold text-[#B8842A]">Masuk di sini</Link></p>
       </form>

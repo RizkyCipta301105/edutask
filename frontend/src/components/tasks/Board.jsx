@@ -6,7 +6,7 @@ import {
   SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, MoreHorizontal, ChevronDown, Filter, ArrowUpDown, GripVertical, Menu } from 'lucide-react'
+import { Plus, MoreHorizontal, ChevronDown, Filter, ArrowUpDown, GripVertical, Menu, Inbox } from 'lucide-react'
 import toast from 'react-hot-toast'
 import taskService from '../../services/taskService'
 import { getApiErrorMessage } from '../../utils/apiErrors'
@@ -223,19 +223,37 @@ export default function Board({ tasks = [], onTaskClick, onAddTask, onMoveTask }
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="kanban-board">
-          {COLUMNS.map(col => (
-            <DroppableColumn
-              key={col}
-              columnId={col}
-              title={STATUS_MAP[col]}
-              cards={processedBoard[col] || []}
-              onTaskClick={onTaskClick}
-              onAddTask={onAddTask}
-              viewMode={viewMode}
-            />
-          ))}
-        </div>
+        {(tasks || []).length === 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', backgroundColor: '#fff', border: '1px dashed #e5e7eb', borderRadius: '16px', margin: '20px' }}>
+            <div style={{ width: '64px', height: '64px', backgroundColor: '#f9fafb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+              <Inbox size={32} color="#d1d5db" />
+            </div>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '4px' }}>Belum Ada Task</h3>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', maxWidth: '300px', textAlign: 'center', marginBottom: '24px' }}>
+              Kanban board Anda masih kosong. Buat task pertama Anda untuk mulai mengatur jadwal dengan lebih baik!
+            </p>
+            <button 
+              onClick={onAddTask}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#4b3a2f', color: '#fff', borderRadius: '12px', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer', border: 'none' }}
+            >
+              <Plus size={16} /> Buat Task Pertama
+            </button>
+          </div>
+        ) : (
+          <div className="kanban-board">
+            {COLUMNS.map(col => (
+              <DroppableColumn
+                key={col}
+                columnId={col}
+                title={STATUS_MAP[col]}
+                cards={processedBoard[col] || []}
+                onTaskClick={onTaskClick}
+                onAddTask={onAddTask}
+                viewMode={viewMode}
+              />
+            ))}
+          </div>
+        )}
         <DragOverlay>
           {activeCard ? <CardOverlay card={activeCard} /> : null}
         </DragOverlay>

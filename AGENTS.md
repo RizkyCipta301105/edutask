@@ -69,7 +69,8 @@ Before completing tasks:
 ## Important Context
 
 Current Sprint:
-- Sprint 1 completed
+- Sprint 1-5 completed (Core, Auth, Validation, UI/UX, Kanban, Dosen Export)
+- Starting Sprint 6 (Gamifikasi & Laporan)
 
 Current priorities:
 1. Stability

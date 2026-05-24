@@ -24,7 +24,7 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
       await authService.changePassword({
         password_lama: passwords.current,
         password_baru: passwords.newPass,
-        konfirmasi_password: passwords.confirm
+        password_baru_confirm: passwords.confirm
       })
       setPasswordMsg({ type: 'success', text: 'Password berhasil diubah!' })
       setPasswords({ current: '', newPass: '', confirm: '' })

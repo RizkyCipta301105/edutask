@@ -11,11 +11,34 @@ export default function NotificationDropdown() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length
 
-  const fetchNotifications = async () => {
+  const prevNotifsRef = useRef([])
+
+  // Request desktop notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }, [])
+
+  const fetchNotifications = async (isFirstMount = false) => {
     try {
       setLoading(true)
       const response = await api.get('/api/tasks/notifications/')
-      setNotifications(response.data.data || [])
+      const fetched = response.data.data || []
+      
+      // Push desktop notification for newly generated unread alerts
+      if (!isFirstMount && fetched.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+        const newUnread = fetched.filter(n => !n.is_read && !prevNotifsRef.current.some(prev => prev.id === n.id))
+        newUnread.forEach(n => {
+          new window.Notification(n.title, {
+            body: n.message,
+            icon: '/favicon.ico'
+          })
+        })
+      }
+      
+      prevNotifsRef.current = fetched
+      setNotifications(fetched)
     } catch (err) {
       console.error('Failed to load notifications', err)
     } finally {
@@ -24,9 +47,9 @@ export default function NotificationDropdown() {
   }
 
   useEffect(() => {
-    fetchNotifications()
-    // Optional: poll every 5 minutes
-    const interval = setInterval(fetchNotifications, 5 * 60 * 1000)
+    fetchNotifications(true)
+    // Poll every 30 seconds to fetch dynamically generated deadline alerts
+    const interval = setInterval(() => fetchNotifications(false), 30 * 1000)
     return () => clearInterval(interval)
   }, [])
 

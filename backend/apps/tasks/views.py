@@ -348,17 +348,115 @@ class PenugasanReportView(APIView):
         if request.user.role != 'dosen':
             return validation_error_response({}, message='Akses ditolak.')
 
-        tasks = Task.objects.filter(source_assignment__dosen=request.user)
+        tasks = Task.objects.filter(source_assignment__dosen=request.user).select_related('user', 'source_assignment')
         stats = {'todo': 0, 'in_progress': 0, 'done': 0}
+        
+        mahasiswa_stats = {}
+        tugas_stats = {}
         
         for t in tasks:
             if t.status in stats:
                 stats[t.status] += 1
-                
+            
+            # Rekap per mahasiswa
+            mhs_id = str(t.user.id)
+            if mhs_id not in mahasiswa_stats:
+                mahasiswa_stats[mhs_id] = {
+                    'id': mhs_id,
+                    'nama': t.user.nama_lengkap,
+                    'email': t.user.email,
+                    'todo': 0,
+                    'in_progress': 0,
+                    'done': 0,
+                    'total': 0
+                }
+            mahasiswa_stats[mhs_id][t.status] += 1
+            mahasiswa_stats[mhs_id]['total'] += 1
+
+            # Rekap per penugasan dosen
+            if t.source_assignment:
+                t_id = str(t.source_assignment.id)
+                if t_id not in tugas_stats:
+                    tugas_stats[t_id] = {
+                        'id': t_id,
+                        'judul': t.source_assignment.judul,
+                        'mata_kuliah': t.source_assignment.mata_kuliah,
+                        'todo': 0,
+                        'in_progress': 0,
+                        'done': 0,
+                        'total': 0
+                    }
+                tugas_stats[t_id][t.status] += 1
+                tugas_stats[t_id]['total'] += 1
+
+        # Format lists
+        mahasiswa_list = []
+        for mhs_id, data in mahasiswa_stats.items():
+            completed = data['done']
+            total = data['total']
+            data['completion_rate'] = round((completed / total) * 100) if total > 0 else 0
+            mahasiswa_list.append(data)
+
+        tugas_list = []
+        for t_id, data in tugas_stats.items():
+            completed = data['done']
+            total = data['total']
+            data['completion_rate'] = round((completed / total) * 100) if total > 0 else 0
+            tugas_list.append(data)
+
         return success_response(
-            data={'stats': stats},
+            data={
+                'stats': stats,
+                'mahasiswa': mahasiswa_list,
+                'tugas': tugas_list
+            },
             message='Rekap progres dosen berhasil diambil.'
         )
+
+class PenugasanExportView(APIView):
+    """
+    GET /api/tasks/penugasan/export/
+    Ekspor data tugas mahasiswa ke format CSV untuk dosen.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'dosen':
+            return validation_error_response({}, message='Akses ditolak.')
+
+        tasks = Task.objects.filter(source_assignment__dosen=request.user).select_related('user', 'mata_kuliah', 'source_assignment')
+        
+        import csv
+        from django.http import HttpResponse
+        import codecs
+        from django.utils import timezone
+        
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename="Laporan_Penugasan_EduTask.csv"'
+        
+        # Tambahkan BOM agar Excel otomatis membaca UTF-8 dengan benar
+        response.write(codecs.BOM_UTF8)
+        
+        writer = csv.writer(response, delimiter=';') # Pakai titik koma agar kolom Excel rapi
+        
+        # Header cantik
+        writer.writerow(['LAPORAN PROGRESS PENUGASAN MAHASISWA'])
+        writer.writerow(['Diekspor pada', timezone.now().strftime('%Y-%m-%d %H:%M')])
+        writer.writerow([]) # Baris kosong
+        
+        writer.writerow(['Nama Mahasiswa', 'Email Mahasiswa', 'Judul Tugas', 'Mata Kuliah', 'Status', 'Tenggat Waktu'])
+        
+        for t in tasks:
+            writer.writerow([
+                t.user.nama_lengkap if t.user else '-',
+                t.user.email if t.user else '-',
+                t.judul,
+                t.mata_kuliah.nama if t.mata_kuliah else '-',
+                t.get_status_display(),
+                t.deadline.strftime('%Y-%m-%d') if t.deadline else '-'
+            ])
+            
+        return response
 
 # ════════════════════════════════════════════════════════════════════════════
 #  TASK COMMENTS (Inbox/Diskusi)
@@ -395,6 +493,47 @@ class NotificationListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        try:
+            from datetime import timedelta
+            from django.utils import timezone
+            
+            today = timezone.now().date()
+            tomorrow = today + timedelta(days=1)
+            
+            # 1. Cek H-1
+            tasks_h1 = Task.objects.filter(
+                user=request.user,
+                deadline=tomorrow,
+            ).exclude(status=Task.Status.DONE)
+            
+            for t in tasks_h1:
+                title = 'Pengingat Deadline: H-1'
+                if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
+                    Notification.objects.create(
+                        user=request.user,
+                        task=t,
+                        title=title,
+                        message=f'Task "{t.judul}" harus diselesaikan paling lambat besok.'
+                    )
+            
+            # 2. Cek Overdue
+            tasks_overdue = Task.objects.filter(
+                user=request.user,
+                deadline__lt=today,
+            ).exclude(status=Task.Status.DONE)
+            
+            for t in tasks_overdue:
+                title = 'Peringatan: Task Overdue!'
+                if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
+                    Notification.objects.create(
+                        user=request.user,
+                        task=t,
+                        title=title,
+                        message=f'Task "{t.judul}" telah melewati batas waktu deadline dan belum selesai.'
+                    )
+        except Exception as e:
+            pass
+
         notifs = Notification.objects.filter(user=request.user)[:50] # limit 50
         return success_response(
             data=NotificationSerializer(notifs, many=True).data,

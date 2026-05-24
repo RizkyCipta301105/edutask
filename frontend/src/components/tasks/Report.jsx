@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { CheckCircle2, RotateCcw, Clock, List, ArrowUpRight, Activity, X } from 'lucide-react'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts'
+import api from '../../services/api'
 
 export default function Report({ tasks = [], tasksByStatus = { todo: [], in_progress: [], done: [] }, roleView = 'umum' }) {
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -44,16 +45,43 @@ export default function Report({ tasks = [], tasksByStatus = { todo: [], in_prog
 
   const maxVal = Math.max(...chartData.map(d => d.value), 1)
 
+  const handleExportCSV = async () => {
+    try {
+      const response = await api.get('/api/tasks/penugasan/export/', { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'Laporan_Penugasan.csv')
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode.removeChild(link)
+    } catch (err) {
+      console.error('Failed to export CSV', err)
+      alert('Gagal mengunduh CSV. Pastikan Anda memiliki akses.')
+    }
+  }
+
   return (
     <div className="report-container">
-      <div className="report-section-header">
+      <div className="report-section-header flex items-center justify-between">
         <div>
           <h2 className="report-title">{copy.title}</h2>
           <p className="report-subtitle">{copy.subtitle}</p>
         </div>
-        <div className="report-time-filter">
-          <span>Semua Waktu</span>
-          <Activity size={16} />
+        <div className="flex items-center gap-3">
+          {roleView === 'dosen' && (
+            <button 
+              onClick={handleExportCSV}
+              className="rounded-lg bg-[#B8842A] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8b6914] flex items-center gap-2 shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Unduh CSV
+            </button>
+          )}
+          <div className="report-time-filter">
+            <span>Semua Waktu</span>
+            <Activity size={16} />
+          </div>
         </div>
       </div>
 

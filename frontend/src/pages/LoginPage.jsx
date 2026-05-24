@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, GraduationCap, Lightbulb, Mail, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
 import { consumeAuthReturnPath, getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
 import { getApiErrorMessage } from '../utils/apiErrors'
 
 export default function LoginPage({ mode = 'universal' }) {
-  const { login, logout } = useAuth()
+  const { login, logout, googleLogin } = useAuth()
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -34,6 +35,26 @@ export default function LoginPage({ mode = 'universal' }) {
       navigate(destination, { replace: true })
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Email atau password salah.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true)
+      const user = await googleLogin({ id_token: credentialResponse.credential, role: mode === 'dosen' ? 'dosen' : 'umum' })
+      const role = normalizeUserRole(user)
+      if (mode === 'dosen' && role !== 'dosen') {
+        await logout()
+        toast.error('Akun ini bukan akun dosen.')
+        return
+      }
+      toast.success('Berhasil masuk dengan Google!')
+      const destination = consumeAuthReturnPath(getRoleDashboardPath(role))
+      navigate(destination, { replace: true })
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Gagal masuk dengan Google.'))
     } finally {
       setLoading(false)
     }
@@ -112,24 +133,36 @@ export default function LoginPage({ mode = 'universal' }) {
                 />
                 Ingat saya
               </label>
-              <button 
-                type="button" 
-                onClick={() => {
-                  const isDosen = mode === 'dosen'
-                  const contact = isDosen ? 'admin@pens.ac.id' : 'support@edutask.com'
-                  const target = isDosen ? 'administrator kampus' : 'tim bantuan EduTask'
-                  toast(`Silakan hubungi ${target} (${contact}) untuk bantuan reset password.`, { icon: 'ℹ️', duration: 5000 })
-                }}
+              <Link 
+                to="/forgot-password"
                 className="font-semibold text-[#B8842A] transition hover:text-[#4B3A2F]"
               >
                 Lupa Password?
-              </button>
+              </Link>
             </div>
 
             <button type="submit" disabled={loading} className="auth-primary-button">
               {loading ? 'Memproses...' : 'Masuk Sekarang'}
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-5">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">ATAU</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <div className="flex justify-center mb-6">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error('Gagal terhubung dengan Google.')}
+              useOneTap
+              theme="outline"
+              size="large"
+              shape="rectangular"
+              text="continue_with"
+            />
+          </div>
 
           <div className="my-10 flex items-center gap-5">
             <div className="h-px flex-1 bg-slate-200" />

@@ -4,6 +4,8 @@ Base: /api/auth/
 """
 from django.urls import path
 from . import views
+from . import verification_views
+from . import google_views
 
 urlpatterns = [
     # Register & Login
@@ -32,4 +34,13 @@ urlpatterns = [
     path('ruang/<uuid:pk>/', views.RuangEdukasiDetailView.as_view(), name='auth-ruang-detail'),
     path('ruang/<uuid:pk>/members/', views.RuangEdukasiMemberView.as_view(), name='auth-ruang-members'),
     path('ruang/join/', views.RuangEdukasiJoinView.as_view(), name='auth-ruang-join'),
+
+    # Email & Password Verification
+    path('send-verification/', verification_views.SendVerificationEmailView.as_view(), name='auth-send-verification'),
+    path('verify-email/', verification_views.VerifyEmailView.as_view(), name='auth-verify-email'),
+    path('forgot-password/', verification_views.ForgotPasswordView.as_view(), name='auth-forgot-password'),
+    path('reset-password/', verification_views.ResetPasswordConfirmView.as_view(), name='auth-reset-password'),
+
+    # OAuth
+    path('google/', google_views.GoogleLoginView.as_view(), name='auth-google-login'),
 ]

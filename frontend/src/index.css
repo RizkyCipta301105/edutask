@@ -3,6 +3,25 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  /* Quick Win Dark Mode Hack */
+  html.dark {
+    filter: invert(1) hue-rotate(180deg);
+    background-color: #111; /* fallback */
+  }
+
+  html.dark img,
+  html.dark video,
+  html.dark iframe,
+  html.dark [data-color-scheme="dark-ignore"] {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
   * {
     box-sizing: border-box;
   }

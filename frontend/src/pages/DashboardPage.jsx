@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 import {
   Search, Plus, Bell, Menu as MenuIcon, Layers, Columns, BarChart2,
   MessageSquare, Settings, HelpCircle, X, LogOut, ChevronDown,
-  BookOpen, Send, Calendar, Users, Briefcase
+  BookOpen, Send, Calendar, Users, Briefcase, Mail, Moon, Sun
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTasks } from '../hooks/useTasks'
 import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
 import taskService from '../services/taskService'
+import api from '../services/api'
 
 // Premium adapted task components
 import Backlog from '../components/tasks/Backlog'
@@ -55,6 +56,19 @@ export default function DashboardPage({ roleView = null }) {
   const [activeTab, setActiveTab] = useState(role === 'dosen' ? 'Ruang' : 'Board')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modalType, setModalType] = useState(null)
+  
+  // Dark mode
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark')
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [isDark])
   const [selectedTask, setSelectedTask] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState(null)
@@ -445,6 +459,13 @@ export default function DashboardPage({ roleView = null }) {
 
             {/* Header Right Actions */}
             <div className="header-actions">
+              <button 
+                className="btn-icon" 
+                onClick={() => setIsDark(!isDark)} 
+                title={isDark ? "Matikan Mode Gelap" : "Nyalakan Mode Gelap"}
+              >
+                {isDark ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
               <NotificationDropdown />
               {/* Help Center */}
               <button className="btn-icon" onClick={() => setModalType('help')} title="Bantuan">
@@ -494,8 +515,39 @@ export default function DashboardPage({ roleView = null }) {
             </div>
           </header>
 
+          {/* Email Verification Banner */}
+          {user && !user.is_email_verified && (
+            <div className="mx-8 mt-6 rounded-xl border border-[#d09730] bg-[#fdfaf4] p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#fceec9]">
+                  <Mail size={20} className="text-[#8b6914]" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-[#3d300a]">Verifikasi Email Anda</h4>
+                  <p className="text-sm text-[#8b6914]">
+                    Silakan verifikasi email {user.email} untuk mengakses semua fitur.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const toastId = toast.loading('Mengirim email verifikasi...')
+                    await api.post('/api/auth/send-verification/')
+                    toast.success('Email verifikasi berhasil dikirim. Silakan cek inbox Anda.', { id: toastId })
+                  } catch (err) {
+                    toast.error('Gagal mengirim email verifikasi.', { id: toastId })
+                  }
+                }}
+                className="rounded-lg bg-[#4B3A2F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#3d3025]"
+              >
+                Kirim Ulang Email
+              </button>
+            </div>
+          )}
+
           {/* Active Tab Panel View */}
-          <div className={`page-content ${activeTab === 'Board' || activeTab === 'Inbox' ? 'no-scroll' : 'scroll-y'}`}>
+          <div className={`page-content ${activeTab === 'Board' || activeTab === 'Inbox' ? 'no-scroll' : 'scroll-y'} ${user && !user.is_email_verified ? '!pt-4' : ''}`}>
             {renderActiveTabContent()}
           </div>
         </main>

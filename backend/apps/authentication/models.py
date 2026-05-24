@@ -174,3 +174,26 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.foto_profil.url
         # Return default avatar placeholder
         return None
+
+class VerificationToken(models.Model):
+    class TokenType(models.TextChoices):
+        EMAIL = 'email', 'Email Verification'
+        PASSWORD = 'password', 'Password Reset'
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tokens')
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    token_type = models.CharField(max_length=10, choices=TokenType.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        db_table = 'verification_tokens'
+        verbose_name = 'Verification Token'
+        verbose_name_plural = 'Verification Tokens'
+
+    def __str__(self):
+        return f"{self.token_type} - {self.user.email}"
+
+    @property
+    def is_valid(self):
+        return timezone.now() <= self.expires_at

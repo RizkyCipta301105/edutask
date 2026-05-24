@@ -22,6 +22,7 @@ urlpatterns = [
     path('penugasan/',          views.PenugasanDosenListCreateView.as_view(), name='penugasan-list'),
     path('penugasan/<uuid:pk>/', views.PenugasanDosenDetailView.as_view(), name='penugasan-detail'),
     path('penugasan/report/',   views.PenugasanReportView.as_view(), name='penugasan-report'),
+    path('penugasan/export/',   views.PenugasanExportView.as_view(), name='penugasan-export'),
     path('penugasan/<uuid:pk>/progress/', views.PenugasanProgressView.as_view(), name='penugasan-progress'),
 
     # Task Comments

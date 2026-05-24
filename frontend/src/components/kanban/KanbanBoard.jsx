@@ -19,7 +19,7 @@ import {
   closestCorners,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
-import { Plus, RefreshCw, LayoutDashboard } from 'lucide-react'
+import { Plus, RefreshCw, LayoutDashboard, Inbox, Filter } from 'lucide-react'
 
 import KanbanColumn from './KanbanColumn'
 import TaskCard from './TaskCard'
@@ -44,6 +44,35 @@ export default function KanbanBoard() {
   const [activeTask,  setActiveTask]  = useState(null)
   // overColumn = kolom yang sedang di-hover saat drag
   const [overColumn,  setOverColumn]  = useState(null)
+
+  // ── Sorting ─────────────────────────────────────────────────────────────
+  const [sortBy, setSortBy] = useState('manual') // 'manual' | 'deadline' | 'prioritas'
+
+  const sortedBoard = useMemo(() => {
+    if (sortBy === 'manual') return board
+
+    const sortTasks = (tasks) => {
+      return [...tasks].sort((a, b) => {
+        if (sortBy === 'deadline') {
+          if (!a.deadline) return 1
+          if (!b.deadline) return -1
+          return new Date(a.deadline) - new Date(b.deadline)
+        } else if (sortBy === 'prioritas') {
+          const p = { tinggi: 3, sedang: 2, rendah: 1 }
+          const valA = p[a.prioritas] || 0
+          const valB = p[b.prioritas] || 0
+          return valB - valA // descending
+        }
+        return 0
+      })
+    }
+    
+    return {
+      todo: sortTasks(board.todo),
+      in_progress: sortTasks(board.in_progress),
+      done: sortTasks(board.done)
+    }
+  }, [board, sortBy])
 
   // ── dnd-kit sensors ─────────────────────────────────────────────────────
   const sensors = useSensors(
@@ -94,6 +123,9 @@ export default function KanbanBoard() {
       : findColumn(over.id) ?? fromCol
 
     if (fromCol === toCol) {
+      // Jika mode sorting sedang aktif, abaikan manual reorder
+      if (sortBy !== 'manual') return
+
       // ── Reorder dalam kolom yang sama ──
       const oldIndex = board[fromCol].findIndex(t => t.id === active.id)
       const newIndex = board[toCol].findIndex(t => t.id === over.id)
@@ -155,14 +187,26 @@ export default function KanbanBoard() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1 shadow-sm">
+            <Filter size={14} className="text-slate-400" />
+            <select 
+              className="text-xs font-semibold text-slate-600 outline-none bg-transparent cursor-pointer"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+            >
+              <option value="manual">Manual (Drag)</option>
+              <option value="deadline">Deadline</option>
+              <option value="prioritas">Prioritas</option>
+            </select>
+          </div>
           <button
             onClick={fetchBoard}
-            className="p-2 rounded-xl text-primary-400 hover:text-primary-700 hover:bg-primary-50 transition-colors"
+            className="p-2 rounded-xl text-primary-400 hover:text-primary-700 hover:bg-primary-50 transition-colors bg-white border border-slate-200 shadow-sm"
             title="Refresh"
           >
             <RefreshCw size={16} />
           </button>
-          <button onClick={openCreate} className="btn-primary flex items-center gap-2 py-2 px-4 text-sm">
+          <button onClick={openCreate} className="btn-primary flex items-center gap-2 py-2 px-4 text-sm shadow-sm">
             <Plus size={16} />
             Tambah Task
           </button>
@@ -198,19 +242,34 @@ export default function KanbanBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {COLUMNS.map(col => (
-            <KanbanColumn
-              key={col}
-              colKey={col}
-              tasks={board[col]}
-              onAddTask={openCreate}
-              onEditTask={openEdit}
-              onDeleteTask={deleteTask}
-              isOver={overColumn === col}
-            />
-          ))}
-        </div>
+        {total === 0 && !loading ? (
+          <div className="flex flex-col items-center justify-center bg-white border border-slate-200 border-dashed rounded-2xl py-20 px-4 text-center mt-4">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+              <Inbox size={32} className="text-slate-300" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 mb-1">Belum Ada Task</h3>
+            <p className="text-sm text-slate-500 max-w-sm mb-6">
+              Kanban board Anda masih kosong. Buat task pertama Anda untuk mulai mengatur jadwal dengan lebih baik!
+            </p>
+            <button onClick={openCreate} className="flex items-center gap-2 rounded-xl bg-[#4B3A2F] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3D2F26] shadow-sm">
+              <Plus size={16} /> Buat Task Pertama
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {COLUMNS.map(col => (
+              <KanbanColumn
+                key={col}
+                colKey={col}
+                tasks={sortedBoard[col]}
+                onAddTask={openCreate}
+                onEditTask={openEdit}
+                onDeleteTask={deleteTask}
+                isOver={overColumn === col}
+              />
+            ))}
+          </div>
+        )}
 
         {/*
           DragOverlay: tampilan "ghost" card yang mengikuti kursor saat drag.

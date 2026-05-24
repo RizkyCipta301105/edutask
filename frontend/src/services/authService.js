@@ -49,6 +49,14 @@ const authService = {
     return { user }
   },
 
+  googleLogin: async (data) => {
+    const response = await api.post(`${AUTH_BASE}/google/`, data)
+    const payload = extractAuthPayload(response)
+    const { tokens, user } = payload
+    saveTokens(tokens)
+    return { user, tokens }
+  },
+
   logout: async () => {
     const refresh = getRefreshToken()
     try {

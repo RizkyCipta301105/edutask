@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   LogOut, User, LayoutDashboard, ClipboardList,
   CalendarDays, Settings, Search, Bell, HelpCircle, BookOpen,
+  Moon, Sun
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
@@ -23,6 +25,18 @@ export default function Navbar() {
     { path: '/schedule', label: 'Jadwal Kuliah', icon: CalendarDays },
     { path: '/profile', label: 'Settings', icon: Settings },
   ]
+
+  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark')
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [isDark])
 
   return (
     <>
@@ -79,6 +93,13 @@ export default function Navbar() {
             <p className="truncate text-sm font-semibold text-zinc-950">EduTask</p>
             <p className="truncate text-xs text-zinc-500">{user?.nama_lengkap || 'Student planner'}</p>
           </div>
+          <button 
+            onClick={() => setIsDark(!isDark)}
+            className="hidden sm:flex h-10 w-10 items-center justify-center rounded-md text-zinc-600 hover:bg-zinc-100" 
+            title={isDark ? "Matikan Dark Mode" : "Nyalakan Dark Mode"}
+          >
+            {isDark ? <Sun size={21} /> : <Moon size={21} />}
+          </button>
           <button className="hidden sm:flex h-10 w-10 items-center justify-center rounded-md text-zinc-600 hover:bg-zinc-100" title="Help">
             <HelpCircle size={21} />
           </button>
