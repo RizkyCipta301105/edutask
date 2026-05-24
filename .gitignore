@@ -77,3 +77,13 @@ coverage/
 *.log
 *.tmp
 *.swp
+
+# ======================
+# DOCUMENTS
+# ======================
+
+*.docx
+*.doc
+*.pdf
+*.pptx
+*.xlsx
