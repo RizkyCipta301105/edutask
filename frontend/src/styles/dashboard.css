@@ -1250,3 +1250,437 @@
 .edutask-dashboard .calendar-event.status-in-progress { background: #3b82f6; }
 .edutask-dashboard .calendar-event.status-done { background: #10b981; }
 
+/* =======================================================
+   PREMIUM UI/UX ENHANCEMENT STYLES
+   ======================================================= */
+
+/* ── Smooth Theme Variable Transitions ── */
+.edutask-dashboard,
+.edutask-dashboard .sidebar,
+.edutask-dashboard .main-content,
+.edutask-dashboard .header,
+.edutask-dashboard .settings-card,
+.edutask-dashboard .report-stat-card,
+.edutask-dashboard .kanban-card,
+.edutask-dashboard .kanban-col,
+.edutask-dashboard .calendar-cell,
+.edutask-dashboard .page-content,
+.edutask-dashboard .bento-card {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Command Palette (Cmd + K) ── */
+.command-palette-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  padding-top: 12vh;
+  animation: fadeIn 0.2s ease-out;
+}
+.command-palette-container {
+  width: 90%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  height: fit-content;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .command-palette-container {
+  background: rgba(17, 24, 39, 0.95);
+  border-color: rgba(55, 65, 81, 0.8);
+  color: #f3f4f6;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+.command-palette-search-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+}
+.dark .command-palette-search-wrapper {
+  border-color: rgba(55, 65, 81, 0.8);
+}
+.command-palette-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 1.05rem;
+  color: inherit;
+  margin-left: 12px;
+}
+.command-palette-results {
+  overflow-y: auto;
+  max-height: 50vh;
+  padding: 8px;
+}
+.command-palette-section {
+  margin-bottom: 12px;
+}
+.command-palette-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  padding: 6px 12px;
+}
+.command-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+  color: #374151;
+}
+.dark .command-palette-item {
+  color: #d1d5db;
+}
+.command-palette-item:hover,
+.command-palette-item.active {
+  background: rgba(75, 58, 47, 0.08);
+  color: #4B3A2F;
+  transform: translateX(4px);
+}
+.dark .command-palette-item:hover,
+.dark .command-palette-item.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+.command-palette-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.command-palette-shortcut {
+  font-size: 0.75rem;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  font-weight: 600;
+}
+.dark .command-palette-shortcut {
+  background: #1f2937;
+  border-color: #374151;
+  color: #9ca3af;
+}
+
+/* ── Bento Grid Dashboard Overview ── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 20px;
+  margin-top: 10px;
+}
+@media (min-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, minmax(210px, auto));
+  }
+  .bento-card-radial {
+    grid-column: span 1;
+    grid-row: span 2;
+  }
+  .bento-card-agenda {
+    grid-column: span 1;
+    grid-row: span 2;
+  }
+  .bento-card-inbox {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+  .bento-card-quick {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
+.bento-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.bento-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+.dark .bento-card {
+  background: #1f2937;
+  border-color: #374151;
+}
+.dark .bento-card:hover {
+  border-color: #4b5563;
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.2);
+}
+.bento-card-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.dark .bento-card-title {
+  color: #f3f4f6;
+}
+
+/* Radial progress circular chart */
+.radial-progress-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 10px 0;
+}
+.circle-bg {
+  fill: none;
+  stroke: #f3f4f6;
+  stroke-width: 10px;
+}
+.dark .circle-bg {
+  stroke: #374151;
+}
+.circle-progress {
+  fill: none;
+  stroke: #B8842A;
+  stroke-width: 10px;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.circle-text {
+  font-size: 1.45rem;
+  font-weight: 800;
+  fill: #1f2937;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.dark .circle-text {
+  fill: #f3f4f6;
+}
+
+/* Bento Quick action buttons */
+.bento-quick-btn-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.bento-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+.dark .bento-quick-btn {
+  background: #27303f;
+  border-color: #374151;
+  color: #f3f4f6;
+}
+.bento-quick-btn:hover {
+  background: #f3f4f6;
+  border-color: #cbd5e1;
+  transform: translateX(4px);
+}
+.dark .bento-quick-btn:hover {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+/* ── Kanban inline Quick-add ── */
+.kanban-quick-add-form {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+.kanban-quick-add-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  outline: none;
+  background: white;
+  color: #1f2937;
+  transition: all 0.2s;
+}
+.dark .kanban-quick-add-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+.kanban-quick-add-input:focus {
+  border-color: #B8842A;
+  box-shadow: 0 0 0 2px rgba(184, 132, 42, 0.15);
+}
+
+/* Glowing Priorities */
+.glow-priority-tinggi {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15) !important;
+  font-weight: 700 !important;
+}
+.glow-priority-sedang {
+  background: rgba(245, 158, 11, 0.08) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.2) !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15) !important;
+  font-weight: 700 !important;
+}
+.glow-priority-rendah {
+  background: rgba(16, 185, 129, 0.08) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15) !important;
+  font-weight: 700 !important;
+}
+
+/* ── Calendar Hover Popover ── */
+.calendar-hover-popover {
+  position: absolute;
+  bottom: 105%; left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  z-index: 1000;
+  width: 200px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: popoverFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .calendar-hover-popover {
+  background: rgba(31, 41, 55, 0.98);
+  border-color: #4b5563;
+}
+.calendar-hover-popover::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #cbd5e1 transparent transparent transparent;
+}
+.dark .calendar-hover-popover::after {
+  border-color: #4b5563 transparent transparent transparent;
+}
+.calendar-popover-item {
+  font-size: 0.725rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes popoverFadeIn {
+  from { transform: translateX(-50%) translateY(6px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* Bento Inbox Snippet aesthetic stylings */
+.bento-inbox-snippet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #fdfaf4;
+  border: 1px solid #fceec9;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.bento-inbox-snippet:hover {
+  background: rgba(184, 132, 42, 0.08);
+  border-color: #B8842A;
+  transform: translateX(4px);
+}
+.bento-inbox-snippet .snippet-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #8b6914;
+}
+.bento-inbox-snippet .snippet-text {
+  font-size: 0.75rem;
+  color: #b8842a;
+}
+
+/* Dark mode version */
+.dark .bento-inbox-snippet {
+  background: rgba(184, 132, 42, 0.08);
+  border-color: rgba(184, 132, 42, 0.25);
+}
+.dark .bento-inbox-snippet:hover {
+  background: rgba(184, 132, 42, 0.15);
+  border-color: rgba(184, 132, 42, 0.4);
+}
+.dark .bento-inbox-snippet .snippet-name {
+  color: #d2a34e;
+}
+.dark .bento-inbox-snippet .snippet-text {
+  color: #b8842a;
+}
+
+

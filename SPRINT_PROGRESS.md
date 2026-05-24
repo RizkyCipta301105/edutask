@@ -1,35 +1,28 @@
 # Sprint Progress
 
 ## Sprint 1
-Status: Completed
+Status: ✅ Completed
 
 Completed:
-- Authentication system
-- JWT flow
+- Authentication system (multi-role: Mahasiswa, Dosen, Umum)
+- JWT flow (access + refresh tokens, blacklist on logout)
 - Profile management
 - Task CRUD
 - Kanban board
 - Schedule CRUD
-- Role system
+- Role system (RoleRoute, AuthContext)
 - Frontend integration
 
-Testing Progress:
-- Authentication API tests added
-- JWT flow tests added
-- Protected route tests added
-
-Known Issues:
-- README outdated
-- No automated tests
-- Dosen dashboard incomplete
-- OAuth not implemented
-- No calendar feature
-- No reminder scheduler
+Known Issues Resolved in Later Sprints:
+- README outdated → updated in Sprint 3
+- No automated tests → added in Sprint 2
+- Dosen dashboard incomplete → completed in Sprint 3
+- OAuth not implemented → stub created in Sprint 3
 
 ---
 
 ## Sprint 2
-Status: Completed
+Status: ✅ Completed
 
 Goals:
 - Stabilize existing features
@@ -73,22 +66,13 @@ Completed:
 - Final Sprint 2 audit and stabilization review
   - Removed placeholder `href="#"` behavior from the login forgot-password control
   - Verified frontend production build: `npm run build`
-  - Verified backend test suite: 44 tests passing with `./venv/bin/python manage.py test apps.authentication.tests apps.tasks.tests apps.schedules.tests --settings=config.settings_test`
-  - Verified final mobile/desktop login and register browser smoke check with no console errors
+  - Verified backend test suite: 44 tests passing
   - Confirmed API response helpers, JWT claims, validation mixins, and frontend service helpers are centralized
 
-In Progress:
-- Authenticated browser smoke checks for dashboard, task, schedule, and Kanban flows
-
-Pending:
-- Interactive calendar
-- Reminder system
-- Progress tracker
-- Email verification
-- Real OAuth integration
+---
 
 ## Sprint 3
-Status: Completed
+Status: ✅ Completed
 
 Goals:
 - Implement Multi-role Dashboard (Umum, Mahasiswa, Dosen)
@@ -97,23 +81,18 @@ Goals:
 - Advanced Analytics & Reporting
 
 Completed:
-- Adjusted Registration for specific roles (NIP/NRP replaced by email-based validation).
-- Dosen can create "Ruang Edukasi" and generate unique Join Codes.
-- Mahasiswa can join "Ruang Edukasi" using the Join Code.
-- Dosen can broadcast tasks (Penugasan) to all students in a Ruang Edukasi.
-- Separated Dosen Dashboard into "Penugasan" (Broadcast) and "Tugas Pribadi" (Personal Kanban Board).
-- Integrated `recharts` for advanced visualization (PieChart for Completion Rate, BarChart for Task Distribution).
-- Security Audit Passed (Zero Data Leakage confirmed via JWT and Queryset filtering).
-
-Pending:
-- Automated Reminder System (Backend)
-- Interactive Calendar (Drag & Drop, Click to Add)
-- Progress Tracker details per student
+- Adjusted Registration for specific roles (NIP/NRP replaced by email-based validation)
+- Dosen can create "Ruang Edukasi" and generate unique Join Codes
+- Mahasiswa can join "Ruang Edukasi" using the Join Code
+- Dosen can broadcast tasks (Penugasan) to all students in a Ruang Edukasi
+- Separated Dosen Dashboard into "Penugasan" (Broadcast) and "Tugas Pribadi" (Personal Kanban Board)
+- Integrated `recharts` for advanced visualization (PieChart for Completion Rate, BarChart for Task Distribution)
+- Security Audit Passed (Zero Data Leakage confirmed via JWT and Queryset filtering)
 
 ---
 
 ## Sprint 4
-Status: Completed
+Status: ✅ Completed
 
 Goals:
 - Finalize Advanced Features
@@ -125,10 +104,54 @@ Completed:
 - **Automated Reminder System**: Django background job (`check_deadlines`) that creates in-app notifications for tasks with H-1 or Overdue deadlines. Does not require heavy message brokers like Celery/Redis.
 - **In-App Notification Center**: Frontend `NotificationDropdown` that fetches and polls unread notifications securely via API, complete with "Mark all as read" functionality and visual indicator.
 - **Progress Tracker Mahasiswa (Dosen Dashboard)**: Dynamically calculates and displays progress bars for Broadcasted Tasks. Dosen can immediately see percentages and counts for (Selesai, Proses, To Do) directly on the task card using efficient backend `SerializerMethodField` aggregation.
-- Codebase audited via `npm run build` with zero critical warnings. Code remains highly modular and responsive.
+- Codebase audited via `npm run build` with zero critical warnings.
 
-Next Priorities for Future Sprints (Optional):
-1. Integrasi OAuth (Google Login).
-2. Email Verification untuk Pendaftaran.
-3. Automated Browser Smoke Tests (Cypress/Playwright).
+---
 
+## Sprint 5
+Status: ✅ Completed
+
+Goals:
+- Inbox Kolaborasi (real-time collaborative messaging)
+- Dosen Report Export (CSV/PDF)
+- UI/UX Polish
+- Bug Fixes
+
+Completed:
+- **Inbox Kolaborasi**: Full chat UI (`Inbox.jsx`) with `ChatThread` and `Message` models. Supports 1:1 and group threads, message reactions, attachments, and edit/read indicators.
+- **Dosen Report Export**: `PenugasanExportView` backend endpoint + frontend trigger for CSV export of student progress data.
+- **Dashboard Bento Grid**: Overview tab redesigned as a premium bento-style grid with:
+  - Radial progress ring (SVG) for task completion rate
+  - Today's agenda card showing classes from current user's mata kuliah
+  - Inbox bento card (clickable → navigates to Inbox tab)
+  - Quick action buttons (Buat Tugas, Tambah Agenda)
+- **Inbox scroll fix**: `AppLayout` receives `scrollable` prop; when Inbox tab is active, overflow is set to `hidden` to prevent automatic scroll-to-bottom.
+- **Inbox redirect fix**: Bento inbox card now correctly calls `setActiveTab('Inbox')` + `navigate(/dashboard/${roleView}?tab=Inbox)` ensuring tab state syncs.
+- UI terminology adjusted: "Tugas Akademik" → role-neutral labels for Umum users; Schedule page uses role-appropriate headings.
+
+---
+
+## Sprint 6
+Status: 🔄 In Progress
+
+Goals:
+- Integration refinements
+- Ruang Edukasi → Jadwal Kuliah integration
+- UX consistency improvements
+- Documentation update
+
+Completed:
+- **Ruang Edukasi ↔ Schedule Integration**: `GET /api/tasks/mata-kuliah/` now returns both personal `MataKuliah` entries AND schedule data derived from `RuangEdukasi` records (rooms the user joined or created). The `is_academic: True` flag distinguishes official class schedules from personal agendas.
+- **Academic schedule badge**: Timetable cards with `is_academic: True` display a 🔒 Akademik badge; edit/delete controls are hidden for these cards (only personal schedules can be edited).
+- **Calendar academic rendering**: `CalendarView.jsx` filters `RuangEdukasi`-derived schedules to only appear from `ruang.created_at` onward, so students don't see retroactive phantom class entries.
+- **Schedule page UX**: Removed "Tambah Jadwal Kuliah" button for Dosen role (schedule now managed via Ruang Edukasi form). Non-dosen roles see "Tambah Agenda Pribadi" for personal schedules.
+- **MataKuliah cleanup**: Legacy orphan `MataKuliah` entries (e.g., old subject records) can be deleted via the edit/delete UI on the timetable page; `is_academic` cards are protected.
+- **Documentation**: AGENTS.md, SPRINT_PROGRESS.md, README.md updated to reflect Sprint 5–6 changes.
+
+Pending / Backlog:
+- Email verification full flow (backend endpoint exists, frontend integration incomplete)
+- Real Google OAuth (stub exists in `google_views.py`)
+- Automated browser smoke tests (Cypress/Playwright)
+- Drag-and-drop calendar events
+- Push/email reminders (currently only in-app)
+- Fully interactive progress tracker per individual student

@@ -50,11 +50,31 @@ class RuangEdukasiSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RuangEdukasi
-        fields = ['id', 'kode_join', 'nama_ruang', 'deskripsi', 'kreator_nama', 'jumlah_anggota', 'created_at']
+        fields = [
+            'id', 'kode_join', 'nama_ruang', 'deskripsi', 
+            'kreator_nama', 'jumlah_anggota', 'created_at',
+            'hari', 'jam_mulai', 'jam_selesai', 'ruangan', 'warna'
+        ]
         read_only_fields = ['id', 'kode_join', 'kreator_nama', 'jumlah_anggota', 'created_at']
 
     def get_jumlah_anggota(self, obj):
         return obj.anggota.count()
+
+    def validate(self, attrs):
+        jam_mulai = attrs.get('jam_mulai')
+        jam_selesai = attrs.get('jam_selesai')
+
+        if (jam_mulai and not jam_selesai) or (jam_selesai and not jam_mulai):
+            raise serializers.ValidationError({
+                'jam_mulai': 'Jam mulai dan jam selesai harus diisi bersamaan.'
+            })
+
+        if jam_mulai and jam_selesai and jam_mulai >= jam_selesai:
+            raise serializers.ValidationError({
+                'jam_mulai': 'Jam mulai harus sebelum jam selesai.'
+            })
+
+        return attrs
 
 class JoinRuangSerializer(serializers.Serializer):
     kode_join = serializers.CharField(required=True, max_length=10)

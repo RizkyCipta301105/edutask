@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react'
 import { X, Clock, MapPin, Calendar as CalendarIcon, User as UserIcon, Book } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { normalizeUserRole } from '../../utils/authHelpers'
+import taskService from '../../services/taskService'
 
 export default function MataKuliahModal({ onClose, onSave, initialData = null, mataKuliahList = [] }) {
+  const { user } = useAuth()
+  const role = normalizeUserRole(user)
+  const isUmum = role === 'umum'
+
   const [formData, setFormData] = useState({
     nama: '',
     nama_dosen: '',
@@ -78,6 +85,25 @@ export default function MataKuliahModal({ onClose, onSave, initialData = null, m
     }
   }
 
+  const handleDelete = async () => {
+    const targetId = matchedId || initialData?.id
+    if (!targetId) return
+
+    if (!window.confirm('Yakin ingin menghapus kelas/kategori ini? Semua tugas dengan kategori ini akan dilepas kategorinya.')) return
+
+    setLoading(true)
+    setErrorMsg('')
+    try {
+      await taskService.deleteMataKuliah(targetId)
+      onClose()
+      window.location.reload()
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Gagal menghapus kelas/kategori.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const hariOptions = [
     { value: 1, label: 'Senin' },
     { value: 2, label: 'Selasa' },
@@ -92,7 +118,12 @@ export default function MataKuliahModal({ onClose, onSave, initialData = null, m
     <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <div className="modal-content" style={{ background: 'white', width: '100%', maxWidth: 500, borderRadius: 12, padding: 24, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{(initialData || matchedId) ? 'Edit Jadwal Mata Kuliah' : 'Tambah Jadwal Kuliah'}</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+            {initialData || matchedId
+              ? (isUmum ? 'Edit Jadwal Kegiatan / Agenda' : 'Edit Jadwal Mata Kuliah')
+              : (isUmum ? 'Tambah Jadwal Kegiatan' : 'Tambah Jadwal Kuliah')
+            }
+          </h2>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} color="#6b7280" /></button>
         </div>
 
@@ -104,18 +135,22 @@ export default function MataKuliahModal({ onClose, onSave, initialData = null, m
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>Nama Mata Kuliah / Agenda *</label>
+            <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>
+              {isUmum ? 'Nama Kegiatan / Agenda *' : 'Nama Mata Kuliah / Agenda *'}
+            </label>
             <div style={{ position: 'relative' }}>
               <Book size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-              <input type="text" value={formData.nama} onChange={handleNameChange} placeholder="Contoh: Pemrograman Web" style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} required />
+              <input type="text" value={formData.nama} onChange={handleNameChange} placeholder={isUmum ? 'Contoh: Olahraga Pagi / Rapat' : 'Contoh: Pemrograman Web'} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} required />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>Nama Dosen / Pengajar</label>
+            <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>
+              {isUmum ? 'Penyelenggara / Kontak' : 'Nama Dosen / Pengajar'}
+            </label>
             <div style={{ position: 'relative' }}>
               <UserIcon size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-              <input type="text" value={formData.nama_dosen} onChange={e => setFormData({ ...formData, nama_dosen: e.target.value })} placeholder="Opsional" style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} />
+              <input type="text" value={formData.nama_dosen} onChange={e => setFormData({ ...formData, nama_dosen: e.target.value })} placeholder={isUmum ? 'Nama Penyelenggara (Opsional)' : 'Opsional'} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} />
             </div>
           </div>
 
@@ -175,11 +210,25 @@ export default function MataKuliahModal({ onClose, onSave, initialData = null, m
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}>
-            <button type="button" onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #d1d5db', background: 'white', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>Batal</button>
-            <button type="submit" disabled={loading} style={{ padding: '8px 16px', background: '#111827', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>
-              {loading ? 'Menyimpan...' : 'Simpan'}
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+            <div>
+              {(initialData?.id || matchedId) && !initialData?.is_academic && (
+                <button 
+                  type="button" 
+                  onClick={handleDelete} 
+                  disabled={loading}
+                  style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
+                >
+                  Hapus Kelas
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button type="button" onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #d1d5db', background: 'white', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>Batal</button>
+              <button type="submit" disabled={loading} style={{ padding: '8px 16px', background: '#111827', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>
+                {loading ? 'Menyimpan...' : 'Simpan'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

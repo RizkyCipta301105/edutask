@@ -72,12 +72,19 @@ export default function Inbox({ user }) {
     if (!isSilent) setLoading(true)
     try {
       const data = await inboxService.getMessages(threadId)
-      setMessages(data)
+      setMessages(prev => {
+        // Prevent updates if messages are identical to avoid unnecessary renders
+        const hasChanged = prev.length !== data.length || 
+                           (prev.length > 0 && prev[prev.length - 1].id !== data[data.length - 1].id)
+        return hasChanged ? data : prev
+      })
     } catch (err) {
       console.error(err)
     } finally {
-      if (!isSilent) setLoading(false)
-      scrollToBottom()
+      if (!isSilent) {
+        setLoading(false)
+        scrollToBottom()
+      }
     }
   }
 
@@ -121,7 +128,7 @@ export default function Inbox({ user }) {
       const toastId = fileToSend ? toast.loading('Mengirim pesan...') : null
       await inboxService.sendMessage(activeThreadId, payload)
       if (toastId) toast.success('Terkirim!', { id: toastId })
-      fetchMessages(activeThreadId, true)
+      fetchMessages(activeThreadId, false) // isSilent = false, so it scrolls to the bottom after sending
       fetchThreads()
     } catch (err) {
       toast.error('Gagal mengirim pesan')

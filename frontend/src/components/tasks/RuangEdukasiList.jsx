@@ -9,7 +9,15 @@ export default function RuangEdukasiList({ role }) {
   const [showCreate, setShowCreate] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
   
-  const [formData, setFormData] = useState({ nama_ruang: '', deskripsi: '' })
+  const [formData, setFormData] = useState({ 
+    nama_ruang: '', 
+    deskripsi: '',
+    hari: '',
+    jam_mulai: '',
+    jam_selesai: '',
+    ruangan: '',
+    warna: '#8B6914'
+  })
   const [joinCode, setJoinCode] = useState('')
   const [copiedCode, setCopiedCode] = useState(null)
   
@@ -36,10 +44,27 @@ export default function RuangEdukasiList({ role }) {
   const handleCreate = async (e) => {
     e.preventDefault()
     try {
-      await authService.createRuang(formData)
+      const payload = {
+        nama_ruang: formData.nama_ruang,
+        deskripsi: formData.deskripsi,
+        hari: formData.hari !== "" ? Number(formData.hari) : null,
+        jam_mulai: (formData.hari !== "" && formData.jam_mulai) ? formData.jam_mulai : null,
+        jam_selesai: (formData.hari !== "" && formData.jam_selesai) ? formData.jam_selesai : null,
+        ruangan: formData.hari !== "" ? formData.ruangan : null,
+        warna: formData.warna
+      }
+      await authService.createRuang(payload)
       toast.success('Ruang berhasil dibuat!')
       setShowCreate(false)
-      setFormData({ nama_ruang: '', deskripsi: '' })
+      setFormData({ 
+        nama_ruang: '', 
+        deskripsi: '',
+        hari: '',
+        jam_mulai: '',
+        jam_selesai: '',
+        ruangan: '',
+        warna: '#8B6914'
+      })
       fetchRuang()
     } catch (err) {
       toast.error('Gagal membuat ruang.')
@@ -176,13 +201,13 @@ export default function RuangEdukasiList({ role }) {
       {/* Modal Create */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="border-b border-slate-100 p-6">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="border-b border-slate-100 p-6 flex-shrink-0">
               <h3 className="text-lg font-bold text-slate-800">Buat Ruang Edukasi Baru</h3>
               <p className="mt-1 text-xs text-slate-500">Ruang ini digunakan untuk mem-broadcast tugas ke mahasiswa.</p>
             </div>
             
-            <form onSubmit={handleCreate} className="p-6">
+            <form onSubmit={handleCreate} className="p-6 overflow-y-auto flex-1">
               <div className="mb-4">
                 <label className="mb-1.5 block text-sm font-semibold text-slate-700">Nama Ruang</label>
                 <input 
@@ -194,7 +219,7 @@ export default function RuangEdukasiList({ role }) {
                   placeholder="Misal: Pemrograman Web - Pagi"
                 />
               </div>
-              <div className="mb-6">
+              <div className="mb-4">
                 <label className="mb-1.5 block text-sm font-semibold text-slate-700">Deskripsi (Opsional)</label>
                 <textarea 
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-[#B8842A] focus:bg-white focus:ring-4 focus:ring-[#D2A34E]/20 resize-none" 
@@ -204,8 +229,91 @@ export default function RuangEdukasiList({ role }) {
                   rows={3}
                 />
               </div>
+
+              {/* Schedule Fields */}
+              <div className="border-t border-slate-100 pt-4 mt-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Jadwal Kuliah (Opsional)</h4>
+                
+                <div className="mb-4">
+                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Hari Kuliah</label>
+                  <select 
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                    value={formData.hari}
+                    onChange={e => setFormData({...formData, hari: e.target.value})}
+                  >
+                    <option value="">Tidak ada jadwal tetap</option>
+                    <option value="1">Senin</option>
+                    <option value="2">Selasa</option>
+                    <option value="3">Rabu</option>
+                    <option value="4">Kamis</option>
+                    <option value="5">Jumat</option>
+                    <option value="6">Sabtu</option>
+                    <option value="0">Minggu</option>
+                  </select>
+                </div>
+
+                {formData.hari !== "" && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="mb-1.5 block text-xs font-bold text-slate-700">Jam Mulai</label>
+                        <input 
+                          type="time" 
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                          value={formData.jam_mulai}
+                          onChange={e => setFormData({...formData, jam_mulai: e.target.value})}
+                          required={formData.hari !== ""}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-xs font-bold text-slate-700">Jam Selesai</label>
+                        <input 
+                          type="time" 
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                          value={formData.jam_selesai}
+                          onChange={e => setFormData({...formData, jam_selesai: e.target.value})}
+                          required={formData.hari !== ""}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="mb-1.5 block text-xs font-bold text-slate-700">Ruangan / Zoom Link</label>
+                      <input 
+                        type="text" 
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                        value={formData.ruangan}
+                        onChange={e => setFormData({...formData, ruangan: e.target.value})}
+                        placeholder="Misal: Ruang Lab 3 / Link Zoom"
+                      />
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="mb-1.5 block text-xs font-bold text-slate-700 mb-2">Warna Tema Jadwal</label>
+                      <div className="flex gap-2">
+                        {[
+                          { name: 'Gold', hex: '#B8842A' },
+                          { name: 'Indigo', hex: '#4F46E5' },
+                          { name: 'Emerald', hex: '#10B981' },
+                          { name: 'Rose', hex: '#EF4444' },
+                          { name: 'Violet', hex: '#8B5CF6' }
+                        ].map(c => (
+                          <button
+                            key={c.hex}
+                            type="button"
+                            className={`w-8 h-8 rounded-full border transition-all ${formData.warna === c.hex ? 'scale-110 ring-2 ring-slate-400' : 'opacity-70 hover:opacity-100'}`}
+                            style={{ backgroundColor: c.hex }}
+                            onClick={() => setFormData({...formData, warna: c.hex})}
+                            title={c.name}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-6 flex-shrink-0">
                 <button type="button" className="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100" onClick={() => setShowCreate(false)}>Batal</button>
                 <button type="submit" className="rounded-xl bg-[#4B3A2F] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#3D2F26]">Buat Ruang</button>
               </div>

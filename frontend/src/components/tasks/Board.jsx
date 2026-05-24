@@ -49,7 +49,7 @@ function SortableCard({ card, onTaskClick, viewMode }) {
           {card.judul}
         </div>
         <div className="kanban-card-labels">
-          <span className="label" style={{ background: p.bg, color: p.color }}>{p.label}</span>
+          <span className={`label glow-priority-${card.prioritas || 'sedang'}`}>{p.label}</span>
           {!isCompact && card.mata_kuliah_detail?.nama && (
             <span className="label">📚 {card.mata_kuliah_detail.nama}</span>
           )}
@@ -72,10 +72,7 @@ function CardOverlay({ card }) {
       <div className="kanban-card-title">{card.judul}</div>
       <div className="kanban-card-labels">
         {PRIORITAS_COLORS[card.prioritas] && (
-          <span className="label" style={{
-            background: PRIORITAS_COLORS[card.prioritas].bg,
-            color: PRIORITAS_COLORS[card.prioritas].color,
-          }}>
+          <span className={`label glow-priority-${card.prioritas || 'sedang'}`}>
             {PRIORITAS_COLORS[card.prioritas].label}
           </span>
         )}
@@ -84,9 +81,27 @@ function CardOverlay({ card }) {
   )
 }
 
-function DroppableColumn({ columnId, title, cards, onTaskClick, onAddTask, viewMode }) {
+function DroppableColumn({ columnId, title, cards, onTaskClick, onAddTask, onQuickAdd, viewMode }) {
   const { setNodeRef } = useDroppable({ id: columnId, data: { type: 'column' } })
   const cardIds = cards.map(c => String(c.id))
+
+  const [quickTitle, setQuickTitle] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const t = quickTitle.trim()
+    if (!t) return
+    setQuickTitle('')
+    setIsAdding(false)
+    if (onQuickAdd) {
+      try {
+        await onQuickAdd(t, columnId)
+      } catch (err) {
+        toast.error('Gagal menambahkan task cepat.')
+      }
+    }
+  }
 
   return (
     <div className="kanban-col" ref={setNodeRef}>
@@ -103,20 +118,39 @@ function DroppableColumn({ columnId, title, cards, onTaskClick, onAddTask, viewM
             <SortableCard key={card.id} card={card} onTaskClick={onTaskClick} viewMode={viewMode} />
           ))}
         </SortableContext>
-        {cards.length === 0 && (
+        {cards.length === 0 && !isAdding && (
           <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem' }}>
             Drop tasks di sini
           </div>
         )}
+        {isAdding && (
+          <form onSubmit={handleSubmit} className="kanban-quick-add-form">
+            <input
+              type="text"
+              className="kanban-quick-add-input"
+              placeholder="Tulis judul task..."
+              value={quickTitle}
+              onChange={e => setQuickTitle(e.target.value)}
+              onBlur={() => {
+                setTimeout(() => {
+                  if (!quickTitle.trim()) {
+                    setIsAdding(false)
+                  }
+                }, 200)
+              }}
+              autoFocus
+            />
+          </form>
+        )}
       </div>
-      <div className="kanban-add-card" onClick={onAddTask}>
-        <Plus size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Tambah task
+      <div className="kanban-add-card" onClick={() => setIsAdding(true)}>
+        <Plus size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> Tambah task cepat
       </div>
     </div>
   )
 }
 
-export default function Board({ tasks = [], onTaskClick, onAddTask, onMoveTask }) {
+export default function Board({ tasks = [], onTaskClick, onAddTask, onMoveTask, onQuickAdd }) {
   const [activeId, setActiveId] = useState(null)
   const [filterPriority, setFilterPriority] = useState('all')
   const [sortBy, setSortBy] = useState('default')
@@ -249,6 +283,7 @@ export default function Board({ tasks = [], onTaskClick, onAddTask, onMoveTask }
                 cards={processedBoard[col] || []}
                 onTaskClick={onTaskClick}
                 onAddTask={onAddTask}
+                onQuickAdd={onQuickAdd}
                 viewMode={viewMode}
               />
             ))}

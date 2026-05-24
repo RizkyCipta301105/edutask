@@ -30,10 +30,36 @@ class MataKuliahListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from django.db.models import Q
+        from apps.authentication.models import RuangEdukasi
+
         qs = MataKuliah.objects.filter(user=request.user)
+        personal_data = MataKuliahSerializer(qs, many=True).data
+        combined_data = list(personal_data)
+
+        # Ambil ruang edukasi yang diikuti (sebagai mahasiswa) atau dibuat (sebagai dosen)
+        ruang_qs = RuangEdukasi.objects.filter(
+            Q(kreator=request.user) | Q(anggota=request.user)
+        ).distinct()
+
+        for ruang in ruang_qs:
+            if ruang.hari is not None:
+                combined_data.append({
+                    'id': str(ruang.id),
+                    'nama': ruang.nama_ruang,
+                    'nama_dosen': ruang.kreator.nama_lengkap,
+                    'warna': ruang.warna or '#B8842A',
+                    'hari': ruang.hari,
+                    'jam_mulai': ruang.jam_mulai.strftime('%H:%M:%S') if ruang.jam_mulai else None,
+                    'jam_selesai': ruang.jam_selesai.strftime('%H:%M:%S') if ruang.jam_selesai else None,
+                    'ruangan': ruang.ruangan or '',
+                    'is_academic': True,  # Menandai bahwa ini jadwal kuliah resmi dari ruang edukasi
+                    'created_at': ruang.created_at.isoformat() if ruang.created_at else None,
+                })
+
         return success_response(
-            data=MataKuliahSerializer(qs, many=True).data,
-            message='Daftar mata kuliah berhasil diambil.',
+            data=combined_data,
+            message='Daftar mata kuliah dan jadwal akademik berhasil diambil.',
         )
 
     def post(self, request):

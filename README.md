@@ -1,6 +1,6 @@
-# EduTask – Sprint 3 Completed
+# EduTask – Sprint 6 In Progress
 
-> Aplikasi Web Manajemen Tugas & Jadwal Kuliah  
+> Aplikasi Web Manajemen Tugas & Jadwal Akademik  
 > Tim Sumber Rejeki | Teknologi Rekayasa Internet | PENS 2026
 
 ---
@@ -9,14 +9,35 @@
 
 ```
 edutask/
-├── backend/                  # Django REST Framework
+├── backend/                    # Django REST Framework
 │   ├── apps/
-│   │   └── authentication/   # App autentikasi
-│   │       ├── models.py     # Custom User model
-│   │       ├── serializers.py
-│   │       ├── views.py
-│   │       ├── urls.py
-│   │       └── admin.py
+│   │   ├── authentication/     # User, Kelas, RuangEdukasi, VerificationToken
+│   │   │   ├── models.py       # Custom User (multi-role), RuangEdukasi (with schedule fields)
+│   │   │   ├── serializers.py
+│   │   │   ├── views.py        # Auth, Profile, Ruang Edukasi CRUD, Join
+│   │   │   ├── urls.py         # /api/auth/...
+│   │   │   ├── jwt_utils.py
+│   │   │   ├── verification_views.py
+│   │   │   └── google_views.py
+│   │   ├── tasks/              # Task, MataKuliah, PenugasanDosen, TaskComment, Notification
+│   │   │   ├── models.py
+│   │   │   ├── serializers.py
+│   │   │   ├── views.py        # Task CRUD, Kanban, Broadcast, Report, Export, Notifications
+│   │   │   ├── urls.py         # /api/tasks/...
+│   │   │   └── signals.py      # Reminder/deadline notification signals
+│   │   ├── schedules/          # JadwalKuliah (legacy standalone schedule model)
+│   │   │   ├── models.py
+│   │   │   ├── views.py
+│   │   │   └── urls.py
+│   │   ├── inbox/              # ChatThread, Message
+│   │   │   ├── models.py
+│   │   │   ├── serializers.py
+│   │   │   ├── views.py
+│   │   │   └── urls.py         # /api/inbox/...
+│   │   └── common/
+│   │       ├── utils.py        # success_response, validation_error_response, error_response
+│   │       ├── serializers.py  # Shared validation mixins
+│   │       └── permissions.py  # IsRole permission classes
 │   ├── config/
 │   │   ├── settings.py
 │   │   ├── urls.py
@@ -25,15 +46,53 @@ edutask/
 │   ├── requirements.txt
 │   └── .env.example
 │
-└── frontend/                 # React + Vite + Tailwind
+└── frontend/                   # React + Vite + TailwindCSS
     ├── src/
+    │   ├── pages/
+    │   │   ├── DashboardPage.jsx         # Multi-tab: Overview, Ruang, Report, Inbox
+    │   │   ├── TaskManagementPage.jsx    # Kanban Board + Backlog + Dosen Broadcast
+    │   │   ├── SchedulePage.jsx          # Calendar + Weekly Timetable (role-aware)
+    │   │   ├── LoginPage.jsx
+    │   │   ├── RegisterPage.jsx          # Multi-role: mahasiswa / dosen / umum
+    │   │   ├── ProfilePage.jsx
+    │   │   ├── ForgotPasswordPage.jsx
+    │   │   ├── ResetPasswordPage.jsx
+    │   │   └── VerifyEmailPage.jsx
     │   ├── components/
-    │   │   ├── auth/         # AuthLayout, LoginForm, RegisterForm
-    │   │   └── common/       # InputField, ProtectedRoute, GuestRoute
-    │   ├── context/          # AuthContext (global state)
-    │   ├── hooks/            # useForm (custom hook)
-    │   ├── pages/            # LoginPage, RegisterPage, Dashboard, Profile
-    │   ├── services/         # api.js (axios+JWT), authService.js
+    │   │   ├── dashboard/
+    │   │   │   ├── CalendarView.jsx         # Monthly calendar + day detail panel
+    │   │   │   ├── Inbox.jsx                # Full chat UI (threads + messages)
+    │   │   │   ├── NotificationDropdown.jsx
+    │   │   │   ├── DosenBroadcastView.jsx
+    │   │   │   └── SettingsView.jsx
+    │   │   ├── tasks/
+    │   │   │   ├── Board.jsx                # Kanban board
+    │   │   │   ├── Backlog.jsx
+    │   │   │   ├── AddTaskModal.jsx
+    │   │   │   ├── TaskModal.jsx
+    │   │   │   ├── TaskDetailModal.jsx
+    │   │   │   ├── MataKuliahModal.jsx      # Modal for personal schedule / agenda
+    │   │   │   ├── RuangEdukasiList.jsx     # Classroom management (create/join)
+    │   │   │   └── Report.jsx               # Analytics charts (Recharts)
+    │   │   ├── auth/
+    │   │   └── common/
+    │   │       ├── AppLayout.jsx
+    │   │       ├── ProtectedRoute.jsx
+    │   │       ├── GuestRoute.jsx
+    │   │       └── RoleRoute.jsx
+    │   ├── services/
+    │   │   ├── api.js              # Axios instance + JWT interceptor + helpers
+    │   │   ├── authService.js      # Auth + Ruang Edukasi API calls
+    │   │   ├── taskService.js      # Task, MataKuliah, Kanban, Notifications API
+    │   │   ├── inboxService.js     # ChatThread + Message API calls
+    │   │   └── scheduleService.js
+    │   ├── context/
+    │   │   └── AuthContext.jsx
+    │   ├── hooks/
+    │   │   └── useTasks.js
+    │   ├── utils/
+    │   │   └── authHelpers.js
+    │   ├── styles/                 # CSS module files per page
     │   ├── App.jsx
     │   └── main.jsx
     ├── package.json
@@ -53,11 +112,11 @@ cd edutask/backend
 
 python -m venv venv
 
-# Windows
-venv\Scripts\activate
-
 # macOS / Linux
 source venv/bin/activate
+
+# Windows
+venv\Scripts\activate
 
 pip install -r requirements.txt
 ```
@@ -65,7 +124,6 @@ pip install -r requirements.txt
 ### 2. Buat database PostgreSQL
 
 ```sql
--- Jalankan di psql atau pgAdmin
 CREATE DATABASE edutask_db;
 CREATE USER edutask_user WITH PASSWORD 'yourpassword';
 GRANT ALL PRIVILEGES ON DATABASE edutask_db TO edutask_user;
@@ -137,101 +195,98 @@ npm run dev
 
 Base URL: `http://localhost:8000`
 
-| Method | Endpoint                    | Auth      | Deskripsi                        |
-|--------|-----------------------------|-----------|----------------------------------|
-| POST   | `/api/auth/register/`       | ❌ Public  | Registrasi akun baru             |
-| POST   | `/api/auth/login/`          | ❌ Public  | Login, mendapatkan JWT token     |
-| POST   | `/api/auth/logout/`         | ✅ Bearer  | Logout, blacklist refresh token  |
-| POST   | `/api/auth/token/refresh/`  | ❌ Public  | Perbarui access token            |
-| GET    | `/api/auth/profile/`        | ✅ Bearer  | Ambil profil user                |
-| PATCH  | `/api/auth/profile/`        | ✅ Bearer  | Update profil user               |
-| POST   | `/api/auth/change-password/`| ✅ Bearer  | Ganti password                   |
-| GET    | `/api/tasks/`               | ✅ Bearer  | List task + filter/search        |
-| POST   | `/api/tasks/`               | ✅ Bearer  | Tambah task                      |
-| PUT    | `/api/tasks/{id}/`          | ✅ Bearer  | Edit task                        |
-| DELETE | `/api/tasks/{id}/`          | ✅ Bearer  | Hapus task                       |
-| GET    | `/api/tasks/kanban/`        | ✅ Bearer  | Data board per status            |
-| GET    | `/api/tasks/mata-kuliah/`   | ✅ Bearer  | List mata kuliah                 |
-| POST   | `/api/tasks/mata-kuliah/`   | ✅ Bearer  | Tambah mata kuliah               |
-| GET    | `/api/schedules/`           | ✅ Bearer  | List jadwal kuliah mingguan      |
-| POST   | `/api/schedules/`           | ✅ Bearer  | Tambah jadwal kuliah             |
-| PUT    | `/api/schedules/{id}/`      | ✅ Bearer  | Edit jadwal kuliah               |
-| DELETE | `/api/schedules/{id}/`      | ✅ Bearer  | Hapus jadwal kuliah              |
+### Authentication
+
+| Method | Endpoint                         | Auth      | Deskripsi                        |
+|--------|----------------------------------|-----------|----------------------------------|
+| POST   | `/api/auth/register/`            | ❌ Public  | Registrasi akun umum             |
+| POST   | `/api/auth/register/mahasiswa/`  | ❌ Public  | Registrasi mahasiswa             |
+| POST   | `/api/auth/register/dosen/`      | ❌ Public  | Registrasi dosen                 |
+| POST   | `/api/auth/register/umum/`       | ❌ Public  | Registrasi pengguna umum         |
+| POST   | `/api/auth/login/`               | ❌ Public  | Login, mendapatkan JWT token     |
+| POST   | `/api/auth/logout/`              | ✅ Bearer  | Logout, blacklist refresh token  |
+| POST   | `/api/auth/token/refresh/`       | ❌ Public  | Perbarui access token            |
+| GET    | `/api/auth/profile/`             | ✅ Bearer  | Ambil profil user                |
+| PATCH  | `/api/auth/profile/`             | ✅ Bearer  | Update profil user               |
+| POST   | `/api/auth/change-password/`     | ✅ Bearer  | Ganti password                   |
+| GET    | `/api/auth/kelas/`               | ✅ Bearer  | List kelas (Mahasiswa)           |
+| GET    | `/api/auth/ruang/`               | ✅ Bearer  | List Ruang Edukasi user          |
+| POST   | `/api/auth/ruang/`               | ✅ Bearer  | Buat Ruang Edukasi baru (Dosen)  |
+| GET    | `/api/auth/ruang/<id>/`          | ✅ Bearer  | Detail Ruang Edukasi             |
+| DELETE | `/api/auth/ruang/<id>/`          | ✅ Bearer  | Hapus Ruang Edukasi              |
+| GET    | `/api/auth/ruang/<id>/members/`  | ✅ Bearer  | List anggota ruang               |
+| POST   | `/api/auth/ruang/join/`          | ✅ Bearer  | Bergabung dengan kode join       |
+| POST   | `/api/auth/forgot-password/`     | ❌ Public  | Kirim link reset password        |
+| POST   | `/api/auth/reset-password/`      | ❌ Public  | Konfirmasi reset password        |
+
+### Tasks
+
+| Method | Endpoint                              | Auth      | Deskripsi                        |
+|--------|---------------------------------------|-----------|----------------------------------|
+| GET    | `/api/tasks/mata-kuliah/`             | ✅ Bearer  | List mata kuliah + jadwal ruang  |
+| POST   | `/api/tasks/mata-kuliah/`             | ✅ Bearer  | Tambah mata kuliah pribadi       |
+| PUT    | `/api/tasks/mata-kuliah/<id>/`        | ✅ Bearer  | Edit mata kuliah                 |
+| DELETE | `/api/tasks/mata-kuliah/<id>/`        | ✅ Bearer  | Hapus mata kuliah                |
+| GET    | `/api/tasks/`                         | ✅ Bearer  | List task + filter/search        |
+| POST   | `/api/tasks/`                         | ✅ Bearer  | Tambah task                      |
+| PUT    | `/api/tasks/<id>/`                    | ✅ Bearer  | Edit task                        |
+| DELETE | `/api/tasks/<id>/`                    | ✅ Bearer  | Hapus task                       |
+| GET    | `/api/tasks/kanban/`                  | ✅ Bearer  | Data board per status            |
+| PATCH  | `/api/tasks/<id>/move/`               | ✅ Bearer  | Pindah task antar kolom Kanban   |
+| GET    | `/api/tasks/<id>/comments/`           | ✅ Bearer  | Komentar task                    |
+| POST   | `/api/tasks/<id>/comments/`           | ✅ Bearer  | Tambah komentar                  |
+| GET    | `/api/tasks/penugasan/`               | ✅ Bearer  | List penugasan dosen             |
+| POST   | `/api/tasks/penugasan/`               | ✅ Bearer  | Broadcast tugas (Dosen only)     |
+| GET    | `/api/tasks/penugasan/report/`        | ✅ Bearer  | Rekap progress mahasiswa         |
+| GET    | `/api/tasks/penugasan/export/`        | ✅ Bearer  | Export CSV progress              |
+| GET    | `/api/tasks/penugasan/<id>/progress/` | ✅ Bearer  | Progress per penugasan           |
+| GET    | `/api/tasks/notifications/`           | ✅ Bearer  | List notifikasi user             |
+| PATCH  | `/api/tasks/notifications/read/`      | ✅ Bearer  | Mark all notifikasi read         |
+| PATCH  | `/api/tasks/notifications/<id>/read/` | ✅ Bearer  | Mark notifikasi read             |
+
+### Inbox
+
+| Method | Endpoint                          | Auth      | Deskripsi                     |
+|--------|-----------------------------------|-----------|-------------------------------|
+| GET    | `/api/inbox/threads/`             | ✅ Bearer  | List thread chat user         |
+| POST   | `/api/inbox/threads/`             | ✅ Bearer  | Buat thread baru              |
+| GET    | `/api/inbox/threads/<id>/`        | ✅ Bearer  | Detail thread                 |
+| GET    | `/api/inbox/threads/<id>/messages/` | ✅ Bearer | List pesan dalam thread       |
+| POST   | `/api/inbox/threads/<id>/messages/` | ✅ Bearer | Kirim pesan                   |
 
 ---
 
-## ✅ Sprint 3 Summary
+## 🗃️ Data Models Utama
 
-Sprint 3 focused on building the core academic collaboration features and visual analytics.
+### User
+- UUID primary key
+- Role: `mahasiswa` | `dosen` | `umum`
+- TipeAkun: `gmail` | `pens` | `umum`
+- Fields: email, nama_lengkap, foto_profil, nrp, nip, prodi, kelas
 
-Completed:
-- Multi-role Dashboards (Dosen, Mahasiswa, Umum).
-- **Ruang Edukasi:** Dosen can create classes; Mahasiswa can join via unique codes.
-- **Task Broadcast (Penugasan):** Dosen can distribute tasks to entire classes at once.
-- **Advanced Reports:** Recharts integration (PieChart & BarChart) for visualizing task completion and distribution.
-- **Security Validation:** Passed final audit ensuring Zero Data Leakage (strict queryset filtering by JWT).
+### RuangEdukasi *(Authentication app)*
+- Fields: nama_ruang, deskripsi, kode_join (auto-generated)
+- Schedule fields: hari (IntegerChoices 0-6), jam_mulai, jam_selesai, ruangan, warna
+- Relations: kreator (ForeignKey User), anggota (M2M User)
+- **Note**: Schedule in RuangEdukasi is the authoritative source for class schedules — replaces manual `JadwalKuliah` input for Mahasiswa.
 
-Verification:
-- Frontend production build verified.
-- Backend automated suite passing.
-- End-to-end multi-role browser smoke tests passed.
+### MataKuliah *(Tasks app)*
+- Belongs to individual user — used as task category AND personal agenda
+- Fields: nama, nama_dosen, warna, hari, jam_mulai, jam_selesai, ruangan
+- **Note**: `GET /api/tasks/mata-kuliah/` merges personal records with RuangEdukasi schedule data. `is_academic: True` marks the latter.
 
-### Contoh Request: Register
+### Task
+- Fields: judul, deskripsi, deadline, prioritas, status, attachment, urutan
+- Relations: user, mata_kuliah (optional), source_assignment (optional)
+- Statuses: `todo` | `in_progress` | `done`
 
-```json
-POST /api/auth/register/
-{
-  "nama_lengkap": "Muhammad Rizky Cipta Saputra",
-  "email": "rizky@example.com",
-  "tipe_akun": "umum",
-  "password": "Password123!",
-  "password_confirm": "Password123!"
-}
-```
+### PenugasanDosen
+- Created by Dosen, broadcast to RuangEdukasi (M2M)
+- Auto-creates Tasks for each Mahasiswa in the target rooms
 
-### Contoh Response: Register (201)
-
-```json
-{
-  "success": true,
-  "message": "Registrasi berhasil! Selamat datang di EduTask.",
-  "data": {
-    "user": {
-      "id": "uuid-...",
-      "email": "rizky@example.com",
-      "nama_lengkap": "Muhammad Rizky Cipta Saputra",
-      "tipe_akun": "umum",
-      "is_email_verified": false,
-      "tanggal_daftar": "2026-04-25T10:00:00Z"
-    },
-    "tokens": {
-      "access": "eyJ...",
-      "refresh": "eyJ..."
-    }
-  }
-}
-```
-
-### Contoh Request: Login
-
-```json
-POST /api/auth/login/
-{
-  "email": "rizky@example.com",
-  "password": "Password123!"
-}
-```
-
-### Contoh Request: Logout
-
-```json
-POST /api/auth/logout/
-Authorization: Bearer eyJ...
-
-{
-  "refresh": "eyJ..."
-}
-```
+### ChatThread / Message *(Inbox app)*
+- ChatThread: supports 1:1 and group chats, has title (group), participants (M2M)
+- Message: text, attachment, reactions (JSON), is_read, is_edited
 
 ---
 
@@ -245,25 +300,38 @@ Authorization: Bearer eyJ...
 | Auto token refresh | Axios interceptor di frontend |
 | CORS | `django-cors-headers` |
 | Input validation | DRF Serializers + Django password validators |
+| Data isolation | Semua queryset difilter berdasarkan `request.user` |
+| Role-based access | `IsRole` permission class + `RoleRoute` di frontend |
 
 ---
 
-## 🗂️ FR yang Diimplementasikan (Sprint 1 - 3)
+## ✅ FR yang Diimplementasikan (Sprint 1–6)
 
-| Kode | Fitur | Status |
-|------|-------|--------|
-| FR-01 | Registrasi Akun Multi-Role | ✅ Done |
-| FR-02 | Login & Logout dengan JWT | ✅ Done |
-| FR-03 | Manajemen Profil Pengguna | ✅ Done |
-| FR-04 | Pembuatan Task Pribadi & Broadcast | ✅ Done |
-| FR-05 | Ruang Edukasi & Join Code | ✅ Done |
-| FR-07 | Kanban Board Visual | ✅ Done |
-| FR-08 | Visualisasi Analitik (Recharts) | ✅ Done |
+| Kode  | Fitur                                        | Status     |
+|-------|----------------------------------------------|------------|
+| FR-01 | Registrasi Akun Multi-Role                   | ✅ Done    |
+| FR-02 | Login & Logout dengan JWT                    | ✅ Done    |
+| FR-03 | Manajemen Profil Pengguna                    | ✅ Done    |
+| FR-04 | Pembuatan Task Pribadi & Broadcast           | ✅ Done    |
+| FR-05 | Ruang Edukasi & Join Code                    | ✅ Done    |
+| FR-06 | Jadwal Kuliah Terintegrasi Ruang Edukasi     | ✅ Done    |
+| FR-07 | Kanban Board Visual                          | ✅ Done    |
+| FR-08 | Visualisasi Analitik (Recharts)              | ✅ Done    |
+| FR-09 | Kalender Interaktif                          | ✅ Done    |
+| FR-10 | Sistem Pengingat (Reminder) Otomatis H-1     | ✅ Done    |
+| FR-11 | Progress Tracker Mahasiswa (Dosen Dashboard) | ✅ Done    |
+| FR-12 | Inbox Kolaborasi (Chat Real-Time)            | ✅ Done    |
+| FR-13 | Export Laporan Dosen (CSV)                   | ✅ Done    |
+| FR-14 | Notifikasi In-App                            | ✅ Done    |
+| FR-15 | Email Verification                           | 🔄 Partial |
+| FR-16 | OAuth Google Login                           | 🔄 Stub    |
 
 ---
 
-## 🚀 Sprint Berikutnya (Sprint 4)
+## 🚀 Roadmap Berikutnya
 
-- FR-09: Kalender Interaktif (Klik & Drag)
-- FR-10: Sistem Pengingat (Reminder) Otomatis H-1
-- FR-11: Progress Tracker Spesifik Individu Mahasiswa
+- Email verification full flow (frontend integration)
+- Real Google OAuth production setup
+- Automated browser smoke tests (Cypress/Playwright)
+- Push/email reminders
+- Drag-and-drop calendar events

@@ -71,6 +71,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     await authService.logout()
     setUser(null)
+    sessionStorage.removeItem('auth_return_to')
   }, [])
 
   const googleLogin = useCallback(async (data) => {

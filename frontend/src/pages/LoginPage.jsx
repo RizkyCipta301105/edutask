@@ -4,7 +4,7 @@ import { Eye, EyeOff, GraduationCap, Lightbulb, Mail, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
-import { consumeAuthReturnPath, getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
+import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
 import { getApiErrorMessage } from '../utils/apiErrors'
 
 export default function LoginPage({ mode = 'universal' }) {
@@ -31,7 +31,7 @@ export default function LoginPage({ mode = 'universal' }) {
         return
       }
       toast.success('Selamat datang kembali!')
-      const destination = consumeAuthReturnPath(getRoleDashboardPath(role))
+      const destination = getRoleDashboardPath(role)
       navigate(destination, { replace: true })
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Email atau password salah.'))
@@ -51,7 +51,7 @@ export default function LoginPage({ mode = 'universal' }) {
         return
       }
       toast.success('Berhasil masuk dengan Google!')
-      const destination = consumeAuthReturnPath(getRoleDashboardPath(role))
+      const destination = getRoleDashboardPath(role)
       navigate(destination, { replace: true })
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Gagal masuk dengan Google.'))

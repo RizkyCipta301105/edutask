@@ -32,8 +32,8 @@ INSTALLED_APPS = [
     # Local apps
     'apps.authentication',
     'apps.tasks',
-    'apps.schedules',
     'apps.inbox',
+    'apps.schedules',
 ]
 
 MIDDLEWARE = [

@@ -22,6 +22,22 @@ class RuangEdukasi(models.Model):
     deskripsi = models.TextField(blank=True, verbose_name='Deskripsi')
     kreator = models.ForeignKey('User', on_delete=models.CASCADE, related_name='ruang_dibuat')
     anggota = models.ManyToManyField('User', related_name='ruang_diikuti', blank=True)
+    
+    class HariPilihan(models.IntegerChoices):
+        SENIN = 1, 'Senin'
+        SELASA = 2, 'Selasa'
+        RABU = 3, 'Rabu'
+        KAMIS = 4, 'Kamis'
+        JUMAT = 5, 'Jumat'
+        SABTU = 6, 'Sabtu'
+        MINGGU = 0, 'Minggu'
+
+    hari = models.IntegerField(choices=HariPilihan.choices, null=True, blank=True, verbose_name='Hari Kuliah')
+    jam_mulai = models.TimeField(null=True, blank=True, verbose_name='Jam Mulai')
+    jam_selesai = models.TimeField(null=True, blank=True, verbose_name='Jam Selesai')
+    ruangan = models.CharField(max_length=150, null=True, blank=True, verbose_name='Ruangan / Link Zoom')
+    warna = models.CharField(max_length=7, default='#8B6914', verbose_name='Warna (hex)')
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
