@@ -388,10 +388,49 @@ Base URL: `http://localhost:8000`
 | FR-13 | Export Laporan Dosen (CSV)                   | ✅ Done    |
 | FR-14 | Notifikasi In-App                            | ✅ Done    |
 | FR-15 | Email Verification                           | ✅ Done
-Partial |
-| FR-16 | OAuth Google Login                           | 🔄 Stub    |
+| FR-16 | OAuth Google Login                           | ✅ Done    |
 | FR-17 | Payment Gateway (BayarIn) & Subscription     | ✅ Done    |
 | FR-18 | Automated E2E Smoke Tests (Cypress)          | ✅ Done    |
+
+---
+
+## 🔐 Google OAuth Setup
+
+Google OAuth sudah production-ready. Untuk menjalankan di lokal:
+
+### 1. Buat OAuth Client di Google Cloud Console
+
+1. Buka [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
+2. Buat project baru → **APIs & Services** → **OAuth consent screen** → External → isi nama app
+3. **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID** → Web application
+4. Isi **Authorized JavaScript origins**:
+   ```
+   http://localhost:5173
+   http://localhost:5174
+   ```
+5. Isi **Authorized redirect URIs**:
+   ```
+   http://localhost:8000/api/auth/google/callback/
+   ```
+6. Copy **Client ID** dan **Client Secret**
+
+### 2. Isi ke `.env`
+
+**Backend** (`backend/.env`):
+```env
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+```
+
+**Frontend** (`frontend/.env`):
+```env
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+```
+
+### Catatan
+- Tidak butuh kartu kredit — Google OAuth gratis
+- `clock_skew_in_seconds=120` sudah dikonfigurasi untuk toleransi perbedaan jam server
+- Mode mock (`mock-google-token-{email}`) tetap tersedia untuk testing tanpa credentials asli
 
 ---
 
@@ -452,12 +491,15 @@ Lihat [`cypress/SMOKE_TEST_REPORT.md`](frontend/cypress/SMOKE_TEST_REPORT.md) un
 | Bug | Root Cause | Fix |
 |---|---|---|
 | "Gagal menambahkan task cepat" di Kanban quick add | `onQuickAdd` tidak mengirim field `deadline` yang wajib diisi backend | Tambah `deadline: today` (ISO date hari ini) ke payload quick add di `TaskManagementPage.jsx` |
+| Google OAuth 500 Internal Server Error | `error_response()` dipanggil dengan keyword argument `code` yang tidak valid | Ganti `code=` menjadi `status_code=` di `google_views.py` |
+| Google OAuth 401 "Token used too early" | Clock komputer maju ~1 menit dari Google server (clock skew) | Tambah `clock_skew_in_seconds=120` ke `id_token.verify_oauth2_token()` |
+| `settings.py` membaca `GOOGLE_OAUTH_CLIENT_ID` tapi `.env` pakai `GOOGLE_CLIENT_ID` | Nama env variable tidak konsisten | Seragamkan ke `GOOGLE_CLIENT_ID` di `settings.py` dan `google_views.py` |
 
 
 ## 🚀 Roadmap Berikutnya
 
 - Email verification full flow (frontend integration) ✅
-- Real Google OAuth production setup
+- Real Google OAuth production setup ✅
 - Automated browser smoke tests (Cypress/Playwright) ✅
 - Push/email reminders ✅
 - Drag-and-drop calendar events ✅

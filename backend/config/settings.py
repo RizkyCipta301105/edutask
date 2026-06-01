@@ -175,7 +175,8 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = f'EduTask <{EMAIL_HOST_USER}>'
 
 # ─── Google OAuth ─────────────────────────────────────────────────────────────
-GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com')
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default=None)
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default=None)
 
 # ─── APScheduler ──────────────────────────────────────────────────────────────
 APSCHEDULER_DATETIME_FORMAT = 'N j, Y, f:s a'  # Format tampilan waktu di admin

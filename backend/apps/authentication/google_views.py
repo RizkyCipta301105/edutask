@@ -41,15 +41,16 @@ class GoogleLoginView(APIView):
             )
 
         try:
-            client_id = getattr(settings, 'GOOGLE_OAUTH_CLIENT_ID', 'GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com')
-            
-            # Dalam mode development (tanpa client ID asli), abaikan verifikasi sementara atau tangani error
-            if client_id == 'GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com':
-                # Ini hanya simulasi jika Client ID belum diset
-                # Jangan gunakan ini di production
-                pass
+            client_id = getattr(settings, 'GOOGLE_CLIENT_ID', None)
+            if not client_id:
+                return error_response(message="Google OAuth belum dikonfigurasi di server.")
 
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(), client_id)
+            idinfo = id_token.verify_oauth2_token(
+                token,
+                requests.Request(),
+                client_id,
+                clock_skew_in_seconds=120  # toleransi 2 menit clock skew
+            )
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
@@ -75,4 +76,12 @@ class GoogleLoginView(APIView):
             )
 
         except ValueError as e:
-            return error_response(message=f"Token Google tidak valid: {str(e)}", code=status.HTTP_401_UNAUTHORIZED)
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Google token verification failed: {str(e)}")
+            return error_response(message=f"Token Google tidak valid: {str(e)}", status_code=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Google login unexpected error: {type(e).__name__}: {str(e)}")
+            return error_response(message="Terjadi kesalahan saat verifikasi Google.", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
