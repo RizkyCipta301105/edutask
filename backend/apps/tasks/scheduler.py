@@ -1,16 +1,29 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.core.mail import send_mail
+"""
+EduTask Reminder Scheduler
+Menggunakan APScheduler via django_apscheduler untuk menjalankan
+check_deadlines 4x sehari: 07:00, 12:00, 17:00, 21:00 WIB.
+
+Deduplication: email hanya terkirim SEKALI per hari per task per tipe reminder.
+In-app notification tetap dibuat sekali selamanya (tidak duplikat).
+
+Diaktifkan dari apps/tasks/apps.py → ready()
+"""
+import logging
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from django_apscheduler.jobstores import DjangoJobStore
+from django_apscheduler.models import DjangoJobExecution
 from django.conf import settings
-from datetime import timedelta
-from apps.tasks.models import Task, Notification
+
+logger = logging.getLogger(__name__)
 
 
-def send_reminder_email(user, subject, message):
-    """Kirim email reminder ke user."""
+def _send_email(user, subject, message):
+    """Kirim email ke user. Gagal diam-diam agar tidak crash scheduler."""
     if not user.email:
         return
     try:
+        from django.core.mail import send_mail
         send_mail(
             subject=subject,
             message=message,
@@ -22,8 +35,13 @@ def send_reminder_email(user, subject, message):
         pass
 
 
-def already_emailed_today(task, email_title):
-    """Cek apakah email sudah dikirim hari ini untuk task ini."""
+def _already_emailed_today(task, email_title):
+    """
+    Cek apakah email dengan judul ini sudah dikirim hari ini untuk task ini.
+    Menggunakan Notification sebagai log — cek created_at__date == today.
+    """
+    from django.utils import timezone
+    from apps.tasks.models import Notification
     today = timezone.now().date()
     return Notification.objects.filter(
         task=task,
@@ -32,17 +50,26 @@ def already_emailed_today(task, email_title):
     ).exists()
 
 
-class Command(BaseCommand):
-    help = 'Cek deadline task dan kirim notifikasi + email reminder ke user'
+def run_check_deadlines():
+    """
+    Cek deadline task dan kirim:
+    - In-app Notification (sekali selamanya per tipe per task)
+    - Email reminder (sekali per hari per tipe per task)
 
-    def handle(self, *args, **options):
+    Dipanggil 4x sehari: 07:00, 12:00, 17:00, 21:00 WIB.
+    """
+    try:
+        from django.utils import timezone
+        from datetime import timedelta
+        from apps.tasks.models import Task, Notification
+
         today = timezone.now().date()
         tomorrow = today + timedelta(days=1)
         in_3_days = today + timedelta(days=3)
 
-        count_h3 = count_h1 = count_overdue = 0
+        count = {'h3': 0, 'h1': 0, 'overdue': 0}
 
-        # ── 1. Reminder H-3 ──────────────────────────────────────────────────
+        # ── H-3 ──────────────────────────────────────────────────────────
         for task in Task.objects.filter(
             deadline=in_3_days
         ).exclude(status=Task.Status.DONE).select_related('user'):
@@ -50,19 +77,21 @@ class Command(BaseCommand):
             notif_title = 'Pengingat Deadline: H-3'
             email_title = f'[EMAIL] {notif_title}'
 
+            # In-app: buat sekali selamanya
             if not Notification.objects.filter(task=task, title=notif_title).exists():
                 Notification.objects.create(
                     user=task.user, task=task, title=notif_title,
                     message=f'Task "{task.judul}" harus diselesaikan dalam 3 hari lagi.'
                 )
 
-            if not already_emailed_today(task, email_title):
+            # Email: kirim sekali per hari
+            if not _already_emailed_today(task, email_title):
                 Notification.objects.create(
                     user=task.user, task=task, title=email_title,
                     message=f'[Email terkirim] Reminder H-3 untuk "{task.judul}".',
-                    is_read=True,
+                    is_read=True,  # Tidak muncul di dropdown notifikasi user
                 )
-                send_reminder_email(
+                _send_email(
                     task.user,
                     subject=f'[EduTask] ⏰ Pengingat: "{task.judul}" — 3 Hari Lagi',
                     message=(
@@ -74,9 +103,9 @@ class Command(BaseCommand):
                         f'Segera selesaikan sebelum deadline!\n\n— EduTask'
                     )
                 )
-                count_h3 += 1
+                count['h3'] += 1
 
-        # ── 2. Reminder H-1 ──────────────────────────────────────────────────
+        # ── H-1 ──────────────────────────────────────────────────────────
         for task in Task.objects.filter(
             deadline=tomorrow
         ).exclude(status=Task.Status.DONE).select_related('user'):
@@ -84,19 +113,21 @@ class Command(BaseCommand):
             notif_title = 'Pengingat Deadline: H-1'
             email_title = f'[EMAIL] {notif_title}'
 
+            # In-app: buat sekali selamanya
             if not Notification.objects.filter(task=task, title=notif_title).exists():
                 Notification.objects.create(
                     user=task.user, task=task, title=notif_title,
                     message=f'Task "{task.judul}" harus diselesaikan paling lambat besok.'
                 )
 
-            if not already_emailed_today(task, email_title):
+            # Email: kirim sekali per hari
+            if not _already_emailed_today(task, email_title):
                 Notification.objects.create(
                     user=task.user, task=task, title=email_title,
                     message=f'[Email terkirim] Reminder H-1 untuk "{task.judul}".',
                     is_read=True,
                 )
-                send_reminder_email(
+                _send_email(
                     task.user,
                     subject=f'[EduTask] ⚠️ Deadline Besok: "{task.judul}"',
                     message=(
@@ -108,9 +139,9 @@ class Command(BaseCommand):
                         f'Jangan sampai terlambat!\n\n— EduTask'
                     )
                 )
-                count_h1 += 1
+                count['h1'] += 1
 
-        # ── 3. Overdue ───────────────────────────────────────────────────────
+        # ── Overdue ───────────────────────────────────────────────────────
         for task in Task.objects.filter(
             deadline__lt=today
         ).exclude(status=Task.Status.DONE).select_related('user'):
@@ -118,19 +149,21 @@ class Command(BaseCommand):
             notif_title = 'Peringatan: Task Overdue!'
             email_title = f'[EMAIL] {notif_title}'
 
+            # In-app: buat sekali selamanya
             if not Notification.objects.filter(task=task, title=notif_title).exists():
                 Notification.objects.create(
                     user=task.user, task=task, title=notif_title,
                     message=f'Task "{task.judul}" telah melewati batas waktu deadline dan belum selesai.'
                 )
 
-            if not already_emailed_today(task, email_title):
+            # Email: kirim sekali per hari
+            if not _already_emailed_today(task, email_title):
                 Notification.objects.create(
                     user=task.user, task=task, title=email_title,
                     message=f'[Email terkirim] Overdue reminder untuk "{task.judul}".',
                     is_read=True,
                 )
-                send_reminder_email(
+                _send_email(
                     task.user,
                     subject=f'[EduTask] 🔴 Task Overdue: "{task.judul}"',
                     message=(
@@ -142,10 +175,52 @@ class Command(BaseCommand):
                         f'Segera selesaikan atau hubungi dosen/pengajar terkait.\n\n— EduTask'
                     )
                 )
-                count_overdue += 1
+                count['overdue'] += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f'Selesai! H-3: {count_h3} | H-1: {count_h1} | Overdue: {count_overdue} email terkirim.'
-            )
+        logger.info(
+            f'[EduTask Scheduler] check_deadlines selesai — '
+            f'H-3: {count["h3"]} | H-1: {count["h1"]} | Overdue: {count["overdue"]} email terkirim.'
         )
+
+    except Exception as exc:
+        logger.exception(f'[EduTask Scheduler] Error saat check_deadlines: {exc}')
+
+
+def delete_old_job_executions(max_age=604_800):
+    """Hapus log eksekusi APScheduler yang lebih dari 7 hari (604800 detik)."""
+    DjangoJobExecution.objects.delete_old_job_executions(max_age)
+
+
+def start():
+    """
+    Inisialisasi dan jalankan scheduler.
+    Dipanggil dari TasksConfig.ready() agar hanya berjalan sekali.
+    """
+    scheduler = BackgroundScheduler(timezone=settings.TIME_ZONE)
+    scheduler.add_jobstore(DjangoJobStore(), 'default')
+
+    # Jalankan check_deadlines 4x sehari: 07:00, 12:00, 17:00, 21:00 WIB
+    scheduler.add_job(
+        run_check_deadlines,
+        trigger=CronTrigger(hour='7,12,17,21', minute=0),
+        id='check_deadlines_4x_daily',
+        name='Check Deadlines & Send Reminders (4x/day)',
+        jobstore='default',
+        replace_existing=True,
+    )
+
+    # Bersihkan log lama setiap Senin pukul 00:00
+    scheduler.add_job(
+        delete_old_job_executions,
+        trigger=CronTrigger(day_of_week='mon', hour=0, minute=0),
+        id='delete_old_job_executions',
+        name='Delete Old Job Executions',
+        jobstore='default',
+        replace_existing=True,
+    )
+
+    logger.info(
+        '[EduTask Scheduler] Scheduler dimulai. '
+        'check_deadlines berjalan 4x sehari: 07:00, 12:00, 17:00, 21:00 WIB.'
+    )
+    scheduler.start()

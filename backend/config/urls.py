@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/tasks/', include('apps.tasks.urls')),
     path('api/inbox/', include('apps.inbox.urls')),
     path('api/schedules/', include('apps.schedules.urls')),
+    path('api/payment/', include('apps.payment.urls')),
 ]
 
 if settings.DEBUG:

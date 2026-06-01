@@ -522,45 +522,47 @@ class NotificationListView(APIView):
         try:
             from datetime import timedelta
             from django.utils import timezone
-            
+
             today = timezone.now().date()
             tomorrow = today + timedelta(days=1)
-            
-            # 1. Cek H-1
-            tasks_h1 = Task.objects.filter(
-                user=request.user,
-                deadline=tomorrow,
-            ).exclude(status=Task.Status.DONE)
-            
-            for t in tasks_h1:
+            in_3_days = today + timedelta(days=3)
+
+            # 1. Cek H-3
+            for t in Task.objects.filter(
+                user=request.user, deadline=in_3_days
+            ).exclude(status=Task.Status.DONE):
+                title = 'Pengingat Deadline: H-3'
+                if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
+                    Notification.objects.create(
+                        user=request.user, task=t, title=title,
+                        message=f'Task "{t.judul}" harus diselesaikan dalam 3 hari lagi.'
+                    )
+
+            # 2. Cek H-1
+            for t in Task.objects.filter(
+                user=request.user, deadline=tomorrow
+            ).exclude(status=Task.Status.DONE):
                 title = 'Pengingat Deadline: H-1'
                 if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
                     Notification.objects.create(
-                        user=request.user,
-                        task=t,
-                        title=title,
+                        user=request.user, task=t, title=title,
                         message=f'Task "{t.judul}" harus diselesaikan paling lambat besok.'
                     )
-            
-            # 2. Cek Overdue
-            tasks_overdue = Task.objects.filter(
-                user=request.user,
-                deadline__lt=today,
-            ).exclude(status=Task.Status.DONE)
-            
-            for t in tasks_overdue:
+
+            # 3. Cek Overdue
+            for t in Task.objects.filter(
+                user=request.user, deadline__lt=today
+            ).exclude(status=Task.Status.DONE):
                 title = 'Peringatan: Task Overdue!'
                 if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
                     Notification.objects.create(
-                        user=request.user,
-                        task=t,
-                        title=title,
+                        user=request.user, task=t, title=title,
                         message=f'Task "{t.judul}" telah melewati batas waktu deadline dan belum selesai.'
                     )
-        except Exception as e:
+        except Exception:
             pass
 
-        notifs = Notification.objects.filter(user=request.user)[:50] # limit 50
+        notifs = Notification.objects.filter(user=request.user)[:50]
         return success_response(
             data=NotificationSerializer(notifs, many=True).data,
             message='Notifikasi berhasil diambil.'

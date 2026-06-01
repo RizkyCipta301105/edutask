@@ -149,6 +149,7 @@ import AppLayout from '../components/common/AppLayout'
 import Report from '../components/tasks/Report'
 import RuangEdukasiList from '../components/tasks/RuangEdukasiList'
 import Inbox from '../components/dashboard/Inbox'
+import FeatureGate from '../components/common/FeatureGate'
 
 export default function DashboardPage({ roleView = null }) {
   const { user } = useAuth()
@@ -276,19 +277,29 @@ export default function DashboardPage({ roleView = null }) {
           />
         )
       case 'Ruang':
-        return <RuangEdukasiList role={roleView} />
+        return (
+          <FeatureGate feature="ruang_edukasi">
+            <RuangEdukasiList role={roleView} />
+          </FeatureGate>
+        )
       case 'Report':
         return (
-          <Report
-            tasks={roleView === 'dosen' ? [] : (tasks || [])}
-            tasksByStatus={roleView === 'dosen' ? (dosenReportData?.stats || {todo: 0, in_progress: 0, done: 0}) : (tasksByStatus || {todo: [], in_progress: [], done: []})}
-            mahasiswaList={roleView === 'dosen' ? (dosenReportData?.mahasiswa || []) : []}
-            tugasList={roleView === 'dosen' ? (dosenReportData?.tugas || []) : []}
-            roleView={roleView}
-          />
+          <FeatureGate feature="analytics">
+            <Report
+              tasks={roleView === 'dosen' ? [] : (tasks || [])}
+              tasksByStatus={roleView === 'dosen' ? (dosenReportData?.stats || {todo: 0, in_progress: 0, done: 0}) : (tasksByStatus || {todo: [], in_progress: [], done: []})}
+              mahasiswaList={roleView === 'dosen' ? (dosenReportData?.mahasiswa || []) : []}
+              tugasList={roleView === 'dosen' ? (dosenReportData?.tugas || []) : []}
+              roleView={roleView}
+            />
+          </FeatureGate>
         )
       case 'Inbox':
-        return <Inbox user={user} roleView={roleView} />
+        return (
+          <FeatureGate feature="inbox">
+            <Inbox user={user} roleView={roleView} />
+          </FeatureGate>
+        )
       default:
         return null
     }

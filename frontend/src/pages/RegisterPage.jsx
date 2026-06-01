@@ -1,8 +1,8 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { GoogleLogin } from '@react-oauth/google'
-import { ArrowRight, Check, GraduationCap, Mail, User, CreditCard, BookOpen, Lock, Lightbulb, ChevronDown } from 'lucide-react'
+import { GraduationCap, Mail, User, Lock, Lightbulb } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
 import { getApiErrorMessage } from '../utils/apiErrors'
@@ -39,7 +39,6 @@ function RegisterShell({ children, title, subtitle }) {
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">Sumber Rezeki</h1>
         <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-[#D2A34E] sm:text-sm sm:tracking-[0.24em]">INNOVATE. AUTOMATE. ELEVATE.</p>
       </section>
-
       <section className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-xl">
           <div className="mb-10 text-center md:text-left">
@@ -58,37 +57,24 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
   const auth = useAuth()
   const [loading, setLoading] = useState(false)
   const [accepted, setAccepted] = useState(false)
-  const [kelasList, setKelasList] = useState([])
-  const [values, setValues] = useState({
-    nama_lengkap: '',
-    email: '',
-    password: '',
-  })
-
-  useEffect(() => {
-    // No longer fetching kelas list
-  }, [type])
+  const [values, setValues] = useState({ nama_lengkap: '', email: '', password: '' })
 
   const config = useMemo(() => {
-    if (type === 'umum') {
-      return {
-        title: 'Create an Account',
-        subtitle: 'Manage tasks efficiently with EduTask',
-        button: 'Register Account',
-        terms: 'I accept the Terms and Conditions',
-        register: auth.registerUmum,
-        success: 'Akun umum berhasil dibuat.',
-      }
+    if (type === 'umum') return {
+      title: 'Create an Account',
+      subtitle: 'Manage tasks efficiently with EduTask',
+      button: 'Register Account',
+      terms: 'I accept the Terms and Conditions',
+      register: auth.registerUmum,
+      success: 'Akun umum berhasil dibuat.',
     }
-    if (type === 'dosen') {
-      return {
-        title: 'Registrasi Dosen',
-        subtitle: 'Buat akun dosen untuk mengelola jadwal mengajar dan tugas',
-        button: 'Daftar Akun Dosen',
-        terms: 'Saya setuju dengan syarat dan ketentuan EduTask',
-        register: auth.registerDosen,
-        success: 'Akun dosen berhasil dibuat.',
-      }
+    if (type === 'dosen') return {
+      title: 'Registrasi Dosen',
+      subtitle: 'Buat akun dosen untuk mengelola jadwal mengajar dan tugas',
+      button: 'Daftar Akun Dosen',
+      terms: 'Saya setuju dengan syarat dan ketentuan EduTask',
+      register: auth.registerDosen,
+      success: 'Akun dosen berhasil dibuat.',
     }
     return {
       title: 'Registrasi Mahasiswa',
@@ -100,31 +86,21 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     }
   }, [type, auth])
 
-  const handleChange = (event) => {
-    const { name, value } = event.target
+  const handleChange = (e) => {
+    const { name, value } = e.target
     setValues(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    if (!accepted) {
-      toast.error('Syarat dan ketentuan harus disetujui.')
-      return
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!accepted) { toast.error('Syarat dan ketentuan harus disetujui.'); return }
     if (type === 'mahasiswa' && !values.email.endsWith('@student.pens.ac.id') && !values.email.endsWith('@pens.ac.id')) {
       toast.error('Email mahasiswa harus menggunakan domain kampus PENS.')
       return
     }
-
-    const payload = {
-      nama_lengkap: values.nama_lengkap,
-      email: values.email,
-      password: values.password,
-    }
-
     try {
       setLoading(true)
-      const user = await config.register(payload)
+      const user = await config.register({ nama_lengkap: values.nama_lengkap, email: values.email, password: values.password })
       toast.success(config.success)
       navigate(getRoleDashboardPath(normalizeUserRole(user)), { replace: true })
     } catch (err) {
@@ -147,6 +123,7 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     }
   }
 
+  // ── Form Umum ──────────────────────────────────────────────────────────────
   if (type === 'umum') {
     return (
       <RegisterShell title={config.title} subtitle={config.subtitle}>
@@ -165,7 +142,6 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
             <span className="text-xs font-medium uppercase tracking-wide text-slate-400">ATAU</span>
             <div className="h-px flex-1 bg-slate-200" />
           </div>
-
           <div className="flex justify-center mb-6">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
@@ -178,14 +154,17 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
             />
           </div>
 
-          <p className="text-center text-sm text-slate-500">Already have an account? <Link to="/login" className="font-semibold text-[#B8842A]">Log in here</Link></p>
+          <p className="text-center text-sm text-slate-500">
+            Already have an account? <Link to="/login" className="font-semibold text-[#B8842A]">Log in here</Link>
+          </p>
         </form>
       </RegisterShell>
     )
   }
 
+  // ── Form Mahasiswa / Dosen ─────────────────────────────────────────────────
   return (
-    <RegisterShell title={config.title} subtitle={config.subtitle} wide>
+    <RegisterShell title={config.title} subtitle={config.subtitle}>
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid gap-5 md:grid-cols-1">
           <AuthInput label="Nama Lengkap" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Masukkan nama lengkap anda" icon={User} autoComplete="name" />
@@ -208,7 +187,6 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
           <span className="text-xs font-medium uppercase tracking-wide text-slate-400">ATAU</span>
           <div className="h-px flex-1 bg-slate-200" />
         </div>
-
         <div className="flex justify-center mb-6">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
@@ -221,7 +199,9 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
           />
         </div>
 
-        <p className="text-center text-sm text-slate-500">Sudah punya akun? <Link to="/login" className="font-semibold text-[#B8842A]">Masuk di sini</Link></p>
+        <p className="text-center text-sm text-slate-500">
+          Sudah punya akun? <Link to="/login" className="font-semibold text-[#B8842A]">Masuk di sini</Link>
+        </p>
       </form>
     </RegisterShell>
   )

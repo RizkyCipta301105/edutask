@@ -3,12 +3,15 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Search, Bell, Menu as MenuIcon, LayoutDashboard, ClipboardList,
   CalendarDays, Settings, HelpCircle, X, LogOut, ChevronDown,
-  Mail, Moon, Sun, User, Sparkles, BookOpen
+  Mail, Moon, Sun, User, Sparkles, BookOpen, Crown
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { normalizeUserRole, getRoleDashboardPath } from '../../utils/authHelpers'
 import NotificationDropdown from '../dashboard/NotificationDropdown'
+import toast from 'react-hot-toast'
+import api from '../../services/api'
 import taskService from '../../services/taskService'
+import { useSubscription } from '../../hooks/useSubscription'
 
 // Premium layout styles
 import '../../styles/dashboard.css'
@@ -18,6 +21,7 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const role = normalizeUserRole(user)
+  const { isFree, plan, loading: subLoading } = useSubscription()
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
@@ -183,6 +187,24 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
 
           {/* Bottom Sidebar Controls */}
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Upgrade CTA untuk user Free */}
+            {!subLoading && isFree && (
+              <button
+                className="invite-btn"
+                style={{
+                  background: '#FF4D00',
+                  border: '1px solid #cc3d00',
+                  color: 'white',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+                onClick={() => navigate('/checkout?plan=pro')}
+              >
+                <Crown size={14} /> Upgrade ke Pro
+              </button>
+            )}
             <button
               className="invite-btn"
               style={{ background: 'transparent', border: '1px solid #e5e7eb', color: '#ef4444' }}
@@ -291,8 +313,9 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
               </div>
               <button
                 onClick={async () => {
+                  let toastId
                   try {
-                    const toastId = toast.loading('Mengirim email verifikasi...')
+                    toastId = toast.loading('Mengirim email verifikasi...')
                     await api.post('/api/auth/send-verification/')
                     toast.success('Email verifikasi berhasil dikirim. Silakan cek inbox Anda.', { id: toastId })
                   } catch (err) {

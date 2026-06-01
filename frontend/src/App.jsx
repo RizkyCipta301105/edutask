@@ -5,6 +5,7 @@ import GuestRoute from './components/common/GuestRoute'
 import RoleRoute from './components/common/RoleRoute'
 
 // Pages
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
@@ -14,11 +15,15 @@ import SchedulePage from './pages/SchedulePage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
+import CheckoutPage from './pages/CheckoutPage'
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Public Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Guest only routes - redirect to dashboard if already logged in */}
         <Route element={<GuestRoute />}>
           <Route path="/login"       element={<LoginPage />} />
@@ -33,6 +38,7 @@ export default function App() {
 
         {/* Public routes accessible to both guests and logged-in users */}
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
 
         {/* Protected routes - redirect to login if not authenticated */}
         <Route element={<ProtectedRoute />}>
@@ -51,9 +57,8 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
-        {/* Default redirects */}
-        <Route path="/"  element={<Navigate to="/dashboard" replace />} />
-        <Route path="*"  element={<Navigate to="/dashboard" replace />} />
+        {/* 404 - redirect to landing page */}
+        <Route path="*"  element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   )

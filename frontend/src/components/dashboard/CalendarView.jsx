@@ -1,14 +1,108 @@
 import React, { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, Calendar, BookOpen, Clock, AlertTriangle, CheckCircle, Plus, Sparkles } from 'lucide-react'
+import { DndContext, useDraggable, useDroppable, DragOverlay, pointerWithin } from '@dnd-kit/core'
+
+function DroppableCalendarCell({ dateString, isToday, isSelected, hoveredDateStr, setHoveredDateStr, setSelectedDateStr, children }) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: dateString,
+  });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`calendar-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isOver ? 'ring-2 ring-[#B8842A] bg-amber-50' : ''}`}
+      onClick={() => setSelectedDateStr(dateString)}
+      onMouseEnter={() => setHoveredDateStr(dateString)}
+      onMouseLeave={() => setHoveredDateStr(null)}
+    >
+      {children}
+    </div>
+  )
+}
+
+function DraggableTaskCard({ task, onTaskClick }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: task.id,
+    data: { type: 'Task', task }
+  });
+
+  const isDone = task.status === 'done' || task.status === 'completed'
+  const isInProgress = task.status === 'in_progress' || task.status === 'in-progress'
+  
+  let statusLabel = 'To Do'
+  let badgeClass = 'todo'
+  if (isDone) {
+    statusLabel = 'Done'
+    badgeClass = 'done'
+  } else if (isInProgress) {
+    statusLabel = 'In Progress'
+    badgeClass = 'progress'
+  }
+
+  return (
+    <div 
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`agenda-task-card ${isDone ? 'done' : ''} ${isDragging ? 'opacity-50 border-dashed border-[#B8842A]' : ''} cursor-grab active:cursor-grabbing`}
+      onClick={() => onTaskClick && onTaskClick(task.id)}
+    >
+      <div className="task-card-main">
+        <span className="task-title">{task.judul}</span>
+        <span className={`task-status-badge ${badgeClass}`}>
+          {statusLabel}
+        </span>
+      </div>
+      {task.mata_kuliah_detail?.nama && (
+        <span className="task-course-tag">
+          {task.mata_kuliah_detail.nama}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function TaskDragOverlay({ task }) {
+  const isDone = task.status === 'done' || task.status === 'completed'
+  const isInProgress = task.status === 'in_progress' || task.status === 'in-progress'
+  
+  let statusLabel = 'To Do'
+  let badgeClass = 'todo'
+  if (isDone) {
+    statusLabel = 'Done'
+    badgeClass = 'done'
+  } else if (isInProgress) {
+    statusLabel = 'In Progress'
+    badgeClass = 'progress'
+  }
+
+  return (
+    <div className={`agenda-task-card ${isDone ? 'done' : ''} opacity-95 shadow-xl border-[#B8842A] rotate-3 cursor-grabbing scale-105 bg-white`}>
+      <div className="task-card-main">
+        <span className="task-title">{task.judul}</span>
+        <span className={`task-status-badge ${badgeClass}`}>
+          {statusLabel}
+        </span>
+      </div>
+      {task.mata_kuliah_detail?.nama && (
+        <span className="task-course-tag">
+          {task.mata_kuliah_detail.nama}
+        </span>
+      )}
+    </div>
+  )
+}
 
 export default function CalendarView({ 
   tasks = [], 
   mataKuliah = [], 
   onTaskClick, 
   onDateClick, 
+  onTaskMove,
   roleView = 'umum' 
 }) {
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [activeTask, setActiveTask] = useState(null)
   
   // Format today's date string YYYY-MM-DD
   const todayStr = useMemo(() => {
@@ -85,6 +179,27 @@ export default function CalendarView({
     return `${dayName}, ${dayNum} ${monthName} ${yearNum}`
   }, [selectedDateEvents])
 
+  const handleDragStart = (event) => {
+    const { active } = event;
+    setActiveTask(active.data.current?.task);
+  }
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    setActiveTask(null);
+    if (over && active.id) {
+      const taskId = active.id;
+      const newDateStr = over.id; // Target date string YYYY-MM-DD
+      
+      // Prevent dropping on the same day
+      if (newDateStr === selectedDateStr) return;
+      
+      if (onTaskMove) {
+        onTaskMove(taskId, newDateStr);
+      }
+    }
+  }
+
   const renderCells = () => {
     const cells = []
     
@@ -126,12 +241,14 @@ export default function CalendarView({
       const hasCompletedTasks = dayTasks.some(t => t.status === 'done' || t.status === 'completed')
 
       cells.push(
-        <div 
+        <DroppableCalendarCell 
           key={i} 
-          className={`calendar-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
-          onClick={() => setSelectedDateStr(dateString)}
-          onMouseEnter={() => setHoveredDateStr(dateString)}
-          onMouseLeave={() => setHoveredDateStr(null)}
+          dateString={dateString}
+          isToday={isToday}
+          isSelected={isSelected}
+          hoveredDateStr={hoveredDateStr}
+          setHoveredDateStr={setHoveredDateStr}
+          setSelectedDateStr={setSelectedDateStr}
         >
           <span className="calendar-date-number">{i}</span>
           
@@ -144,7 +261,7 @@ export default function CalendarView({
 
           {/* Floating Hover Popover Preview */}
           {hoveredDateStr === dateString && (dayClasses.length > 0 || dayTasks.length > 0) && (
-            <div className="calendar-hover-popover">
+            <div className="calendar-hover-popover z-[100]">
               {dayClasses.slice(0, 3).map(mk => (
                 <div key={mk.id} className="calendar-popover-item" style={{ borderLeft: `3px solid ${mk.warna || '#B8842A'}`, background: '#f8fafc', color: '#1e293b' }}>
                   🕒 {mk.nama}
@@ -162,7 +279,7 @@ export default function CalendarView({
               )}
             </div>
           )}
-        </div>
+        </DroppableCalendarCell>
       )
     }
 
@@ -174,155 +291,133 @@ export default function CalendarView({
     : (roleView === 'mahasiswa' ? 'Jadwal Kuliah & Deadline' : 'Kalender Produktivitas Pribadi')
 
   return (
-    <div className="premium-calendar-wrapper">
-      <div className="calendar-main-layout">
-        
-        {/* PANEL KIRI: KALENDER GRID */}
-        <div className="calendar-grid-panel">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Calendar className="text-[#B8842A]" size={22} />
-                {calendarTitle}
-              </h1>
-               <p className="text-xs text-slate-500 mt-1">
-                 {roleView === 'umum' 
-                   ? 'Kelola jadwal kegiatan dan tugas secara visual' 
-                   : 'Kelola jadwal kuliah dan tugas secara visual'}
-               </p>
+    <DndContext 
+      onDragStart={handleDragStart} 
+      onDragEnd={handleDragEnd}
+      collisionDetection={pointerWithin}
+    >
+      <div className="premium-calendar-wrapper">
+        <div className="calendar-main-layout">
+          
+          {/* PANEL KIRI: KALENDER GRID */}
+          <div className="calendar-grid-panel">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <Calendar className="text-[#B8842A]" size={22} />
+                  {calendarTitle}
+                </h1>
+                 <p className="text-xs text-slate-500 mt-1">
+                   {roleView === 'umum' 
+                     ? 'Kelola jadwal kegiatan dan tugas secara visual' 
+                     : 'Kelola jadwal kuliah dan tugas secara visual'}
+                 </p>
+              </div>
+            </div>
+
+            <div className="calendar-navigation-header">
+              <button onClick={prevMonth} className="nav-arrow-btn">
+                <ChevronLeft size={18}/>
+              </button>
+              <h2 className="month-year-label">{monthNames[month]} {year}</h2>
+              <button onClick={nextMonth} className="nav-arrow-btn">
+                <ChevronRight size={18}/>
+              </button>
+            </div>
+
+            <div className="calendar-grid-container relative">
+              {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(d => (
+                <div key={d} className="calendar-day-label">{d}</div>
+              ))}
+              {renderCells()}
             </div>
           </div>
 
-          <div className="calendar-navigation-header">
-            <button onClick={prevMonth} className="nav-arrow-btn">
-              <ChevronLeft size={18}/>
-            </button>
-            <h2 className="month-year-label">{monthNames[month]} {year}</h2>
-            <button onClick={nextMonth} className="nav-arrow-btn">
-              <ChevronRight size={18}/>
-            </button>
-          </div>
-
-          <div className="calendar-grid-container">
-            {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(d => (
-              <div key={d} className="calendar-day-label">{d}</div>
-            ))}
-            {renderCells()}
-          </div>
-        </div>
-
-        {/* PANEL KANAN: SIDEBAR DETAIL AGENDA */}
-        <div className="calendar-detail-sidebar">
-          <div className="sidebar-date-header">
-            <Sparkles size={16} className="text-[#B8842A]" />
-            <h3 className="sidebar-date-title">{formattedSelectedDate}</h3>
-            {selectedDateStr === todayStr && (
-              <span className="today-badge">Hari Ini</span>
-            )}
-          </div>
-
-          <div className="sidebar-actions">
-            <button 
-              onClick={() => onDateClick && onDateClick(selectedDateStr)}
-              className="quick-add-task-btn"
-            >
-              <Plus size={16} />
-              Tambah Tugas Hari Ini
-            </button>
-          </div>
-
-          <div className="agenda-scroll-container">
-            
-            {/* 1. SEKTOR JADWAL KULIAH */}
-            <div className="agenda-section">
-              <h4 className="agenda-section-title">
-                <BookOpen size={14} />
-                {roleView === 'umum' ? 'Jadwal Kegiatan & Agenda' : 'Jadwal Kuliah & Kelas'}
-              </h4>
-              {selectedDateEvents.classes.length === 0 ? (
-                <div className="agenda-empty-state">
-                  {roleView === 'umum' ? 'Tidak ada jadwal kegiatan hari ini.' : 'Tidak ada jadwal kuliah hari ini.'}
-                </div>
-              ) : (
-                <div className="agenda-list">
-                  {selectedDateEvents.classes.map(mk => (
-                    <div 
-                      key={mk.id} 
-                      className="agenda-class-card"
-                      style={{ borderLeftColor: mk.warna || '#B8842A' }}
-                    >
-                      <div className="class-card-header">
-                        <span className="class-name">{mk.nama}</span>
-                        {mk.ruangan && (
-                          <span className="class-room">{mk.ruangan}</span>
-                        )}
-                      </div>
-                      {mk.jam_mulai && mk.jam_selesai && (
-                        <div className="class-time">
-                          <Clock size={12} />
-                          {mk.jam_mulai.substring(0, 5)} - {mk.jam_selesai.substring(0, 5)}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+          {/* PANEL KANAN: SIDEBAR DETAIL AGENDA */}
+          <div className="calendar-detail-sidebar">
+            <div className="sidebar-date-header">
+              <Sparkles size={16} className="text-[#B8842A]" />
+              <h3 className="sidebar-date-title">{formattedSelectedDate}</h3>
+              {selectedDateStr === todayStr && (
+                <span className="today-badge">Hari Ini</span>
               )}
             </div>
 
-            {/* 2. SEKTOR TENGGAT TUGAS */}
-            <div className="agenda-section mt-6">
-              <h4 className="agenda-section-title">
-                <CheckCircle size={14} />
-                Tenggat Waktu Tugas
-              </h4>
-              {selectedDateEvents.tasks.length === 0 ? (
-                <div className="agenda-empty-state">
-                  Tidak ada deadline tugas hari ini.
-                </div>
-              ) : (
-                <div className="agenda-list">
-                  {selectedDateEvents.tasks.map(t => {
-                    const isDone = t.status === 'done' || t.status === 'completed'
-                    const isInProgress = t.status === 'in_progress' || t.status === 'in-progress'
-                    
-                    let statusLabel = 'To Do'
-                    let badgeClass = 'todo'
-                    if (isDone) {
-                      statusLabel = 'Done'
-                      badgeClass = 'done'
-                    } else if (isInProgress) {
-                      statusLabel = 'In Progress'
-                      badgeClass = 'progress'
-                    }
+            <div className="sidebar-actions">
+              <button 
+                onClick={() => onDateClick && onDateClick(selectedDateStr)}
+                className="quick-add-task-btn"
+              >
+                <Plus size={16} />
+                Tambah Tugas Hari Ini
+              </button>
+            </div>
 
-                    return (
+            <div className="agenda-scroll-container">
+              
+              {/* 1. SEKTOR JADWAL KULIAH */}
+              <div className="agenda-section">
+                <h4 className="agenda-section-title">
+                  <BookOpen size={14} />
+                  {roleView === 'umum' ? 'Jadwal Kegiatan & Agenda' : 'Jadwal Kuliah & Kelas'}
+                </h4>
+                {selectedDateEvents.classes.length === 0 ? (
+                  <div className="agenda-empty-state">
+                    {roleView === 'umum' ? 'Tidak ada jadwal kegiatan hari ini.' : 'Tidak ada jadwal kuliah hari ini.'}
+                  </div>
+                ) : (
+                  <div className="agenda-list">
+                    {selectedDateEvents.classes.map(mk => (
                       <div 
-                        key={t.id} 
-                        className={`agenda-task-card ${isDone ? 'done' : ''}`}
-                        onClick={() => onTaskClick && onTaskClick(t.id)}
+                        key={mk.id} 
+                        className="agenda-class-card"
+                        style={{ borderLeftColor: mk.warna || '#B8842A' }}
                       >
-                        <div className="task-card-main">
-                          <span className="task-title">{t.judul}</span>
-                          <span className={`task-status-badge ${badgeClass}`}>
-                            {statusLabel}
-                          </span>
+                        <div className="class-card-header">
+                          <span className="class-name">{mk.nama}</span>
+                          {mk.ruangan && (
+                            <span className="class-room">{mk.ruangan}</span>
+                          )}
                         </div>
-                        {t.mata_kuliah_detail?.nama && (
-                          <span className="task-course-tag">
-                            {t.mata_kuliah_detail.nama}
-                          </span>
+                        {mk.jam_mulai && mk.jam_selesai && (
+                          <div className="class-time">
+                            <Clock size={12} />
+                            {mk.jam_mulai.substring(0, 5)} - {mk.jam_selesai.substring(0, 5)}
+                          </div>
                         )}
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
+              {/* 2. SEKTOR TENGGAT TUGAS */}
+              <div className="agenda-section mt-6">
+                <h4 className="agenda-section-title">
+                  <CheckCircle size={14} />
+                  Tenggat Waktu Tugas
+                </h4>
+                {selectedDateEvents.tasks.length === 0 ? (
+                  <div className="agenda-empty-state">
+                    Tidak ada deadline tugas hari ini.
+                  </div>
+                ) : (
+                  <div className="agenda-list">
+                    {selectedDateEvents.tasks.map(t => (
+                      <DraggableTaskCard key={t.id} task={t} onTaskClick={onTaskClick} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
           </div>
+
         </div>
 
-      </div>
+        <DragOverlay>
+          {activeTask ? <TaskDragOverlay task={activeTask} /> : null}
+        </DragOverlay>
 
       <style>{`
         .premium-calendar-wrapper {
@@ -696,5 +791,6 @@ export default function CalendarView({
         }
       `}</style>
     </div>
+    </DndContext>
   )
 }

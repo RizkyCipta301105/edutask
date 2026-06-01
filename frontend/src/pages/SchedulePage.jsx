@@ -141,11 +141,27 @@ export default function SchedulePage() {
             tasks={tasks}
             mataKuliah={mataKuliah}
             onTaskClick={(taskId) => {
-              // Redirect to tasks page and let them view it there, or give a friendly toast
               toast.success('Pindah ke tab Tugas Akademik untuk melihat detail tugas ini!')
             }}
             onDateClick={(dateStr) => {
               navigate(`/tasks?add=true&date=${dateStr}`)
+            }}
+            onTaskMove={async (taskId, newDateStr) => {
+              try {
+                const taskToUpdate = tasks.find(t => t.id === taskId)
+                if (!taskToUpdate) return
+
+                const payload = {
+                  deadline: newDateStr
+                }
+
+                await taskService.updateTask(taskId, payload)
+                toast.success('Deadline tugas berhasil diperbarui!')
+                fetchData() // Refresh kalender
+              } catch (err) {
+                console.error("Gagal memindahkan tugas:", err)
+                toast.error('Gagal memindahkan tugas.')
+              }
             }}
             roleView={role}
           />

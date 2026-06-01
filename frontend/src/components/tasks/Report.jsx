@@ -557,9 +557,9 @@ export default function Report({
                   <p style={{ color: '#6b7280', marginBottom: 16 }}>Distribusi Status Tugas Anda:</p>
                   <div style={{ height: 220, marginBottom: 24, background: '#f9fafb', borderRadius: 12, padding: 16 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }} layout="vertical">
+                      <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }} layout="vertical">
                         <XAxis type="number" hide />
-                        <YAxis dataKey="label" type="category" fontSize={12} tickLine={false} axisLine={false} width={80} />
+                        <YAxis dataKey="label" type="category" fontSize={12} tickLine={false} axisLine={false} width={100} />
                         <RechartsTooltip cursor={{ fill: 'transparent' }} />
                         <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
                           {

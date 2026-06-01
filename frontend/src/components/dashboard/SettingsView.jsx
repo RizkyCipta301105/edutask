@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { EyeOff, Eye, Shield, Monitor, Smartphone, Layout, Check, LogOut } from 'lucide-react'
+import { EyeOff, Eye, Shield, Monitor, Smartphone, Layout, Check, LogOut, Crown, Clock, ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import authService from '../../services/authService'
+import { useSubscription } from '../../hooks/useSubscription'
 
 export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
   const [passwords, setPasswords] = useState({ current: '', newPass: '', confirm: '' })
@@ -13,6 +15,8 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [notifEnabled, setNotifEnabled] = useState(true)
+
+  const { subscription, plan, isActive, isFree, isPro, isTeam, loading: subLoading } = useSubscription()
 
   const handlePasswordChange = async () => {
     if (!passwords.current) { setPasswordMsg({ type: 'error', text: 'Password saat ini wajib diisi' }); return }
@@ -89,6 +93,110 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
           </div>
         </div>
       )}
+
+      {/* Subscription Plan */}
+      <div className="settings-row">
+        <div className="settings-left">
+          <h3>Paket Langganan</h3>
+          <p>Status dan detail paket aktif Anda</p>
+        </div>
+        <div className="settings-card">
+          <div className="settings-card-content">
+            {subLoading ? (
+              <div style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Memuat data subscription...</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Plan badge */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Crown size={20} color={isTeam ? '#7c3aed' : isPro ? '#FF4D00' : '#9ca3af'} />
+                  <span style={{
+                    fontWeight: 700,
+                    fontSize: '1.1rem',
+                    color: isTeam ? '#7c3aed' : isPro ? '#FF4D00' : '#374151',
+                    textTransform: 'uppercase',
+                  }}>
+                    {plan === 'team' ? 'Team Plan' : plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                  </span>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: isActive ? '#d1fae5' : '#fee2e2',
+                    color: isActive ? '#065f46' : '#991b1b',
+                    textTransform: 'uppercase',
+                  }}>
+                    {isActive ? 'Aktif' : 'Tidak Aktif'}
+                  </span>
+                </div>
+
+                {/* End date */}
+                {subscription?.end_date && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6b7280', fontSize: '0.85rem' }}>
+                    <Clock size={14} />
+                    Aktif hingga: {new Date(subscription.end_date).toLocaleDateString('id-ID', {
+                      day: 'numeric', month: 'long', year: 'numeric',
+                    })}
+                  </div>
+                )}
+
+                {/* Feature list */}
+                {subscription?.features && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                    {Object.entries(subscription.features)
+                      .filter(([key, val]) => val === true)
+                      .map(([key]) => (
+                        <span key={key} style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          background: '#f3f4f6',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: 4,
+                          color: '#374151',
+                          textTransform: 'capitalize',
+                        }}>
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                      ))
+                    }
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          {isFree && (
+            <div className="settings-card-footer">
+              <Link
+                to="/checkout?plan=pro"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: '#FF4D00', color: 'white', fontWeight: 700,
+                  padding: '8px 16px', borderRadius: 6, fontSize: '0.85rem',
+                  textDecoration: 'none',
+                }}
+              >
+                <Crown size={14} /> Upgrade ke Pro <ArrowRight size={14} />
+              </Link>
+            </div>
+          )}
+          {isPro && !isTeam && (
+            <div className="settings-card-footer">
+              <Link
+                to="/checkout?plan=team"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: '#7c3aed', color: 'white', fontWeight: 700,
+                  padding: '8px 16px', borderRadius: 6, fontSize: '0.85rem',
+                  textDecoration: 'none',
+                }}
+              >
+                <Crown size={14} /> Upgrade ke Team <ArrowRight size={14} />
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Change Password */}
       <div className="settings-row">

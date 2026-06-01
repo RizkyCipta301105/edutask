@@ -26,12 +26,12 @@ class SendVerificationEmailView(APIView):
             expires_at=timezone.now() + timezone.timedelta(days=1)
         )
 
-        verify_url = f"http://localhost:5173/verify-email?token={token.token}"
+        verify_url = f"{getattr(settings, 'EDUTASK_FRONTEND_URL', 'http://localhost:5173')}/verify-email?token={token.token}"
         
         send_mail(
             subject="Verifikasi Email EduTask",
             message=f"Halo {user.nama_lengkap},\n\nKlik link berikut untuk memverifikasi alamat email Anda:\n{verify_url}\n\nLink ini berlaku selama 24 jam.",
-            from_email="noreply@edutask.local",
+            from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
             recipient_list=[user.email],
             fail_silently=False,
         )
@@ -88,12 +88,12 @@ class ForgotPasswordView(APIView):
             expires_at=timezone.now() + timezone.timedelta(hours=1)
         )
 
-        reset_url = f"http://localhost:5173/reset-password?token={token.token}"
+        reset_url = f"{getattr(settings, 'EDUTASK_FRONTEND_URL', 'http://localhost:5173')}/reset-password?token={token.token}"
         
         send_mail(
             subject="Reset Password EduTask",
             message=f"Halo {user.nama_lengkap},\n\nAnda meminta reset password. Klik link berikut untuk membuat password baru:\n{reset_url}\n\nLink ini berlaku selama 1 jam.",
-            from_email="noreply@edutask.local",
+            from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
             recipient_list=[user.email],
             fail_silently=False,
         )

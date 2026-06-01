@@ -1,7 +1,35 @@
-# EduTask – Sprint 6 In Progress
+# EduTask – Sprint 6 Completed
 
 > Aplikasi Web Manajemen Tugas & Jadwal Akademik  
 > Tim Sumber Rejeki | Teknologi Rekayasa Internet | PENS 2026
+
+**🎉 NEW: Payment Gateway (BayarIn) terintegrasi — upgrade ke Pro/Team plan langsung dari app!**  
+**🧪 NEW: 50 Cypress E2E smoke tests — semua passing!**
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# Terminal 1 - Backend EduTask
+cd backend
+python manage.py runserver
+# → http://localhost:8000
+
+# Terminal 2 - Frontend EduTask
+cd frontend
+npm run dev
+# → http://localhost:5174
+
+# (Opsional) Terminal 3 - BayarIn Payment Gateway
+# Diperlukan hanya untuk fitur checkout/subscription
+cd bayarin-backend   # atau sesuai lokasi instalasi BayarIn
+uvicorn main:app --port 8001
+```
+
+**Open**: http://localhost:5174/
+
+📖 **Lihat [QUICK_START.md](QUICK_START.md) untuk panduan lengkap**
 
 ---
 
@@ -34,6 +62,11 @@ edutask/
 │   │   │   ├── serializers.py
 │   │   │   ├── views.py
 │   │   │   └── urls.py         # /api/inbox/...
+│   │   ├── payment/            # PaymentProof, Subscription (BayarIn integration)
+│   │   │   ├── models.py       # PaymentProof, Subscription
+│   │   │   ├── serializers.py
+│   │   │   ├── views.py        # CreateInvoice, CheckInvoice, Webhook, SubmitProof
+│   │   │   └── urls.py         # /api/payment/...
 │   │   └── common/
 │   │       ├── utils.py        # success_response, validation_error_response, error_response
 │   │       ├── serializers.py  # Shared validation mixins
@@ -57,7 +90,8 @@ edutask/
     │   │   ├── ProfilePage.jsx
     │   │   ├── ForgotPasswordPage.jsx
     │   │   ├── ResetPasswordPage.jsx
-    │   │   └── VerifyEmailPage.jsx
+    │   │   ├── VerifyEmailPage.jsx
+    │   │   └── CheckoutPage.jsx              # Alur checkout & subscription (BayarIn)
     │   ├── components/
     │   │   ├── dashboard/
     │   │   │   ├── CalendarView.jsx         # Monthly calendar + day detail panel
@@ -85,7 +119,8 @@ edutask/
     │   │   ├── authService.js      # Auth + Ruang Edukasi API calls
     │   │   ├── taskService.js      # Task, MataKuliah, Kanban, Notifications API
     │   │   ├── inboxService.js     # ChatThread + Message API calls
-    │   │   └── scheduleService.js
+    │   │   ├── scheduleService.js
+    │   │   └── paymentService.js   # BayarIn invoice, polling, riwayat transaksi
     │   ├── context/
     │   │   └── AuthContext.jsx
     │   ├── hooks/
@@ -98,6 +133,14 @@ edutask/
     ├── package.json
     ├── vite.config.js
     ├── tailwind.config.js
+    ├── cypress.config.js           # Cypress E2E test config
+    ├── cypress.env.json.example    # Template credentials test
+    ├── cypress/
+    │   ├── support/
+    │   │   ├── e2e.js              # Global setup
+    │   │   └── commands.js         # Custom commands: loginViaApi, logout, getAccessToken
+    │   ├── e2e/                    # 7 spec files, 50 tests
+    │   └── SMOKE_TEST_REPORT.md    # Laporan hasil test
     └── .env.example
 ```
 
@@ -254,6 +297,16 @@ Base URL: `http://localhost:8000`
 | GET    | `/api/inbox/threads/<id>/messages/` | ✅ Bearer | List pesan dalam thread       |
 | POST   | `/api/inbox/threads/<id>/messages/` | ✅ Bearer | Kirim pesan                   |
 
+### Payment (BayarIn)
+
+| Method | Endpoint                          | Auth      | Deskripsi                              |
+|--------|-----------------------------------|-----------|----------------------------------------|
+| POST   | `/api/payment/create-invoice/`    | ✅ Bearer  | Buat invoice di BayarIn                |
+| GET    | `/api/payment/check-invoice/`     | ✅ Bearer  | Cek status invoice (polling)           |
+| POST   | `/api/payment/webhook/`           | ❌ Public  | Terima webhook BayarIn (HMAC verified) |
+| POST   | `/api/payment/submit-proof/`      | ✅ Bearer  | Upload bukti bayar manual (fallback)   |
+| GET    | `/api/payment/my-proofs/`         | ✅ Bearer  | Riwayat transaksi user                 |
+
 ---
 
 ## 🗃️ Data Models Utama
@@ -287,6 +340,17 @@ Base URL: `http://localhost:8000`
 ### ChatThread / Message *(Inbox app)*
 - ChatThread: supports 1:1 and group chats, has title (group), participants (M2M)
 - Message: text, attachment, reactions (JSON), is_read, is_edited
+
+### PaymentProof & Subscription *(Payment app)*
+- **PaymentProof**: order_id (BayarIn invoice ID), plan, amount, status, proof_image (optional)
+- **Subscription**: user (OneToOne), plan (`free`|`pro`|`team`), start_date, end_date, is_active, features (JSON)
+- **Payment Flow**:
+  ```
+  User klik "Bayar" → POST /api/payment/create-invoice/
+    → BayarIn buat invoice → redirect ke halaman bayar BayarIn
+    → User bayar → BayarIn POST /api/payment/webhook/ (HMAC-SHA256)
+    → Subscription aktif otomatis → frontend polling deteksi → redirect dashboard
+  ```
 
 ---
 
@@ -323,15 +387,77 @@ Base URL: `http://localhost:8000`
 | FR-12 | Inbox Kolaborasi (Chat Real-Time)            | ✅ Done    |
 | FR-13 | Export Laporan Dosen (CSV)                   | ✅ Done    |
 | FR-14 | Notifikasi In-App                            | ✅ Done    |
-| FR-15 | Email Verification                           | 🔄 Partial |
+| FR-15 | Email Verification                           | ✅ Done
+Partial |
 | FR-16 | OAuth Google Login                           | 🔄 Stub    |
+| FR-17 | Payment Gateway (BayarIn) & Subscription     | ✅ Done    |
+| FR-18 | Automated E2E Smoke Tests (Cypress)          | ✅ Done    |
 
 ---
 
+
+---
+
+## 🧪 Automated Browser Smoke Tests (Cypress)
+
+EduTask dilengkapi dengan **50 automated E2E smoke tests** menggunakan Cypress 13.
+
+### Hasil Terakhir
+
+```
+✅ 01_auth_login.cy.js       8/8   pass
+✅ 02_auth_register.cy.js    8/8   pass
+✅ 03_dashboard.cy.js        7/7   pass
+✅ 04_tasks_kanban.cy.js     9/9   pass
+✅ 05_schedule.cy.js         6/6   pass
+✅ 06_profile.cy.js          4/4   pass
+✅ 07_navigation.cy.js       8/8   pass
+─────────────────────────────────────
+   All specs passed!        50/50  (~52 detik)
+```
+
+### Cakupan Test
+
+| Spec | Yang Diuji |
+|---|---|
+| `01_auth_login` | Form render, validasi, toggle password, login sukses/gagal, route dosen |
+| `02_auth_register` | Form 3 role, enforcement syarat & ketentuan, validasi email PENS |
+| `03_dashboard` | Protected route, tab Overview/Ruang/Inbox/Report |
+| `04_tasks_kanban` | Kanban board, modal tambah task, pembuatan task via API |
+| `05_schedule` | Kalender bulanan, navigasi bulan, tombol role-aware |
+| `06_profile` | Protected route, tampil email, section ubah password |
+| `07_navigation` | Landing page, 404 redirect, guest route guard, navigasi sidebar |
+
+### Cara Menjalankan
+
+```bash
+# Pastikan backend (port 8000) dan frontend (port 5174) sudah berjalan
+
+cd frontend
+
+# Mode interaktif — buka Cypress UI
+npm run cy:open
+
+# Mode headless — semua spec sekaligus
+npm run cy:run
+```
+
+Salin `cypress.env.json.example` → `cypress.env.json` dan isi dengan credentials akun test.  
+Lihat [`cypress/SMOKE_TEST_REPORT.md`](frontend/cypress/SMOKE_TEST_REPORT.md) untuk laporan lengkap.
+
+---
+
+## 🐛 Bug Fixes (Sprint 6 — Local)
+
+| Bug | Root Cause | Fix |
+|---|---|---|
+| "Gagal menambahkan task cepat" di Kanban quick add | `onQuickAdd` tidak mengirim field `deadline` yang wajib diisi backend | Tambah `deadline: today` (ISO date hari ini) ke payload quick add di `TaskManagementPage.jsx` |
+
+
 ## 🚀 Roadmap Berikutnya
 
-- Email verification full flow (frontend integration)
+- Email verification full flow (frontend integration) ✅
 - Real Google OAuth production setup
-- Automated browser smoke tests (Cypress/Playwright)
-- Push/email reminders
-- Drag-and-drop calendar events
+- Automated browser smoke tests (Cypress/Playwright) ✅
+- Push/email reminders ✅
+- Drag-and-drop calendar events ✅

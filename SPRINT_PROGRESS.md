@@ -155,3 +155,48 @@ Pending / Backlog:
 - Drag-and-drop calendar events
 - Push/email reminders (currently only in-app)
 - Fully interactive progress tracker per individual student
+
+---
+
+## Sprint 6 — Payment Gateway Integration (BayarIn)
+Status: ✅ Completed
+
+Goals:
+- Integrasikan BayarIn payment gateway ke EduTask
+- Alur checkout otomatis (invoice → QR → webhook → subscription aktif)
+- Tampilan subscription di dashboard & profile
+
+Completed:
+- **BayarIn Backend Setup**: Bayarin FastAPI berjalan di port 8001 menggunakan EduTask venv (Python 3.13 compatible). Akun EduTask terdaftar di Bayarin dengan API Key dan Webhook Secret.
+- **Backend Integration** (`apps/payment/`):
+  - `CreateInvoiceView` — buat invoice di Bayarin via API Key, simpan `PaymentProof` dengan `order_id`
+  - `CheckInvoiceView` — cek status invoice real-time dari Bayarin
+  - `PaymentWebhookView` — terima webhook dari Bayarin, verifikasi HMAC-SHA256 signature, aktifkan `Subscription` otomatis
+  - `SubmitProofView` — fallback upload bukti manual jika Bayarin tidak tersedia
+  - `MyPaymentProofsView` — riwayat transaksi user
+  - Model `PaymentProof` ditambah field `order_id` (invoice_id Bayarin), `proof_image` jadi optional
+- **Frontend Integration**:
+  - `paymentService.js` — `createInvoice()`, `checkInvoice()`, `getPaymentProofs()`, `submitProof()`
+  - `CheckoutPage.jsx` — alur baru: buat invoice → buka halaman bayar Bayarin (tab baru) → polling status otomatis setiap 5 detik → redirect dashboard setelah paid
+  - `SettingsView.jsx` — section "Paket Langganan" menampilkan plan aktif, tanggal berakhir, fitur aktif, CTA upgrade
+  - `AppLayout.jsx` — tombol "Upgrade ke Pro" di sidebar untuk user Free plan
+- **Environment**: `.env` EduTask diisi `BAYARIN_API_KEY`, `BAYARIN_WEBHOOK_SECRET`, `BAYARIN_BASE_URL=http://localhost:8001`, `BAYARIN_FRONTEND_URL=http://localhost:5174`
+- **Port allocation**: EduTask frontend=5173, Bayarin frontend=5174, Bayarin backend=8001, EduTask backend=8000
+
+Running Services:
+- `http://localhost:8000` — EduTask Django backend
+- `http://localhost:8001` — BayarIn FastAPI backend
+- `http://localhost:5173` — EduTask React frontend (npm run dev)
+- `http://localhost:5174` — BayarIn React frontend (npm run dev)
+
+Payment Flow:
+```
+User klik "Bayar via BayarIn" di /checkout?plan=pro
+  → POST /api/payment/create-invoice/ (EduTask)
+  → POST /api/payments/create (Bayarin API Key auth)
+  → Redirect ke http://localhost:5174/pay/{invoice_id}
+  → User scan QR / simulasi bayar
+  → Bayarin POST /api/payment/webhook/ (EduTask)
+  → Verifikasi HMAC-SHA256 → Subscription aktif
+  → Frontend polling deteksi paid → redirect /dashboard
+```

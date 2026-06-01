@@ -16,6 +16,7 @@ import AddTaskModal from '../components/tasks/AddTaskModal'
 import TaskDetailModal from '../components/tasks/TaskDetailModal'
 import MataKuliahModal from '../components/tasks/MataKuliahModal'
 import DosenBroadcastView from '../components/dashboard/DosenBroadcastView'
+import FeatureGate from '../components/common/FeatureGate'
 
 const STATUS_MAP = {
   todo: 'To Do',
@@ -206,7 +207,11 @@ export default function TaskManagementPage() {
     switch (activeTab) {
       case 'Projects':
         return role === 'dosen'
-          ? <DosenBroadcastView user={user} onTaskClick={handleTaskClick} />
+          ? (
+            <FeatureGate feature="broadcast">
+              <DosenBroadcastView user={user} onTaskClick={handleTaskClick} />
+            </FeatureGate>
+          )
           : (
             <Backlog
               tasks={tasks}
@@ -224,7 +229,9 @@ export default function TaskManagementPage() {
             onAddTask={handleAddTask}
             onMoveTask={handleMoveTask}
             onQuickAdd={async (title, status) => {
-              await createTask({ judul: title, status: status, prioritas: 'sedang' })
+              // deadline wajib diisi di backend — default ke hari ini
+              const today = new Date().toISOString().split('T')[0]
+              await createTask({ judul: title, status: status, prioritas: 'sedang', deadline: today })
             }}
             roleView={role}
           />

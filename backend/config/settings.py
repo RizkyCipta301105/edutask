@@ -28,12 +28,14 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_extensions',
+    'django_apscheduler',
 
     # Local apps
     'apps.authentication',
     'apps.tasks',
     'apps.inbox',
     'apps.schedules',
+    'apps.payment',
 ]
 
 MIDDLEWARE = [
@@ -174,4 +176,17 @@ DEFAULT_FROM_EMAIL = f'EduTask <{EMAIL_HOST_USER}>'
 
 # ─── Google OAuth ─────────────────────────────────────────────────────────────
 GOOGLE_OAUTH_CLIENT_ID = config('GOOGLE_OAUTH_CLIENT_ID', default='GANTI_DENGAN_CLIENT_ID_ANDA.apps.googleusercontent.com')
+
+# ─── APScheduler ──────────────────────────────────────────────────────────────
+APSCHEDULER_DATETIME_FORMAT = 'N j, Y, f:s a'  # Format tampilan waktu di admin
+APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Timeout (detik) untuk job yang dijalankan manual
+
+# ─── BayarIn Payment Gateway ──────────────────────────────────────────────────
+BAYARIN_API_KEY = config('BAYARIN_API_KEY', default='')
+BAYARIN_WEBHOOK_SECRET = config('BAYARIN_WEBHOOK_SECRET', default='')
+BAYARIN_BASE_URL = config('BAYARIN_BASE_URL', default='http://localhost:8001')
+BAYARIN_FRONTEND_URL = config('BAYARIN_FRONTEND_URL', default='http://localhost:5174')
+EDUTASK_BASE_URL = config('EDUTASK_BASE_URL', default='http://localhost:8000')
+EDUTASK_FRONTEND_URL = config('EDUTASK_FRONTEND_URL', default='http://localhost:5173')
+
 

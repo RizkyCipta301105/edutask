@@ -79,6 +79,17 @@ coverage/
 *.swp
 
 # ======================
+# CYPRESS
+# ======================
+
+# Real test credentials — never commit
+frontend/cypress.env.json
+
+# Cypress artifacts
+frontend/cypress/videos/
+frontend/cypress/screenshots/
+
+# ======================
 # DOCUMENTS
 # ======================
 
