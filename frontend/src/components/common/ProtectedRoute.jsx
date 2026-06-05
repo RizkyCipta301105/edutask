@@ -20,7 +20,7 @@ export default function ProtectedRoute() {
 
   if (!isAuthenticated) {
     saveAuthReturnPath(location.pathname + location.search)
-    return <Navigate to="/login" replace state={{ from: location }} />
+    return <Navigate to="/" replace state={{ from: location }} />
   }
 
   return <Outlet />

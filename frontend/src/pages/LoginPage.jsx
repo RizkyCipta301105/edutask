@@ -1,18 +1,23 @@
-    import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, GraduationCap, Lightbulb, Mail, Lock } from 'lucide-react'
+import { Eye, EyeOff, GraduationCap, Lightbulb, Mail, Lock, Loader2, PlayCircle, LogIn, Sparkles, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
 import { getRoleDashboardPath, normalizeUserRole } from '../utils/authHelpers'
 import { getApiErrorMessage } from '../utils/apiErrors'
+import PageTransition from '../components/common/PageTransition'
 
-export default function LoginPage({ mode = 'universal' }) {
+export default function LoginPage({ mode = 'mahasiswa' }) {
   const { login, logout, googleLogin } = useAuth()
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [values, setValues] = useState({ email: '', password: '', remember: false })
+
+  useEffect(() => {
+    document.documentElement.classList.remove('dark')
+  }, [])
 
   const handleChange = (event) => {
     const { name, value, checked, type } = event.target
@@ -61,24 +66,33 @@ export default function LoginPage({ mode = 'universal' }) {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 md:grid md:grid-cols-2">
-      <section className="flex min-h-[180px] flex-col items-center justify-center bg-[#4B3A2F] px-6 py-8 text-center text-white sm:min-h-[240px] md:min-h-screen md:px-8 md:py-12">
-        <div className="relative mb-4 flex h-20 w-20 items-center justify-center sm:mb-6 sm:h-28 sm:w-28 md:mb-8 md:h-32 md:w-32">
-          <Lightbulb className="h-full w-full text-white" strokeWidth={1.8} />
-          <GraduationCap className="absolute -top-3 left-1/2 h-[110%] w-[110%] -translate-x-1/2 text-[#D2A34E] md:-top-6" strokeWidth={1.9} />
+    <PageTransition>
+    <main className="min-h-screen bg-white md:grid md:grid-cols-2 selection:bg-yellow-300 selection:text-black">
+      <section className="relative flex min-h-[240px] flex-col items-center justify-center overflow-hidden border-b-4 border-black bg-[#0ea5e9] px-6 py-12 text-center text-black md:min-h-screen md:border-b-0 md:border-r-4 md:px-8">
+        
+        {/* Background elements */}
+        <div className="absolute left-10 top-10 h-24 w-24 rounded-full border-4 border-black bg-yellow-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"></div>
+        <div className="absolute bottom-10 right-10 h-32 w-32 rotate-12 border-4 border-black bg-green-400 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"></div>
+        
+        <div className="relative z-10 -rotate-2 border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-transform hover:rotate-0">
+          <div className="relative mx-auto mb-4 flex h-20 w-20 items-center justify-center border-4 border-black bg-yellow-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <GraduationCap className="h-10 w-10 text-black" strokeWidth={3} />
+          </div>
+          <h1 className="text-4xl font-black uppercase tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">EduTask</h1>
+          <p className="mt-4 border-2 border-black bg-yellow-300 px-3 py-1 text-sm font-bold uppercase tracking-widest text-black">
+            Organize. Execute. Conquer.
+          </p>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">Sumber Rezeki</h1>
-        <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-[#D2A34E] sm:text-sm sm:tracking-[0.24em]">INNOVATE. AUTOMATE. ELEVATE.</p>
       </section>
 
-      <section className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+      <section className="flex items-center justify-center bg-white px-4 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-md">
-          <div className="mb-10">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-[#B8842A]">
-              {mode === 'dosen' ? 'Portal Dosen' : 'EduTask'}
-            </p>
-            <h2 className="text-3xl font-bold text-slate-950 sm:text-4xl">Selamat Datang</h2>
-            <p className="mt-2 text-slate-500">Masuk ke EduTask untuk mengelola project kamu.</p>
+          <div className="mb-10 text-center">
+            <div className="mb-4 inline-block -rotate-2 border-2 border-black bg-pink-300 px-4 py-1 text-sm font-black uppercase tracking-widest text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              {mode === 'dosen' ? 'PORTAL DOSEN' : 'AREA LOGIN'}
+            </div>
+            <h2 className="text-4xl font-black uppercase text-black">Selamat Datang!</h2>
+            <p className="mt-2 font-bold text-gray-600">Bersiaplah untuk menyelesaikan tugasmu hari ini.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -123,19 +137,19 @@ export default function LoginPage({ mode = 'universal' }) {
             </label>
 
             <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-2 text-slate-600">
+              <label className="flex cursor-pointer items-center gap-2 font-bold text-black">
                 <input
                   name="remember"
                   type="checkbox"
                   checked={values.remember}
                   onChange={handleChange}
-                  className="h-4 w-4 rounded border-slate-300 text-[#4B3A2F] focus:ring-[#D2A34E]"
+                  className="h-5 w-5 rounded-none border-2 border-black text-black focus:ring-0"
                 />
                 Ingat saya
               </label>
               <Link 
                 to="/forgot-password"
-                className="font-semibold text-[#B8842A] transition hover:text-[#4B3A2F]"
+                className="font-black text-[#ea580c] hover:underline hover:decoration-4 hover:underline-offset-4"
               >
                 Lupa Password?
               </Link>
@@ -147,9 +161,9 @@ export default function LoginPage({ mode = 'universal' }) {
           </form>
 
           <div className="my-6 flex items-center gap-5">
-            <div className="h-px flex-1 bg-slate-200" />
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">ATAU</span>
-            <div className="h-px flex-1 bg-slate-200" />
+            <div className="h-[4px] flex-1 bg-black" />
+            <span className="text-sm font-black uppercase tracking-wide text-black">ATAU</span>
+            <div className="h-[4px] flex-1 bg-black" />
           </div>
 
           <div className="flex justify-center mb-6">
@@ -165,9 +179,9 @@ export default function LoginPage({ mode = 'universal' }) {
           </div>
 
           <div className="my-10 flex items-center gap-5">
-            <div className="h-px flex-1 bg-slate-200" />
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">ATAU DAFTAR</span>
-            <div className="h-px flex-1 bg-slate-200" />
+            <div className="h-[4px] flex-1 bg-black" />
+            <span className="text-sm font-black uppercase tracking-wide text-black">ATAU DAFTAR</span>
+            <div className="h-[4px] flex-1 bg-black" />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -177,12 +191,13 @@ export default function LoginPage({ mode = 'universal' }) {
           </div>
 
           {mode !== 'dosen' && (
-            <p className="mt-6 text-center text-sm text-slate-500">
-              Login khusus dosen? <Link to="/login/dosen" className="font-semibold text-[#B8842A] hover:text-[#4B3A2F]">Masuk sebagai dosen</Link>
+            <p className="mt-6 text-center text-sm font-bold text-gray-600">
+              Login khusus dosen? <Link to="/login/dosen" className="font-black text-[#ea580c] hover:underline hover:decoration-4 hover:underline-offset-4">Masuk sebagai dosen</Link>
             </p>
           )}
         </div>
       </section>
     </main>
+    </PageTransition>
   )
 }

@@ -12,6 +12,9 @@ import toast from 'react-hot-toast'
 import api from '../../services/api'
 import taskService from '../../services/taskService'
 import { useSubscription } from '../../hooks/useSubscription'
+import { motion } from 'framer-motion'
+
+import PageTransition from './PageTransition'
 
 // Premium layout styles
 import '../../styles/dashboard.css'
@@ -27,8 +30,6 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showHelpModal, setShowHelpModal] = useState(false)
   
-  // Dark mode
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark')
 
   // Command Palette States
   const [showPalette, setShowPalette] = useState(false)
@@ -65,7 +66,7 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
       { id: 'nav-task', label: isUmum ? 'Beralih ke Tugas & Proyek' : 'Beralih ke Tugas Akademik', icon: ClipboardList, action: () => navigate('/tasks') },
       { id: 'nav-schedule', label: 'Beralih ke Jadwal & Kalender', icon: CalendarDays, action: () => navigate('/schedule') },
       { id: 'nav-profile', label: 'Beralih ke Pengaturan', icon: Settings, action: () => navigate('/profile') },
-      { id: 'action-theme', label: `Ubah ke Mode ${isDark ? 'Terang' : 'Gelap'}`, icon: isDark ? Sun : Moon, action: () => setIsDark(!isDark) },
+      // Dark mode toggle removed
       { id: 'action-logout', label: 'Keluar dari Akun', icon: LogOut, action: logout }
     ]
 
@@ -84,7 +85,7 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
     }))
 
     return [...filteredActions, ...filteredTasks]
-  }, [paletteQuery, allTasks, role, isDark, navigate, logout])
+  }, [paletteQuery, allTasks, role, navigate, logout])
 
   useEffect(() => {
     if (showPalette) {
@@ -108,15 +109,7 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
     }
   }
 
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
-    }
-  }, [isDark])
+
 
   const userInitials = useMemo(() => {
     if (!user?.nama_lengkap) return 'U'
@@ -156,11 +149,11 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
           onClick={() => setSidebarOpen(false)} 
         />
 
-        {/* Sidebar Premium */}
-        <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-          <div className="profile-section">
-            <div className="project-logo">
-              <div className="triangle"></div>
+        {/* Sidebar Neo-Brutalism */}
+        <aside className={`sidebar ${sidebarOpen ? 'open' : ''} border-r-4 border-black bg-yellow-300`}>
+          <div className="profile-section mb-6">
+            <div className="project-logo border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white h-12 w-12 flex items-center justify-center -rotate-3 hover:rotate-0 transition-transform">
+              <span className="font-black text-black text-xl">ET</span>
             </div>
             <div className="profile-info">
               <h3>EduTask</h3>
@@ -169,20 +162,35 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
           </div>
 
           {/* Navigation Links */}
-          <nav className="nav-links">
-            {navLinks.map(({ path, label, icon: Icon }) => (
-              <button
-                key={path}
-                onClick={() => {
-                  navigate(path)
-                  setSidebarOpen(false)
-                }}
-                className={`nav-item ${isLinkActive(path) ? 'active' : ''}`}
-                style={{ width: '100%', background: 'transparent', border: 'none', textAlign: 'left', display: 'flex', alignItems: 'center' }}
-              >
-                <Icon size={20} /> {label}
-              </button>
-            ))}
+          <nav className="nav-links flex flex-col gap-3 mt-4 relative">
+            {navLinks.map(({ path, label, icon: Icon }) => {
+              const active = isLinkActive(path)
+              return (
+                <button
+                  key={path}
+                  onClick={() => {
+                    navigate(path)
+                    setSidebarOpen(false)
+                  }}
+                  className={`relative flex items-center gap-3 w-full text-left px-4 py-3 font-bold transition-all z-10 ${
+                    active 
+                      ? 'text-black translate-x-[-2px] translate-y-[-2px]' 
+                      : 'border-2 border-black bg-white text-black hover:bg-pink-300 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]'
+                  }`}
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="sidebarActiveIndicator"
+                      className="absolute inset-0 bg-blue-400 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-[-1]"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <Icon size={20} className="stroke-2 relative z-10 shrink-0" /> 
+                  <span className="relative z-10 whitespace-nowrap text-[0.95rem]">{label}</span>
+                </button>
+              )
+            })}
           </nav>
 
           {/* Bottom Sidebar Controls */}
@@ -190,54 +198,44 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
             {/* Upgrade CTA untuk user Free */}
             {!subLoading && isFree && (
               <button
-                className="invite-btn"
-                style={{
-                  background: '#FF4D00',
-                  border: '1px solid #cc3d00',
-                  color: 'white',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
+                className="w-full flex items-center justify-center gap-2 border-2 border-black bg-green-400 px-4 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                 onClick={() => navigate('/checkout?plan=pro')}
               >
-                <Crown size={14} /> Upgrade ke Pro
+                <Crown size={18} className="stroke-2" /> Upgrade Pro
               </button>
             )}
             <button
-              className="invite-btn"
-              style={{ background: 'transparent', border: '1px solid #e5e7eb', color: '#ef4444' }}
+              className="w-full flex items-center justify-center gap-2 border-2 border-black bg-white px-4 py-3 font-black uppercase text-red-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-red-500 hover:text-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
               onClick={logout}
             >
-              <LogOut size={16} /> Keluar Akun
+              <LogOut size={18} className="stroke-2" /> Keluar
             </button>
           </div>
         </aside>
 
         {/* Main Content Area */}
-        <main className="main-content">
-          <header className="header">
+        <main className="main-content !bg-white">
+          <header className="header !border-b-4 !border-black !mb-6 !pb-4">
             {/* Mobile Burger Menu */}
             <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
               <MenuIcon size={24} />
             </button>
 
-            {/* Search Bar (Renders if enabled) */}
+            {/* Search Bar */}
             {showSearch ? (
-              <div className="search-bar">
-                <Search size={18} color="var(--text-muted)" />
+              <div className="flex items-center gap-2 border-2 border-black bg-white px-3 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-full max-w-sm">
+                <Search size={20} className="text-black stroke-2" />
                 <input
                   type="text"
-                  placeholder={role === 'umum' ? 'Cari tugas & proyek...' : 'Cari tugas akademis...'}
+                  className="flex-1 border-none bg-transparent outline-none font-bold placeholder-gray-500"
+                  placeholder={role === 'umum' ? 'Cari tugas...' : 'Cari tugas akademis...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 {searchQuery && (
                   <X
-                    size={16}
-                    color="var(--text-muted)"
-                    style={{ cursor: 'pointer' }}
+                    size={20}
+                    className="cursor-pointer text-black stroke-2 hover:text-red-500"
                     onClick={() => setSearchQuery('')}
                   />
                 )}
@@ -247,27 +245,22 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
             )}
 
             {/* Header Right Actions */}
-            <div className="header-actions">
-              <button 
-                className="btn-icon" 
-                onClick={() => setIsDark(!isDark)} 
-                title={isDark ? "Matikan Mode Gelap" : "Nyalakan Mode Gelap"}
-              >
-                {isDark ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+            <div className="flex items-center gap-4">
+
               
-              <NotificationDropdown />
+              <div className="border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white p-1 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform">
+                <NotificationDropdown />
+              </div>
               
               {/* Help Button */}
-              <button className="btn-icon" onClick={() => setShowHelpModal(true)} title="Bantuan">
-                <HelpCircle size={20} />
+              <button className="h-10 w-10 flex flex-shrink-0 items-center justify-center border-2 border-black bg-pink-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" onClick={() => setShowHelpModal(true)} title="Bantuan">
+                <HelpCircle size={20} className="text-black stroke-2" />
               </button>
 
               {/* User Profile Avatar */}
               <div style={{ position: 'relative' }}>
                 <div 
-                  className="user-avatar" 
-                  style={{ background: '#374151', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                  className="h-10 w-10 flex flex-shrink-0 cursor-pointer items-center justify-center border-2 border-black bg-blue-400 font-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   {userInitials}
@@ -331,7 +324,9 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
 
           {/* Render child pages dynamically inside the page-content container */}
           <div className={`page-content ${scrollable ? 'scroll-y' : 'no-scroll'} ${user && !user.is_email_verified ? '!pt-4' : ''}`}>
-            {children}
+            <PageTransition>
+              {children}
+            </PageTransition>
           </div>
         </main>
       </div>

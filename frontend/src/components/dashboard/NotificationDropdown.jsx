@@ -80,86 +80,58 @@ export default function NotificationDropdown() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button 
-        className="btn-icon" 
+        className="flex h-10 w-10 items-center justify-center border-4 border-black bg-[#fef08a] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none" 
         onClick={() => setIsOpen(!isOpen)} 
         title="Notifikasi"
-        style={{ position: 'relative' }}
       >
-        <Bell size={20} />
+        <Bell size={20} className="stroke-[3] text-black" />
         {unreadCount > 0 && (
-          <span style={{
-            position: 'absolute',
-            top: 4,
-            right: 6,
-            width: 8,
-            height: 8,
-            backgroundColor: '#ef4444',
-            borderRadius: '50%',
-            border: '2px solid white'
-          }} />
+          <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center border-2 border-black bg-[#ea580c] text-xs font-black text-white rounded-full">
+            {unreadCount}
+          </span>
         )}
       </button>
 
       {isOpen && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: 8,
-          width: 320,
-          backgroundColor: 'white',
-          borderRadius: 8,
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-          border: '1px solid #e5e7eb',
-          zIndex: 50,
-          overflow: 'hidden'
-        }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9fafb' }}>
-            <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: '#111827' }}>Notifikasi</h3>
+        <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[360px] overflow-hidden border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex items-center justify-between border-b-4 border-black bg-[#fef08a] px-4 py-3">
+            <h3 className="text-sm font-black uppercase text-black">Notifikasi</h3>
             {unreadCount > 0 && (
               <button 
                 onClick={() => handleMarkAsRead()}
-                style={{ fontSize: '0.75rem', color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+                className="text-xs font-black uppercase text-blue-700 hover:text-blue-900 hover:underline"
               >
                 Tandai semua dibaca
               </button>
             )}
           </div>
           
-          <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+          <div className="max-h-[400px] overflow-y-auto bg-white">
             {loading && notifications.length === 0 ? (
-              <div style={{ padding: 24, textAlign: 'center', color: '#6b7280', fontSize: '0.85rem' }}>Memuat...</div>
+              <div className="p-8 text-center text-sm font-black uppercase text-gray-500">Memuat...</div>
             ) : notifications.length === 0 ? (
-              <div style={{ padding: 32, textAlign: 'center', color: '#6b7280', fontSize: '0.85rem' }}>
-                <Bell size={24} style={{ margin: '0 auto 8px', opacity: 0.5 }} />
-                Belum ada notifikasi
+              <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500">
+                <Bell size={32} className="mb-4 stroke-[2] opacity-50" />
+                <span className="text-sm font-black uppercase">Belum ada notifikasi</span>
               </div>
             ) : (
               notifications.map(notif => (
                 <div 
                   key={notif.id}
-                  style={{ 
-                    padding: '12px 16px', 
-                    borderBottom: '1px solid #f3f4f6',
-                    backgroundColor: notif.is_read ? 'white' : '#eff6ff',
-                    display: 'flex',
-                    gap: 12,
-                    alignItems: 'flex-start',
-                    cursor: notif.is_read ? 'default' : 'pointer'
-                  }}
+                  className={`flex cursor-pointer gap-3 border-b-4 border-black p-4 transition-colors ${notif.is_read ? 'bg-white hover:bg-gray-100' : 'bg-blue-100 hover:bg-blue-200'}`}
                   onClick={() => !notif.is_read && handleMarkAsRead(notif.id)}
                 >
-                  <div style={{ marginTop: 2 }}>
-                    <CheckCircle size={16} color={notif.is_read ? '#9ca3af' : '#2563eb'} />
+                  <div className="mt-1 flex-shrink-0">
+                    <CheckCircle size={20} className={`stroke-[3] ${notif.is_read ? 'text-gray-400' : 'text-blue-600'}`} />
                   </div>
-                  <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: notif.is_read ? '#4b5563' : '#111827', marginBottom: 4 }}>
+                  <div className="flex-1">
+                    <div className={`mb-1 text-sm uppercase ${notif.is_read ? 'font-bold text-gray-600' : 'font-black text-black'}`}>
                       {notif.title}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#6b7280', lineHeight: 1.4 }}>
+                    <div className="text-xs font-semibold leading-relaxed text-gray-800">
                       {notif.message}
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: 6 }}>
+                    <div className="mt-2 text-[10px] font-black uppercase text-gray-500">
                       {new Date(notif.created_at).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>

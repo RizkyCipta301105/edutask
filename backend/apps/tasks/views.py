@@ -77,6 +77,40 @@ class MataKuliahListCreateView(APIView):
         )
 
 
+class MataKuliahCleanupView(APIView):
+    """
+    DELETE /api/tasks/mata-kuliah/cleanup/
+    Menghapus jadwal MataKuliah pribadi (legacy) yang namanya tumpang tindih dengan 
+    jadwal akademik dari Ruang Edukasi yang diikuti/dibuat oleh user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        from apps.authentication.models import RuangEdukasi
+        from django.db.models import Q
+        
+        # Ambil ruang edukasi user
+        ruang_qs = RuangEdukasi.objects.filter(
+            Q(kreator=user) | Q(anggota=user)
+        ).distinct()
+        
+        academic_names = [r.nama_ruang.strip().lower() for r in ruang_qs if r.nama_ruang]
+        
+        if not academic_names:
+            return success_response(message='Tidak ada jadwal akademik dari Ruang Edukasi. Tidak ada data yang dihapus.')
+            
+        personal_mk = MataKuliah.objects.filter(user=user)
+        deleted_count = 0
+        
+        for mk in personal_mk:
+            if mk.nama.strip().lower() in academic_names:
+                mk.delete()
+                deleted_count += 1
+                
+        return success_response(message=f'Berhasil membersihkan {deleted_count} jadwal legacy yang ganda.')
+
+
 class MataKuliahDetailView(APIView):
     """
     PUT    /api/tasks/mata-kuliah/<id>/  → Update
@@ -374,61 +408,68 @@ class PenugasanReportView(APIView):
         if request.user.role != 'dosen':
             return validation_error_response({}, message='Akses ditolak.')
 
-        tasks = Task.objects.filter(source_assignment__dosen=request.user).select_related('user', 'source_assignment')
-        stats = {'todo': 0, 'in_progress': 0, 'done': 0}
-        
-        mahasiswa_stats = {}
-        tugas_stats = {}
-        
-        for t in tasks:
-            if t.status in stats:
-                stats[t.status] += 1
-            
-            # Rekap per mahasiswa
-            mhs_id = str(t.user.id)
-            if mhs_id not in mahasiswa_stats:
-                mahasiswa_stats[mhs_id] = {
-                    'id': mhs_id,
-                    'nama': t.user.nama_lengkap,
-                    'email': t.user.email,
-                    'todo': 0,
-                    'in_progress': 0,
-                    'done': 0,
-                    'total': 0
-                }
-            mahasiswa_stats[mhs_id][t.status] += 1
-            mahasiswa_stats[mhs_id]['total'] += 1
+        from django.db.models import Count, Q
+        from apps.authentication.models import User
 
-            # Rekap per penugasan dosen
-            if t.source_assignment:
-                t_id = str(t.source_assignment.id)
-                if t_id not in tugas_stats:
-                    tugas_stats[t_id] = {
-                        'id': t_id,
-                        'judul': t.source_assignment.judul,
-                        'mata_kuliah': t.source_assignment.mata_kuliah,
-                        'todo': 0,
-                        'in_progress': 0,
-                        'done': 0,
-                        'total': 0
-                    }
-                tugas_stats[t_id][t.status] += 1
-                tugas_stats[t_id]['total'] += 1
+        # 1. Total Stats (Aggregate)
+        stats_agg = Task.objects.filter(source_assignment__dosen=request.user).aggregate(
+            todo=Count('id', filter=Q(status='todo')),
+            in_progress=Count('id', filter=Q(status='in_progress')),
+            done=Count('id', filter=Q(status='done'))
+        )
+        stats = {
+            'todo': stats_agg['todo'] or 0,
+            'in_progress': stats_agg['in_progress'] or 0,
+            'done': stats_agg['done'] or 0
+        }
 
-        # Format lists
+        # 2. Rekap per mahasiswa (Annotate)
+        mahasiswa_qs = User.objects.filter(
+            task__source_assignment__dosen=request.user
+        ).annotate(
+            todo=Count('task', filter=Q(task__status='todo')),
+            in_progress=Count('task', filter=Q(task__status='in_progress')),
+            done=Count('task', filter=Q(task__status='done')),
+            total=Count('task')
+        ).distinct()
+
         mahasiswa_list = []
-        for mhs_id, data in mahasiswa_stats.items():
-            completed = data['done']
-            total = data['total']
-            data['completion_rate'] = round((completed / total) * 100) if total > 0 else 0
-            mahasiswa_list.append(data)
+        for m in mahasiswa_qs:
+            cr = round((m.done / m.total) * 100) if m.total > 0 else 0
+            mahasiswa_list.append({
+                'id': str(m.id),
+                'nama': m.nama_lengkap,
+                'email': m.email,
+                'todo': m.todo,
+                'in_progress': m.in_progress,
+                'done': m.done,
+                'total': m.total,
+                'completion_rate': cr
+            })
+
+        # 3. Rekap per penugasan dosen (Annotate)
+        tugas_qs = PenugasanDosen.objects.filter(
+            dosen=request.user
+        ).select_related('mata_kuliah').annotate(
+            todo=Count('task', filter=Q(task__status='todo')),
+            in_progress=Count('task', filter=Q(task__status='in_progress')),
+            done=Count('task', filter=Q(task__status='done')),
+            total=Count('task')
+        )
 
         tugas_list = []
-        for t_id, data in tugas_stats.items():
-            completed = data['done']
-            total = data['total']
-            data['completion_rate'] = round((completed / total) * 100) if total > 0 else 0
-            tugas_list.append(data)
+        for t in tugas_qs:
+            cr = round((t.done / t.total) * 100) if t.total > 0 else 0
+            tugas_list.append({
+                'id': str(t.id),
+                'judul': t.judul,
+                'mata_kuliah': t.mata_kuliah.id if t.mata_kuliah else None,
+                'todo': t.todo,
+                'in_progress': t.in_progress,
+                'done': t.done,
+                'total': t.total,
+                'completion_rate': cr
+            })
 
         return success_response(
             data={
@@ -519,50 +560,11 @@ class NotificationListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            from datetime import timedelta
-            from django.utils import timezone
-
-            today = timezone.now().date()
-            tomorrow = today + timedelta(days=1)
-            in_3_days = today + timedelta(days=3)
-
-            # 1. Cek H-3
-            for t in Task.objects.filter(
-                user=request.user, deadline=in_3_days
-            ).exclude(status=Task.Status.DONE):
-                title = 'Pengingat Deadline: H-3'
-                if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
-                    Notification.objects.create(
-                        user=request.user, task=t, title=title,
-                        message=f'Task "{t.judul}" harus diselesaikan dalam 3 hari lagi.'
-                    )
-
-            # 2. Cek H-1
-            for t in Task.objects.filter(
-                user=request.user, deadline=tomorrow
-            ).exclude(status=Task.Status.DONE):
-                title = 'Pengingat Deadline: H-1'
-                if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
-                    Notification.objects.create(
-                        user=request.user, task=t, title=title,
-                        message=f'Task "{t.judul}" harus diselesaikan paling lambat besok.'
-                    )
-
-            # 3. Cek Overdue
-            for t in Task.objects.filter(
-                user=request.user, deadline__lt=today
-            ).exclude(status=Task.Status.DONE):
-                title = 'Peringatan: Task Overdue!'
-                if not Notification.objects.filter(user=request.user, task=t, title=title).exists():
-                    Notification.objects.create(
-                        user=request.user, task=t, title=title,
-                        message=f'Task "{t.judul}" telah melewati batas waktu deadline dan belum selesai.'
-                    )
-        except Exception:
-            pass
-
-        notifs = Notification.objects.filter(user=request.user)[:50]
+        # Pembuatan notifikasi sekarang ditangani 100% oleh background scheduler
+        # (apps/tasks/scheduler.py) yang berjalan menggunakan django_apscheduler.
+        # Hal ini menghilangkan N+1 query dan membuat GET request instan.
+        
+        notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
         return success_response(
             data=NotificationSerializer(notifs, many=True).data,
             message='Notifikasi berhasil diambil.'

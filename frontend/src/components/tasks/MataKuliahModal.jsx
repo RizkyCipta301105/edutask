@@ -115,120 +115,103 @@ export default function MataKuliahModal({ onClose, onSave, initialData = null, m
   ]
 
   return (
-    <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <div className="modal-content" style={{ background: 'white', width: '100%', maxWidth: 500, borderRadius: 12, padding: 24, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+    <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-[9999]">
+      <div className="bg-white w-full max-w-[500px] p-6 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-black uppercase">
             {initialData || matchedId
               ? (isUmum ? 'Edit Jadwal Kegiatan / Agenda' : 'Edit Jadwal Mata Kuliah')
               : (isUmum ? 'Tambah Jadwal Kegiatan' : 'Tambah Jadwal Kuliah')
             }
           </h2>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20} color="#6b7280" /></button>
+          <button onClick={onClose} className="hover:rotate-90 transition-transform"><X size={24} className="stroke-[3]" /></button>
         </div>
 
         {errorMsg && (
-          <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px 12px', borderRadius: 6, marginBottom: 16, fontSize: '0.85rem' }}>
+          <div className="bg-red-100 border-4 border-black text-red-600 font-bold p-3 mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>
+            <label className="block mb-2 text-sm font-black uppercase tracking-wider text-black">
               {isUmum ? 'Nama Kegiatan / Agenda *' : 'Nama Mata Kuliah / Agenda *'}
             </label>
-            <div style={{ position: 'relative' }}>
-              <Book size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-              <input type="text" value={formData.nama} onChange={handleNameChange} placeholder={isUmum ? 'Contoh: Olahraga Pagi / Rapat' : 'Contoh: Pemrograman Web'} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} required />
+            <div className="relative">
+              <Book size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-black stroke-2" />
+              <input type="text" value={formData.nama} onChange={handleNameChange} placeholder={isUmum ? 'Contoh: Olahraga Pagi / Rapat' : 'Contoh: Pemrograman Web'} className="w-full pl-10 pr-3 py-3 border-4 border-black bg-white font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 transition-colors" required />
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>
+            <label className="block mb-2 text-sm font-black uppercase tracking-wider text-black">
               {isUmum ? 'Penyelenggara / Kontak' : 'Nama Dosen / Pengajar'}
             </label>
-            <div style={{ position: 'relative' }}>
-              <UserIcon size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-              <input type="text" value={formData.nama_dosen} onChange={e => setFormData({ ...formData, nama_dosen: e.target.value })} placeholder={isUmum ? 'Nama Penyelenggara (Opsional)' : 'Opsional'} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} />
+            <div className="relative">
+              <UserIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-black stroke-2" />
+              <input type="text" value={formData.nama_dosen} onChange={e => setFormData(prev => ({...prev, nama_dosen: e.target.value}))} placeholder={isUmum ? 'Contoh: Budi (opsional)' : 'Contoh: Dr. Ir. Ahmad'} className="w-full pl-10 pr-3 py-3 border-4 border-black bg-white font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 transition-colors" />
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>Hari</label>
-              <div style={{ position: 'relative' }}>
-                <CalendarIcon size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-                <select value={formData.hari} onChange={e => setFormData({ ...formData, hari: e.target.value })} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db', backgroundColor: 'white' }}>
-                  <option value="">-- Pilih Hari --</option>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block mb-2 text-sm font-black uppercase tracking-wider text-black">Hari</label>
+              <div className="relative">
+                <CalendarIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-black stroke-2" />
+                <select value={formData.hari} onChange={e => setFormData(prev => ({...prev, hari: e.target.value === '' ? '' : parseInt(e.target.value)}))} className="w-full pl-10 pr-3 py-3 border-4 border-black bg-white font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 transition-colors">
+                  <option value="">-- Bebas / Tidak ada hari rutin --</option>
                   {hariOptions.map(h => <option key={h.value} value={h.value}>{h.label}</option>)}
                 </select>
               </div>
             </div>
-            
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>Ruangan / Link Zoom</label>
-              <div style={{ position: 'relative' }}>
-                <MapPin size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-                <input type="text" value={formData.ruangan} onChange={e => setFormData({ ...formData, ruangan: e.target.value })} placeholder="Opsional" style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} />
-              </div>
-            </div>
           </div>
-
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>Jam Mulai</label>
-              <div style={{ position: 'relative' }}>
-                <Clock size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-                <input type="time" value={formData.jam_mulai} onChange={e => setFormData({ ...formData, jam_mulai: e.target.value })} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-2 text-sm font-black uppercase tracking-wider text-black">Jam Mulai</label>
+              <div className="relative">
+                <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-black stroke-2" />
+                <input type="time" value={formData.jam_mulai} onChange={e => setFormData(prev => ({...prev, jam_mulai: e.target.value}))} className="w-full pl-10 pr-3 py-3 border-4 border-black bg-white font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 transition-colors" />
               </div>
             </div>
-            
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>Jam Selesai</label>
-              <div style={{ position: 'relative' }}>
-                <Clock size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: 10 }} />
-                <input type="time" value={formData.jam_selesai} onChange={e => setFormData({ ...formData, jam_selesai: e.target.value })} style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 6, border: '1px solid #d1d5db' }} />
+            <div>
+              <label className="block mb-2 text-sm font-black uppercase tracking-wider text-black">Jam Selesai</label>
+              <div className="relative">
+                <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-black stroke-2" />
+                <input type="time" value={formData.jam_selesai} onChange={e => setFormData(prev => ({...prev, jam_selesai: e.target.value}))} className="w-full pl-10 pr-3 py-3 border-4 border-black bg-white font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 transition-colors" />
               </div>
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: '0.85rem', fontWeight: 500, color: '#374151' }}>Warna Label</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <label className="block mb-2 text-sm font-black uppercase tracking-wider text-black">Warna Label</label>
+            <div className="flex gap-2">
               {['#8B6914', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#ef4444', '#14b8a6'].map(color => (
                 <div 
                   key={color}
                   onClick={() => setFormData({ ...formData, warna: color })}
-                  style={{ 
-                    width: 24, height: 24, borderRadius: '50%', backgroundColor: color, cursor: 'pointer',
-                    border: formData.warna === color ? '2px solid #111827' : '2px solid transparent',
-                    boxShadow: formData.warna === color ? '0 0 0 2px white inset' : 'none'
-                  }}
+                  className={`w-8 h-8 cursor-pointer border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:translate-x-1 hover:shadow-none transition-all ${formData.warna === color ? 'ring-4 ring-black ring-offset-2' : ''}`}
+                  style={{ backgroundColor: color }}
                 />
               ))}
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-            <div>
-              {(initialData?.id || matchedId) && !initialData?.is_academic && (
-                <button 
-                  type="button" 
-                  onClick={handleDelete} 
-                  disabled={loading}
-                  style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
-                >
-                  Hapus Kelas
-                </button>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button type="button" onClick={onClose} style={{ padding: '8px 16px', border: '1px solid #d1d5db', background: 'white', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>Batal</button>
-              <button type="submit" disabled={loading} style={{ padding: '8px 16px', background: '#111827', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}>
-                {loading ? 'Menyimpan...' : 'Simpan'}
+          <div className="flex justify-end gap-3 mt-4 pt-4 border-t-4 border-black">
+            {(initialData?.id || matchedId) && !initialData?.is_academic && (
+              <button 
+                type="button" 
+                onClick={handleDelete} 
+                disabled={loading}
+                className="px-5 py-3 border-4 border-black bg-red-500 font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-red-600 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all mr-auto"
+              >
+                Hapus Kelas
               </button>
-            </div>
+            )}
+            <button type="button" onClick={onClose} className="px-5 py-3 border-4 border-black bg-white font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">Batal</button>
+            <button type="submit" disabled={loading} className="px-5 py-3 border-4 border-black bg-[#ea580c] font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#c2410c] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50">
+              {loading ? 'Menyimpan...' : 'Simpan'}
+            </button>
           </div>
         </form>
       </div>

@@ -82,7 +82,7 @@ Before completing tasks:
 - **Sprint 3**: ✅ Completed — Multi-role Dashboard, Ruang Edukasi, Task Broadcast, Analytics
 - **Sprint 4**: ✅ Completed — Interactive Calendar, Reminder System, Notifications, Progress Tracker
 - **Sprint 5**: ✅ Completed — Inbox Kolaborasi (ChatThread + Message), Dosen Export, UI/UX Polish
-- **Sprint 6**: 🔄 In Progress — Integration refinements, UX improvements, documentation
+- **Sprint 6**: 🔄 In Progress — Integration refinements, Google OAuth & SMTP Email implemented, UI translation (Indonesian), Logout redirect fix, UX improvements, documentation
 
 ### Key Architecture Decisions (Sprint 5-6)
 - **Ruang Edukasi → Jadwal Kuliah integration**: `GET /api/tasks/mata-kuliah/` now merges personal `MataKuliah` records with schedule data from joined/created `RuangEdukasi`. The `is_academic: True` flag marks official class schedules from Ruang Edukasi. Students no longer need to manually enter class schedules — they inherit them from the rooms they join.
@@ -100,8 +100,7 @@ Before completing tasks:
 4. Feature completeness for unfinished items
 
 ### Major Unfinished Features
-- Email verification (endpoint exists, frontend flow incomplete)
-- Real OAuth integration (Google stub implemented, not production-ready)
+- Email verification frontend UI flow (Backend endpoints and SMTP async sending are completed)
 - Automated browser smoke tests (Cypress/Playwright)
 - Drag-and-drop calendar (basic click-to-add exists)
 - MataKuliah cleanup: legacy `MataKuliah` records (manually created before Ruang Edukasi) may coexist with academic schedules — deletion UI exists only for personal `MataKuliah`

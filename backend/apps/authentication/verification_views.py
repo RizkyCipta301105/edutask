@@ -3,8 +3,30 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from django.core.mail import send_mail
+import threading
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+
+class EmailThread(threading.Thread):
+    def __init__(self, subject, message, from_email, recipient_list):
+        self.subject = subject
+        self.message = message
+        self.from_email = from_email
+        self.recipient_list = recipient_list
+        threading.Thread.__init__(self)
+
+    def run(self):
+        try:
+            send_mail(
+                self.subject,
+                self.message,
+                self.from_email,
+                self.recipient_list,
+                fail_silently=False,
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Email failed to send: {e}")
 from .models import VerificationToken, User
 from apps.common.utils import success_response, error_response
 
@@ -28,13 +50,12 @@ class SendVerificationEmailView(APIView):
 
         verify_url = f"{getattr(settings, 'EDUTASK_FRONTEND_URL', 'http://localhost:5173')}/verify-email?token={token.token}"
         
-        send_mail(
+        EmailThread(
             subject="Verifikasi Email EduTask",
             message=f"Halo {user.nama_lengkap},\n\nKlik link berikut untuk memverifikasi alamat email Anda:\n{verify_url}\n\nLink ini berlaku selama 24 jam.",
             from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+            recipient_list=[user.email]
+        ).start()
 
         return success_response(message="Email verifikasi telah dikirim. Silakan cek kotak masuk Anda.")
 
@@ -90,13 +111,12 @@ class ForgotPasswordView(APIView):
 
         reset_url = f"{getattr(settings, 'EDUTASK_FRONTEND_URL', 'http://localhost:5173')}/reset-password?token={token.token}"
         
-        send_mail(
+        EmailThread(
             subject="Reset Password EduTask",
             message=f"Halo {user.nama_lengkap},\n\nAnda meminta reset password. Klik link berikut untuk membuat password baru:\n{reset_url}\n\nLink ini berlaku selama 1 jam.",
             from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
+            recipient_list=[user.email]
+        ).start()
 
         return success_response(message="Jika email terdaftar, instruksi reset password telah dikirim.")
 

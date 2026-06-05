@@ -75,17 +75,17 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
             <div className="settings-card-content">
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: '50%', background: '#6b7280',
+                  width: 56, height: 56, background: '#ea580c', border: '4px solid #000', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: '1.2rem', fontWeight: 600,
+                  color: 'white', fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase'
                 }}>
                   {user.nama_lengkap?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 4 }}>{user.nama_lengkap || user.username}</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>{user.email}</div>
+                  <div style={{ fontWeight: 900, fontSize: '1.2rem', marginBottom: 4, color: '#000', textTransform: 'uppercase' }}>{user.nama_lengkap || user.username}</div>
+                  <div style={{ color: '#000', fontSize: '0.9rem', fontWeight: 700 }}>{user.email}</div>
                   <div style={{ display: 'flex', gap: '12px', marginTop: 4 }}>
-                    {user.role && <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>Role: {user.role}</span>}
+                    {user.role && <span style={{ color: '#000', fontSize: '0.8rem', fontWeight: 900, background: '#fef08a', border: '2px solid #000', padding: '2px 8px', textTransform: 'uppercase', boxShadow: '2px 2px 0px 0px rgba(0,0,0,1)' }}>Role: {user.role}</span>}
                   </div>
                 </div>
               </div>
@@ -108,22 +108,23 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {/* Plan badge */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Crown size={20} color={isTeam ? '#7c3aed' : isPro ? '#FF4D00' : '#9ca3af'} />
+                  <Crown size={24} color={isTeam ? '#7c3aed' : isPro ? '#FF4D00' : '#000'} />
                   <span style={{
-                    fontWeight: 700,
-                    fontSize: '1.1rem',
-                    color: isTeam ? '#7c3aed' : isPro ? '#FF4D00' : '#374151',
+                    fontWeight: 900,
+                    fontSize: '1.2rem',
+                    color: '#000',
                     textTransform: 'uppercase',
                   }}>
                     {plan === 'team' ? 'Team Plan' : plan === 'pro' ? 'Pro Plan' : 'Free Plan'}
                   </span>
                   <span style={{
-                    fontSize: '0.7rem',
-                    fontWeight: 700,
+                    fontSize: '0.8rem',
+                    fontWeight: 900,
                     padding: '2px 8px',
-                    borderRadius: 4,
-                    background: isActive ? '#d1fae5' : '#fee2e2',
-                    color: isActive ? '#065f46' : '#991b1b',
+                    background: isActive ? '#4ade80' : '#fca5a5',
+                    color: '#000',
+                    border: '2px solid #000',
+                    boxShadow: '2px 2px 0px 0px rgba(0,0,0,1)',
                     textTransform: 'uppercase',
                   }}>
                     {isActive ? 'Aktif' : 'Tidak Aktif'}
@@ -132,8 +133,8 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
 
                 {/* End date */}
                 {subscription?.end_date && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6b7280', fontSize: '0.85rem' }}>
-                    <Clock size={14} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#000', fontSize: '0.9rem', fontWeight: 700 }}>
+                    <Clock size={16} />
                     Aktif hingga: {new Date(subscription.end_date).toLocaleDateString('id-ID', {
                       day: 'numeric', month: 'long', year: 'numeric',
                     })}
@@ -142,19 +143,19 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
 
                 {/* Feature list */}
                 {subscription?.features && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                     {Object.entries(subscription.features)
                       .filter(([key, val]) => val === true)
                       .map(([key]) => (
                         <span key={key} style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 600,
-                          padding: '2px 8px',
-                          background: '#f3f4f6',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: 4,
-                          color: '#374151',
-                          textTransform: 'capitalize',
+                          fontSize: '0.8rem',
+                          fontWeight: 900,
+                          padding: '4px 8px',
+                          background: '#fff',
+                          border: '2px solid #000',
+                          boxShadow: '2px 2px 0px 0px rgba(0,0,0,1)',
+                          color: '#000',
+                          textTransform: 'uppercase',
                         }}>
                           {key.replace(/_/g, ' ')}
                         </span>
@@ -207,9 +208,10 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
           <div className="settings-card-content">
             {passwordMsg.text && (
               <div style={{
-                padding: '10px 16px', borderRadius: 6, marginBottom: 16, fontSize: '0.9rem',
-                background: passwordMsg.type === 'error' ? '#fef2f2' : '#d1fae5',
-                color: passwordMsg.type === 'error' ? '#dc2626' : '#065f46',
+                padding: '12px 16px', marginBottom: 16, fontSize: '0.9rem', fontWeight: 700,
+                border: '4px solid #000', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
+                background: passwordMsg.type === 'error' ? '#fca5a5' : '#86efac',
+                color: '#000', textTransform: 'uppercase',
               }}>
                 {passwordMsg.text}
               </div>
@@ -258,12 +260,12 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
         </div>
         <div className="settings-card">
           <div className="auth-status">
-            <span style={{ fontSize: '0.95rem', fontWeight: 500, color: '#374151' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 900, color: '#000', textTransform: 'uppercase' }}>
               {roleView === 'dosen' ? 'Notifikasi Evaluasi & Pengumpulan Tugas' : (roleView === 'mahasiswa' ? 'Notifikasi Tenggat Waktu (Deadline) Kuliah' : 'Notifikasi Task Pribadi')}
             </span>
           </div>
           <div className="auth-desc" style={{ marginTop: 8 }}>
-            <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+            <p style={{ fontSize: '0.9rem', color: '#000', fontWeight: 700 }}>
               Dapatkan peringatan melalui antarmuka saat ada pembaruan penting.
             </p>
           </div>
@@ -283,14 +285,14 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
         </div>
         <div className="settings-card">
           <div className="auth-status">
-            <span style={{ fontSize: '0.95rem' }}>
-              Autentikasi 2 langkah {twoFAEnabled ? <span style={{ color: '#16a34a', fontWeight: 600 }}>aktif</span> : <span style={{ color: '#6b7280' }}>nonaktif</span>}
+            <span style={{ fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase' }}>
+              Autentikasi 2 langkah {twoFAEnabled ? <span style={{ color: '#000', background: '#4ade80', padding: '2px 8px', border: '2px solid #000' }}>AKTIF</span> : <span style={{ color: '#000', background: '#fca5a5', padding: '2px 8px', border: '2px solid #000' }}>NONAKTIF</span>}
             </span>
-            {twoFAEnabled && <Check size={20} color="#16a34a" />}
+            {twoFAEnabled && <Check size={24} color="#000" />}
           </div>
           <div className="auth-desc">
-            <Shield size={20} color="#374151" />
-            <p style={{ fontSize: '0.9rem', color: '#4b5563', lineHeight: '1.5' }}>
+            <Shield size={24} color="#000" />
+            <p style={{ fontSize: '0.9rem', color: '#000', fontWeight: 700, lineHeight: '1.5' }}>
               {twoFAEnabled
                 ? 'Autentikasi dua faktor aktif. Akun Anda memiliki lapisan keamanan tambahan.'
                 : 'Jika terdeteksi login dari perangkat yang tidak dikenal, kami akan meminta password dan kode verifikasi.'}
@@ -339,15 +341,15 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
       {/* Deactivate */}
       <div className="settings-row">
         <div className="settings-left"><h3>Keluar</h3></div>
-        <div className="settings-card deactivate-card">
-          <span style={{ fontSize: '0.95rem', color: '#111827' }}>
+        <div className="settings-card deactivate-card" style={{ padding: '24px' }}>
+          <span style={{ fontSize: '1rem', fontWeight: 900, color: '#000', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>
             {showDeactivateConfirm ? 'Anda yakin ingin keluar?' : 'Anda dapat login kembali kapan saja.'}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
             {showDeactivateConfirm && (
               <button className="btn-outline" onClick={() => setShowDeactivateConfirm(false)}>Batal</button>
             )}
-            <button className="btn-danger-bg" style={showDeactivateConfirm ? { background: '#ef4444', color: 'white' } : {}} onClick={handleDeactivate}>
+            <button className="btn-danger-bg" style={showDeactivateConfirm ? { background: '#ef4444', color: 'white', border: '4px solid #000', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)' } : {}} onClick={handleDeactivate}>
               {showDeactivateConfirm ? 'Konfirmasi Keluar' : 'Keluar dari akun'}
             </button>
           </div>

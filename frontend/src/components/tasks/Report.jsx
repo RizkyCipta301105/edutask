@@ -119,9 +119,9 @@ export default function Report({
           {roleView === 'dosen' && (
             <button 
               onClick={handleExportCSV}
-              className="rounded-lg bg-[#B8842A] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8b6914] flex items-center gap-2 shadow-sm"
+              className="border-4 border-black bg-[#B8842A] px-4 py-2 text-sm font-black text-white uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#8b6914] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center gap-2"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               Unduh CSV
             </button>
           )}
@@ -134,32 +134,32 @@ export default function Report({
 
       {/* Sub-Tabs Navigasi khusus Dosen */}
       {roleView === 'dosen' && (
-        <div className="flex border-b border-slate-200 mb-6 gap-6 text-sm">
+        <div className="flex border-b-4 border-black mb-6 gap-6 text-sm">
           <button
             onClick={() => setActiveSubTab('overview')}
-            className={`pb-3 font-semibold transition relative ${activeSubTab === 'overview' ? 'text-[#B8842A]' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`pb-3 font-black uppercase transition relative ${activeSubTab === 'overview' ? 'text-black' : 'text-slate-500 hover:text-black'}`}
           >
             Ringkasan
             {activeSubTab === 'overview' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#B8842A] rounded-t-full" />
+              <span className="absolute bottom-0 left-0 right-0 h-1 bg-black" />
             )}
           </button>
           <button
             onClick={() => setActiveSubTab('mahasiswa')}
-            className={`pb-3 font-semibold transition relative ${activeSubTab === 'mahasiswa' ? 'text-[#B8842A]' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`pb-3 font-black uppercase transition relative ${activeSubTab === 'mahasiswa' ? 'text-black' : 'text-slate-500 hover:text-black'}`}
           >
             Analitik Mahasiswa
             {activeSubTab === 'mahasiswa' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#B8842A] rounded-t-full" />
+              <span className="absolute bottom-0 left-0 right-0 h-1 bg-black" />
             )}
           </button>
           <button
             onClick={() => setActiveSubTab('tugas')}
-            className={`pb-3 font-semibold transition relative ${activeSubTab === 'tugas' ? 'text-[#B8842A]' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`pb-3 font-black uppercase transition relative ${activeSubTab === 'tugas' ? 'text-black' : 'text-slate-500 hover:text-black'}`}
           >
             Analitik Penugasan
             {activeSubTab === 'tugas' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#B8842A] rounded-t-full" />
+              <span className="absolute bottom-0 left-0 right-0 h-1 bg-black" />
             )}
           </button>
         </div>
@@ -302,11 +302,11 @@ export default function Report({
 
       {/* ─── TAB 2: ANALITIK MAHASISWA INDIVIDU (KHUSUS DOSEN) ────────────────── */}
       {roleView === 'dosen' && activeSubTab === 'mahasiswa' && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-          <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden transition-all duration-300">
+          <div className="p-6 border-b-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#fbcfe8]">
             <div>
-              <h3 className="text-base font-semibold text-slate-800">Daftar Progress Mahasiswa</h3>
-              <p className="text-xs text-slate-500 mt-1">Total {filteredStudents.length} mahasiswa tersaring</p>
+              <h3 className="text-xl font-black uppercase text-black">Daftar Progress Mahasiswa</h3>
+              <p className="text-sm font-bold text-black mt-1">Total {filteredStudents.length} mahasiswa tersaring</p>
             </div>
             <div className="flex items-center gap-3">
               {/* Search */}
@@ -316,15 +316,15 @@ export default function Report({
                   placeholder="Cari nama atau email..."
                   value={studentSearch}
                   onChange={e => setStudentSearch(e.target.value)}
-                  className="w-64 rounded-xl border border-slate-200 py-2 pl-9 pr-4 text-xs focus:border-[#B8842A] focus:outline-none"
+                  className="w-64 border-4 border-black bg-white py-2 pl-9 pr-4 text-sm font-bold placeholder-gray-500 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none transition-colors"
                 />
-                <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                <Search size={18} className="absolute left-3 top-2.5 text-black stroke-[3]" />
               </div>
               {/* Filter Dropdown */}
               <select
                 value={studentFilter}
                 onChange={e => setStudentFilter(e.target.value)}
-                className="rounded-xl border border-slate-200 py-2 px-3 text-xs focus:border-[#B8842A] focus:outline-none bg-white text-slate-700 font-medium"
+                className="border-4 border-black bg-white py-2 px-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none transition-colors"
               >
                 <option value="all">Semua Progres</option>
                 <option value="low">Kurang Aktif (&lt; 50%)</option>
@@ -395,11 +395,11 @@ export default function Report({
 
       {/* ─── TAB 3: ANALITIK PENUGASAN KELAS (KHUSUS DOSEN) ───────────────────── */}
       {roleView === 'dosen' && activeSubTab === 'tugas' && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-          <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden transition-all duration-300">
+          <div className="p-6 border-b-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#fef08a]">
             <div>
-              <h3 className="text-base font-semibold text-slate-800">Daftar Progress Penugasan Kelas</h3>
-              <p className="text-xs text-slate-500 mt-1">Total {filteredTasks.length} tugas tersaring</p>
+              <h3 className="text-xl font-black uppercase text-black">Daftar Progress Penugasan Kelas</h3>
+              <p className="text-sm font-bold text-black mt-1">Total {filteredTasks.length} tugas tersaring</p>
             </div>
             <div className="flex items-center gap-3">
               {/* Search */}
@@ -409,15 +409,15 @@ export default function Report({
                   placeholder="Cari judul tugas..."
                   value={taskSearch}
                   onChange={e => setTaskSearch(e.target.value)}
-                  className="w-64 rounded-xl border border-slate-200 py-2 pl-9 pr-4 text-xs focus:border-[#B8842A] focus:outline-none"
+                  className="w-64 border-4 border-black bg-white py-2 pl-9 pr-4 text-sm font-bold placeholder-gray-500 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none transition-colors"
                 />
-                <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                <Search size={18} className="absolute left-3 top-2.5 text-black stroke-[3]" />
               </div>
               {/* Course Filter */}
               <select
                 value={taskCourseFilter}
                 onChange={e => setTaskCourseFilter(e.target.value)}
-                className="rounded-xl border border-slate-200 py-2 px-3 text-xs focus:border-[#B8842A] focus:outline-none bg-white text-slate-700 font-medium"
+                className="border-4 border-black bg-white py-2 px-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none transition-colors"
               >
                 <option value="all">Semua Mata Kuliah</option>
                 {uniqueCourses.map(course => (
@@ -491,14 +491,14 @@ export default function Report({
 
       {/* ─── MODAL DETAIL LAPORAN ────────────────────────────────────────────── */}
       {showDetailModal && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div className="modal-content" style={{ background: 'white', maxWidth: 600, width: '100%', padding: '24px 32px', borderRadius: 16, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <div className="modal-header" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827' }}>Detail Laporan</h2>
-              <button onClick={() => setShowDetailModal(false)} className="btn-outline" style={{ padding: 4, border: 'none' }}><X size={20} /></button>
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-[600px] p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-4 border-black">
+              <h2 className="text-2xl font-black uppercase tracking-wider text-black">Detail Laporan</h2>
+              <button onClick={() => setShowDetailModal(false)} className="hover:rotate-90 transition-transform"><X size={28} className="stroke-[3]" /></button>
             </div>
             
-            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+            <div className="modal-body">
               {roleView === 'dosen' ? (
                 <div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>

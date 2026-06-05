@@ -125,12 +125,12 @@ export default function RuangEdukasiList({ role }) {
         </div>
         <div>
           {role === 'dosen' ? (
-            <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-xl bg-[#4B3A2F] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#3D2F26] hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#D2A34E]/30">
-              <Plus size={18} /> Buat Ruang
+            <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 border-4 border-black bg-[#ea580c] px-5 py-2.5 text-sm font-black text-white uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none hover:bg-[#c2410c] focus:outline-none">
+              <Plus size={18} className="stroke-[3]" /> Buat Ruang
             </button>
           ) : (
-            <button onClick={() => setShowJoin(true)} className="flex items-center gap-2 rounded-xl bg-[#4B3A2F] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-[#3D2F26] hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#D2A34E]/30">
-              <Plus size={18} /> Gabung Ruang
+            <button onClick={() => setShowJoin(true)} className="flex items-center gap-2 border-4 border-black bg-[#ea580c] px-5 py-2.5 text-sm font-black text-white uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none hover:bg-[#c2410c] focus:outline-none">
+              <Plus size={18} className="stroke-[3]" /> Gabung Ruang
             </button>
           )}
         </div>
@@ -138,58 +138,61 @@ export default function RuangEdukasiList({ role }) {
 
       {loading ? (
         <div className="flex items-center justify-center p-12">
-          <div className="text-sm font-semibold text-slate-500">Memuat data ruang...</div>
+          <div className="text-sm font-black uppercase text-black">Memuat data ruang...</div>
         </div>
       ) : ruang.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16 px-4 shadow-sm text-center">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50">
-            <Users2 size={40} className="text-slate-300" />
+        <div className="flex flex-col items-center justify-center border-4 border-black bg-white py-16 px-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center">
+          <div className="mb-4 flex h-20 w-20 items-center justify-center border-4 border-black bg-yellow-300">
+            <Users2 size={40} className="text-black stroke-[3]" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-2">Belum Ada Ruang Edukasi</h3>
-          <p className="text-sm text-slate-500 max-w-sm">
+          <h3 className="text-xl font-black uppercase text-black mb-2">Belum Ada Ruang Edukasi</h3>
+          <p className="text-sm font-bold text-black max-w-sm">
             {role === 'dosen' ? 'Anda belum membuat ruang edukasi apa pun. Buat ruang sekarang untuk membagikan tugas ke mahasiswa.' : 'Anda belum bergabung dengan ruang edukasi mana pun. Minta kode dari dosen Anda.'}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ruang.map(r => (
-            <div key={r.id} className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-[#D2A34E]/50 hover:shadow-md">
-              <h3 className="text-base font-bold text-slate-800 line-clamp-1 mb-2" title={r.nama_ruang}>{r.nama_ruang}</h3>
-              <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8">
+            <div key={r.id} className="group relative flex flex-col border-4 border-black bg-white p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-none hover:translate-y-1 hover:translate-x-1">
+              <h3 className="text-lg font-black uppercase text-black line-clamp-1 mb-2" title={r.nama_ruang}>{r.nama_ruang}</h3>
+              <p className="text-sm font-bold text-gray-700 line-clamp-2 mb-4 h-10">
                 {r.deskripsi || 'Tidak ada deskripsi'}
               </p>
               
-              <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                <button 
-                  onClick={() => handleShowMembers(r)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#B8842A] transition-colors"
-                >
-                  <Users size={14} className="text-slate-400" /> 
-                  {r.jumlah_anggota} anggota
-                </button>
-                
-                {role === 'dosen' && (
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => handleCopy(r.kode_join)}
-                      className="flex items-center gap-1.5 rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-bold tracking-wider text-[#B8842A] transition-colors hover:bg-orange-100 ring-1 ring-inset ring-orange-500/10"
-                      title="Klik untuk menyalin kode"
-                    >
-                      {r.kode_join}
-                      {copiedCode === r.kode_join ? <Check size={12} /> : <Copy size={12} />}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="flex items-center justify-center p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
-                      title="Hapus Ruang"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                )}
+              <div className="mt-auto pt-4 border-t-4 border-black flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <button 
+                    onClick={() => handleShowMembers(r)}
+                    className="flex items-center gap-1.5 text-sm font-black text-black hover:text-[#ea580c] transition-colors whitespace-nowrap"
+                  >
+                    <Users size={16} className="stroke-[3]" /> 
+                    {r.jumlah_anggota} anggota
+                  </button>
+                  
+                  {role === 'dosen' && (
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleCopy(r.kode_join)}
+                        className="flex items-center gap-1.5 border-4 border-black bg-yellow-300 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-black transition-all hover:bg-yellow-400 hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                        title="Klik untuk menyalin kode"
+                      >
+                        {r.kode_join}
+                        {copiedCode === r.kode_join ? <Check size={14} className="stroke-[3]" /> : <Copy size={14} className="stroke-[3]" />}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="flex items-center justify-center p-1.5 border-4 border-black bg-red-500 text-white hover:bg-red-600 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px]"
+                        title="Hapus Ruang"
+                      >
+                        <Trash2 size={16} className="stroke-[3]" />
+                      </button>
+                    </div>
+                  )}
+                </div>
                 {role === 'mahasiswa' && (
-                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Dosen: <span className="text-slate-600">{r.kreator_nama}</span>
+                   <div className="text-xs font-black uppercase tracking-wider text-black flex flex-wrap items-center gap-2 mt-1">
+                      <span>Dosen:</span>
+                      <span className="bg-yellow-200 px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] truncate max-w-[70%]" title={r.kreator_nama}>{r.kreator_nama}</span>
                    </div>
                 )}
               </div>
@@ -200,19 +203,22 @@ export default function RuangEdukasiList({ role }) {
 
       {/* Modal Create */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
-            <div className="border-b border-slate-100 p-6 flex-shrink-0">
-              <h3 className="text-lg font-bold text-slate-800">Buat Ruang Edukasi Baru</h3>
-              <p className="mt-1 text-xs text-slate-500">Ruang ini digunakan untuk mem-broadcast tugas ke mahasiswa.</p>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[90vh] flex flex-col">
+            <div className="border-b-4 border-black bg-[#fef08a] p-6 flex-shrink-0 flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-black uppercase text-black">Buat Ruang Edukasi Baru</h3>
+                <p className="mt-1 text-sm font-bold text-gray-700">Ruang ini digunakan untuk mem-broadcast tugas ke mahasiswa.</p>
+              </div>
+              <button onClick={() => setShowCreate(false)} className="hover:rotate-90 transition-transform"><X size={24} className="stroke-[3] text-black" /></button>
             </div>
             
             <form onSubmit={handleCreate} className="p-6 overflow-y-auto flex-1">
               <div className="mb-4">
-                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Nama Ruang</label>
+                <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black">Nama Ruang</label>
                 <input 
                   type="text" 
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-[#B8842A] focus:bg-white focus:ring-4 focus:ring-[#D2A34E]/20" 
+                  className="w-full border-4 border-black bg-white px-4 py-3 text-sm font-bold text-black placeholder-gray-500 outline-none transition-colors focus:bg-yellow-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
                   value={formData.nama_ruang} 
                   onChange={e => setFormData({...formData, nama_ruang: e.target.value})} 
                   required 
@@ -220,9 +226,9 @@ export default function RuangEdukasiList({ role }) {
                 />
               </div>
               <div className="mb-4">
-                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Deskripsi (Opsional)</label>
+                <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black">Deskripsi (Opsional)</label>
                 <textarea 
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-[#B8842A] focus:bg-white focus:ring-4 focus:ring-[#D2A34E]/20 resize-none" 
+                  className="w-full border-4 border-black bg-white px-4 py-3 text-sm font-bold text-black placeholder-gray-500 outline-none transition-colors focus:bg-yellow-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] resize-none" 
                   value={formData.deskripsi} 
                   onChange={e => setFormData({...formData, deskripsi: e.target.value})}
                   placeholder="Deskripsi singkat mengenai ruang ini..."
@@ -231,13 +237,13 @@ export default function RuangEdukasiList({ role }) {
               </div>
 
               {/* Schedule Fields */}
-              <div className="border-t border-slate-100 pt-4 mt-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Jadwal Kuliah (Opsional)</h4>
+              <div className="border-t-4 border-black pt-4 mt-4">
+                <h4 className="text-sm font-black uppercase tracking-wider text-black mb-3 bg-yellow-200 inline-block px-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Jadwal Kuliah (Opsional)</h4>
                 
                 <div className="mb-4">
-                  <label className="mb-1.5 block text-xs font-bold text-slate-700">Hari Kuliah</label>
+                  <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black">Hari Kuliah</label>
                   <select 
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                    className="w-full border-4 border-black bg-white px-4 py-3 text-sm font-bold text-black outline-none transition-colors focus:bg-yellow-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                     value={formData.hari}
                     onChange={e => setFormData({...formData, hari: e.target.value})}
                   >
@@ -256,20 +262,20 @@ export default function RuangEdukasiList({ role }) {
                   <>
                     <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="mb-1.5 block text-xs font-bold text-slate-700">Jam Mulai</label>
+                        <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black">Jam Mulai</label>
                         <input 
                           type="time" 
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                          className="w-full border-4 border-black bg-white px-4 py-3 text-sm font-bold text-black outline-none transition-colors focus:bg-yellow-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                           value={formData.jam_mulai}
                           onChange={e => setFormData({...formData, jam_mulai: e.target.value})}
                           required={formData.hari !== ""}
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-bold text-slate-700">Jam Selesai</label>
+                        <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black">Jam Selesai</label>
                         <input 
                           type="time" 
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                          className="w-full border-4 border-black bg-white px-4 py-3 text-sm font-bold text-black outline-none transition-colors focus:bg-yellow-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                           value={formData.jam_selesai}
                           onChange={e => setFormData({...formData, jam_selesai: e.target.value})}
                           required={formData.hari !== ""}
@@ -278,10 +284,10 @@ export default function RuangEdukasiList({ role }) {
                     </div>
 
                     <div className="mb-4">
-                      <label className="mb-1.5 block text-xs font-bold text-slate-700">Ruangan / Zoom Link</label>
+                      <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black">Ruangan / Zoom Link</label>
                       <input 
                         type="text" 
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition-all focus:border-[#B8842A] focus:bg-white"
+                        className="w-full border-4 border-black bg-white px-4 py-3 text-sm font-bold text-black outline-none transition-colors focus:bg-yellow-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                         value={formData.ruangan}
                         onChange={e => setFormData({...formData, ruangan: e.target.value})}
                         placeholder="Misal: Ruang Lab 3 / Link Zoom"
@@ -289,7 +295,7 @@ export default function RuangEdukasiList({ role }) {
                     </div>
 
                     <div className="mb-4">
-                      <label className="mb-1.5 block text-xs font-bold text-slate-700 mb-2">Warna Tema Jadwal</label>
+                      <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black mb-2">Warna Tema Jadwal</label>
                       <div className="flex gap-2">
                         {[
                           { name: 'Gold', hex: '#B8842A' },
@@ -301,7 +307,7 @@ export default function RuangEdukasiList({ role }) {
                           <button
                             key={c.hex}
                             type="button"
-                            className={`w-8 h-8 rounded-full border transition-all ${formData.warna === c.hex ? 'scale-110 ring-2 ring-slate-400' : 'opacity-70 hover:opacity-100'}`}
+                            className={`w-8 h-8 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:translate-x-1 hover:shadow-none transition-all ${formData.warna === c.hex ? 'ring-4 ring-black ring-offset-2' : ''}`}
                             style={{ backgroundColor: c.hex }}
                             onClick={() => setFormData({...formData, warna: c.hex})}
                             title={c.name}
@@ -313,9 +319,9 @@ export default function RuangEdukasiList({ role }) {
                 )}
               </div>
               
-              <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 mt-6 flex-shrink-0">
-                <button type="button" className="rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100" onClick={() => setShowCreate(false)}>Batal</button>
-                <button type="submit" className="rounded-xl bg-[#4B3A2F] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#3D2F26]">Buat Ruang</button>
+              <div className="flex items-center justify-end gap-3 pt-6 border-t-4 border-black mt-6 flex-shrink-0">
+                <button type="button" className="px-5 py-3 border-4 border-black bg-white font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={() => setShowCreate(false)}>Batal</button>
+                <button type="submit" className="px-5 py-3 border-4 border-black bg-[#ea580c] font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#c2410c] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">Buat Ruang</button>
               </div>
             </form>
           </div>
@@ -324,21 +330,21 @@ export default function RuangEdukasiList({ role }) {
 
       {/* Modal Join */}
       {showJoin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="border-b border-slate-100 p-6 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
-                <Users size={24} className="text-[#B8842A]" />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+            <div className="border-b-4 border-black p-6 text-center bg-[#fbcfe8]">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <Users size={32} className="text-black stroke-[3]" />
               </div>
-              <h3 className="text-lg font-bold text-slate-800">Gabung Ruang Edukasi</h3>
-              <p className="mt-1 text-xs text-slate-500">Masukkan 6 digit kode dari dosen Anda.</p>
+              <h3 className="text-xl font-black uppercase text-black">Gabung Ruang Edukasi</h3>
+              <p className="mt-1 text-sm font-bold text-gray-700">Masukkan 6 digit kode dari dosen Anda.</p>
             </div>
             
             <form onSubmit={handleJoin} className="p-6">
               <div className="mb-6">
                 <input 
                   type="text" 
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-center text-xl font-black tracking-[0.3em] text-slate-900 placeholder-slate-300 outline-none transition-all focus:border-[#B8842A] focus:bg-white focus:ring-4 focus:ring-[#D2A34E]/20 uppercase" 
+                  className="w-full border-4 border-black bg-white px-4 py-4 text-center text-2xl font-black tracking-[0.3em] text-black placeholder-gray-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none transition-colors uppercase" 
                   value={joinCode} 
                   onChange={e => setJoinCode(e.target.value.toUpperCase())} 
                   required 
@@ -347,8 +353,8 @@ export default function RuangEdukasiList({ role }) {
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <button type="submit" disabled={joinCode.length !== 6} className="w-full rounded-xl bg-[#4B3A2F] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#3D2F26] disabled:opacity-50 disabled:cursor-not-allowed">Gabung Sekarang</button>
-                <button type="button" className="w-full rounded-xl px-5 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100" onClick={() => setShowJoin(false)}>Batal</button>
+                <button type="submit" disabled={joinCode.length !== 6} className="w-full border-4 border-black bg-[#ea580c] px-5 py-4 text-sm font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-[#c2410c] hover:translate-y-1 hover:translate-x-1 hover:shadow-none disabled:opacity-50 disabled:cursor-not-allowed">Gabung Sekarang</button>
+                <button type="button" className="w-full border-4 border-black bg-white px-5 py-4 text-sm font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none" onClick={() => setShowJoin(false)}>Batal</button>
               </div>
             </form>
           </div>
@@ -357,23 +363,23 @@ export default function RuangEdukasiList({ role }) {
 
       {/* MODAL ANGGOTA */}
       {showMembers && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl relative overflow-hidden">
-            <h3 className="text-xl font-bold text-slate-900">Anggota Ruang</h3>
-            <p className="text-sm text-slate-500 mb-6">{selectedRuangName}</p>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col">
+            <h3 className="text-2xl font-black uppercase text-black">Anggota Ruang</h3>
+            <p className="text-sm font-bold text-gray-700 mb-6 pb-4 border-b-4 border-black">{selectedRuangName}</p>
             
-            <div className="max-h-[60vh] overflow-y-auto space-y-4 pr-2">
+            <div className="max-h-[50vh] overflow-y-auto space-y-4 pr-2">
               {/* Dosen / Kreator */}
               {membersData.kreator && (
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Tenaga Pengajar (Dosen)</h4>
-                  <div className="flex items-center gap-3 p-3 bg-orange-50 border border-orange-100 rounded-xl">
-                    <div className="w-10 h-10 rounded-full bg-[#B8842A] text-white flex items-center justify-center font-bold text-lg">
+                  <h4 className="text-sm font-black uppercase tracking-wider text-black mb-2 bg-yellow-200 inline-block px-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Tenaga Pengajar (Dosen)</h4>
+                  <div className="flex items-center gap-3 p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="w-12 h-12 border-4 border-black bg-[#ea580c] text-white flex items-center justify-center font-black text-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                       {membersData.kreator.nama.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-bold text-slate-900 text-sm">{membersData.kreator.nama}</div>
-                      <div className="text-xs text-slate-500">{membersData.kreator.email}</div>
+                      <div className="font-black text-black text-sm uppercase">{membersData.kreator.nama}</div>
+                      <div className="text-xs font-bold text-gray-700">{membersData.kreator.email}</div>
                     </div>
                   </div>
                 </div>
@@ -381,19 +387,19 @@ export default function RuangEdukasiList({ role }) {
 
               {/* Mahasiswa */}
               <div className="pt-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Mahasiswa ({membersData.anggota.length})</h4>
+                <h4 className="text-sm font-black uppercase tracking-wider text-black mb-2 bg-[#fbcfe8] inline-block px-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Mahasiswa ({membersData.anggota.length})</h4>
                 {membersData.anggota.length === 0 ? (
-                  <p className="text-sm text-slate-500 italic">Belum ada mahasiswa yang bergabung.</p>
+                  <p className="text-sm font-bold text-gray-500 italic mt-2">Belum ada mahasiswa yang bergabung.</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3 mt-3">
                     {membersData.anggota.map(m => (
-                      <div key={m.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                        <div className="w-8 h-8 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-bold text-sm">
+                      <div key={m.id} className="flex items-center gap-3 p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="w-10 h-10 border-4 border-black bg-blue-300 text-black flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                           {m.nama.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900 text-sm">{m.nama}</div>
-                          <div className="text-xs text-slate-500">{m.email}</div>
+                          <div className="font-black text-black text-sm uppercase">{m.nama}</div>
+                          <div className="text-xs font-bold text-gray-700">{m.email}</div>
                         </div>
                       </div>
                     ))}
@@ -402,10 +408,10 @@ export default function RuangEdukasiList({ role }) {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 pt-4 border-t-4 border-black flex justify-end">
               <button 
                 onClick={() => setShowMembers(false)}
-                className="px-5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                className="px-5 py-3 border-4 border-black bg-white font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
               >
                 Tutup
               </button>

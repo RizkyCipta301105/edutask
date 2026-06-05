@@ -117,214 +117,248 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, onA
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" style={{ maxWidth: '900px' }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <CheckCircle2 size={18} color={task.status === 'done' ? '#16a34a' : '#9ca3af'} /> TASK-{task.id}
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
+      <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col w-full max-w-[1000px] max-h-[90vh] overflow-hidden relative" onClick={e => e.stopPropagation()}>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between border-b-4 border-black bg-yellow-300 p-4 sm:p-5 shrink-0">
+          <div className="flex items-center gap-3 font-black uppercase text-lg sm:text-xl tracking-wide">
+            <CheckCircle2 size={28} className={task.status === 'done' ? 'text-green-600' : 'text-black'} strokeWidth={3} />
+            <span>TASK-{task.id}</span>
           </div>
-          <div className="modal-header-actions">
-            <span style={{ cursor: 'pointer', position: 'relative' }} onClick={handleShare}>
-              <Share2 size={18} />
-              {copied && <span style={{ position: 'absolute', top: '100%', right: 0, background: '#111827', color: 'white', padding: '4px 8px', borderRadius: 4, fontSize: '0.7rem', whiteSpace: 'nowrap', zIndex: 10 }}>Tersalin!</span>}
-            </span>
-            <Trash2 size={18} color="#dc2626" style={{ cursor: 'pointer' }} onClick={() => setShowDeleteConfirm(true)} />
-            <X size={20} onClick={onClose} style={{ cursor: 'pointer' }} />
+          <div className="flex items-center gap-4 sm:gap-6">
+            <button className="relative group hover:scale-110 transition-transform" onClick={handleShare}>
+              <Share2 size={24} className="stroke-[2.5]" />
+              {copied && <span className="absolute top-full right-0 mt-2 bg-black text-white px-2 py-1 text-xs font-bold border-2 border-white z-50 shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">Tersalin!</span>}
+            </button>
+            <button className="hover:scale-110 transition-transform text-red-600" onClick={() => setShowDeleteConfirm(true)}>
+              <Trash2 size={24} className="stroke-[2.5]" />
+            </button>
+            <button className="hover:scale-110 transition-transform" onClick={onClose}>
+              <X size={28} className="stroke-[3]" />
+            </button>
           </div>
         </div>
 
-        <div className="task-detail-container">
-          <div className="task-detail-main">
+        {/* Body Container */}
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-white">
+          
+          {/* Main Content (Left) */}
+          <div className="flex-1 overflow-y-auto p-6 md:p-8 md:border-r-4 border-black">
             {isEditing ? (
-              <>
-                <input type="text" value={editJudul} onChange={e => setEditJudul(e.target.value)} className="add-task-title-input" style={{ marginBottom: 16 }} />
-                <textarea value={editDeskripsi} onChange={e => setEditDeskripsi(e.target.value)} style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 6, padding: 12, minHeight: 100, fontSize: '0.95rem', fontFamily: 'inherit', outline: 'none', resize: 'vertical', marginBottom: 16 }} />
-                <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-                  <button className="btn-dark" onClick={handleSaveEdit} disabled={loading}>
-                    {loading ? 'Menyimpan...' : 'Simpan'}
+              <div className="mb-8">
+                <input 
+                  type="text" 
+                  value={editJudul} 
+                  onChange={e => setEditJudul(e.target.value)} 
+                  className="w-full text-3xl font-black uppercase border-4 border-black p-4 mb-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none transition-colors" 
+                  placeholder="Judul Tugas..."
+                />
+                <textarea 
+                  value={editDeskripsi} 
+                  onChange={e => setEditDeskripsi(e.target.value)} 
+                  className="w-full text-lg font-bold border-4 border-black p-4 min-h-[150px] resize-y mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none transition-colors" 
+                  placeholder="Deskripsi Tugas..."
+                />
+                <div className="flex flex-wrap gap-4">
+                  <button className="px-6 py-3 border-4 border-black bg-[#ea580c] text-white font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50" onClick={handleSaveEdit} disabled={loading}>
+                    {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
                   </button>
-                  <button className="btn-outline" onClick={() => { setIsEditing(false); setEditJudul(task.judul); setEditDeskripsi(task.deskripsi || ''); }}>Batal</button>
+                  <button className="px-6 py-3 border-4 border-black bg-white font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={() => { setIsEditing(false); setEditJudul(task.judul); setEditDeskripsi(task.deskripsi || ''); }}>
+                    Batal
+                  </button>
                 </div>
-              </>
+              </div>
             ) : (
-              <>
-                <h1 className="task-title-large" onClick={() => setIsEditing(true)} style={{ cursor: 'pointer' }} title="Klik untuk edit">
+              <div className="mb-8">
+                <h1 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tight break-words cursor-pointer hover:underline decoration-4 underline-offset-4" onClick={() => setIsEditing(true)} title="Klik untuk edit">
                   {task.judul}
                 </h1>
 
-                <div className="task-labels-row">
-                  <div className="label-dark" style={{ background: PRIORITAS_COLORS[task.prioritas] || '#6b7280' }}>
-                    <Flag size={14} color="white" /> {PRIORITAS_LABELS[task.prioritas] || task.prioritas}
+                <div className="flex flex-wrap gap-3 mb-8">
+                  <div className="border-4 border-black px-4 py-2 font-black uppercase text-sm flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-white" style={{ backgroundColor: PRIORITAS_COLORS[task.prioritas] || '#000' }}>
+                    <Flag size={16} className="stroke-[3]" /> {PRIORITAS_LABELS[task.prioritas] || task.prioritas}
                   </div>
                   {task.mata_kuliah_detail?.nama && (
-                    <div className="label-pill">📚 {task.mata_kuliah_detail.nama}</div>
+                    <div className="border-4 border-black bg-blue-300 text-black px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2">
+                      <BookOpen size={16} className="stroke-[3]" /> {task.mata_kuliah_detail.nama}
+                    </div>
                   )}
                 </div>
 
-                <div className="meta-grid">
-                  <div className="meta-item">
-                    <label>DEADLINE</label>
-                    <div className="meta-value">
-                      <Calendar size={18} color="#6b7280" />
-                      {task.deadline
-                        ? new Date(task.deadline).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
-                        : 'Belum diatur'}
+                {/* Grid Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+                  <div className="border-4 border-black bg-pink-200 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <label className="block text-xs font-black uppercase tracking-widest mb-2 text-black">Deadline</label>
+                    <div className="flex items-center gap-2 font-bold text-lg">
+                      <Calendar size={20} className="stroke-[2.5]" />
+                      {task.deadline ? new Date(task.deadline).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Belum diatur'}
                     </div>
                   </div>
-                  <div className="meta-item">
-                    <label>STATUS</label>
-                    <div className="meta-value">
-                      <select value={task.status} onChange={e => handleStatusChange(e.target.value)}
-                        style={{ border: '1px solid #e5e7eb', borderRadius: 4, padding: '4px 8px', fontSize: '0.85rem', outline: 'none', background: 'white' }}>
-                        {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                          <option key={val} value={val}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="border-4 border-black bg-purple-200 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <label className="block text-xs font-black uppercase tracking-widest mb-2 text-black">Status</label>
+                    <select 
+                      value={task.status} 
+                      onChange={e => handleStatusChange(e.target.value)}
+                      className="w-full border-4 border-black bg-white px-3 py-2 font-black uppercase outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 cursor-pointer transition-colors"
+                    >
+                      {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                        <option key={val} value={val}>{label}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="meta-item">
-                    <label>PRIORITAS</label>
-                    <div className="meta-value">
-                      <Flag size={16} color={PRIORITAS_COLORS[task.prioritas] || '#6b7280'} />
-                      {PRIORITAS_LABELS[task.prioritas] || task.prioritas}
-                    </div>
+                </div>
+
+                {/* Deskripsi */}
+                <div className="mb-10">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-3 text-black">Deskripsi</label>
+                  <div 
+                    className="border-4 border-black bg-white p-5 min-h-[120px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold text-lg cursor-pointer hover:bg-yellow-50 transition-colors whitespace-pre-wrap"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    {task.deskripsi || <span className="text-gray-400 italic">Klik untuk menambahkan deskripsi...</span>}
                   </div>
-                  {task.mata_kuliah_detail?.nama && (
-                    <div className="meta-item">
-                      <label>MATA KULIAH</label>
-                      <div className="meta-value">
-                        <BookOpen size={16} color="#6b7280" />
-                        {task.mata_kuliah_detail.nama}
+                </div>
+
+                {/* Lampiran */}
+                <div className="mb-10">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-3 text-black flex items-center gap-2">
+                    <Paperclip size={18} className="stroke-[3]" /> Lampiran Berkas
+                  </label>
+                  <div className="border-4 border-black bg-gray-100 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    {task.attachment ? (
+                      <div className="mb-4">
+                        <a href={task.attachment.startsWith('/') ? `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${task.attachment}` : task.attachment} target="_blank" rel="noreferrer" className="inline-block bg-blue-400 text-black border-4 border-black font-black uppercase px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">
+                          Unduh Lampiran
+                        </a>
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="description-section" onClick={() => setIsEditing(true)} style={{ cursor: 'pointer' }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', letterSpacing: '0.05em', marginBottom: 12 }}>DESKRIPSI</label>
-                  <p className="description-text">{task.deskripsi || 'Klik untuk menambahkan deskripsi...'}</p>
-                </div>
-
-                <div className="description-section" style={{ marginTop: 16 }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', letterSpacing: '0.05em', marginBottom: 12 }}><Paperclip size={14} style={{display: 'inline', verticalAlign: 'middle', marginRight: 4}}/>LAMPIRAN BERKAS</label>
-                  {task.attachment ? (
-                    <div style={{ marginBottom: 8 }}>
-                      <a href={task.attachment.startsWith('/') ? `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${task.attachment}` : task.attachment} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline', fontSize: '0.9rem' }}>
-                        Unduh Lampiran
-                      </a>
-                    </div>
-                  ) : (
-                    <div style={{ marginBottom: 8 }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.9rem' }}>Belum ada lampiran.</span>
-                    </div>
-                  )}
-                  <div>
-                    <input type="file" id="file-upload" style={{ display: 'none' }} onChange={handleFileUpload} />
-                    <label htmlFor="file-upload" className="btn-outline" style={{ display: 'inline-block', cursor: 'pointer', padding: '4px 12px', fontSize: '0.8rem', opacity: loading ? 0.5 : 1 }}>
-                      {loading ? 'Mengunggah...' : 'Unggah Berkas'}
+                    ) : (
+                      <p className="font-bold text-gray-500 mb-4">Belum ada lampiran.</p>
+                    )}
+                    <input type="file" id="file-upload" className="hidden" onChange={handleFileUpload} />
+                    <label htmlFor="file-upload" className={`inline-block border-4 border-black bg-white text-black font-black uppercase px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {loading ? 'Mengunggah...' : 'Unggah Berkas Baru'}
                     </label>
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
             {/* Comments Section */}
-            <div className="comments-section" style={{ marginTop: 32 }}>
-              <div className="comments-header" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem', fontWeight: 600, marginBottom: 20 }}>
-                <MessageSquare size={20} /> Komentar <span className="comment-count" style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: 12, fontSize: '0.8rem' }}>{comments.length}</span>
+            <div className="border-t-4 border-black pt-8">
+              <div className="flex items-center gap-3 font-black text-2xl uppercase tracking-tight mb-8">
+                <MessageSquare size={28} className="stroke-[3]" /> Komentar
+                <span className="bg-black text-white text-sm px-3 py-1 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)]">{comments.length}</span>
               </div>
               
-              <div className="comment-input-row" style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-                <div className="small-avatar" style={{ background: '#374151', color: 'white', width: 32, height: 32, fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
+              <div className="flex gap-4 mb-10">
+                <div className="w-12 h-12 shrink-0 bg-blue-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center font-black text-lg">
                   {userInitials}
                 </div>
-                <div style={{ flex: 1, display: 'flex', gap: 8 }}>
+                <div className="flex-1 flex flex-col sm:flex-row gap-4">
                   <input
                     type="text"
-                    placeholder="Tulis komentar..."
+                    placeholder="Tulis komentar Anda..."
                     value={commentText}
                     onChange={e => setCommentText(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handlePostComment(); }}
-                    style={{ flex: 1, border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 12px', fontSize: '0.9rem', outline: 'none' }}
+                    className="flex-1 border-4 border-black bg-white px-4 py-3 font-bold text-lg outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 transition-colors"
                   />
                   <button
-                    className="btn-dark"
+                    className="border-4 border-black bg-[#ea580c] text-white px-6 py-3 font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none"
                     onClick={handlePostComment}
                     disabled={!commentText.trim()}
-                    style={{ padding: '8px 16px', opacity: commentText.trim() ? 1 : 0.5 }}
                   >
                     Kirim
                   </button>
                 </div>
               </div>
 
-              <div className="comments-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="flex flex-col gap-6">
                 {comments.map((comment) => {
                   const initial = comment.user_nama ? comment.user_nama.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) : 'U';
                   return (
-                    <div key={comment.id} className="comment-item" style={{ display: 'flex', gap: 12 }}>
-                      <div className="small-avatar" style={{ background: '#6b7280', color: 'white', width: 32, height: 32, fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
+                    <div key={comment.id} className="flex gap-4 p-4 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <div className="w-10 h-10 shrink-0 bg-gray-200 border-2 border-black flex items-center justify-center font-black text-sm">
                         {initial}
                       </div>
                       <div>
-                        <div style={{ marginBottom: 2 }}>
-                          <span style={{ fontWeight: 600, fontSize: '0.85rem', marginRight: 8 }}>{comment.user_nama}</span>
-                          <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{new Date(comment.created_at).toLocaleString('id-ID')}</span>
+                        <div className="mb-2">
+                          <span className="font-black text-black uppercase mr-3">{comment.user_nama}</span>
+                          <span className="text-xs font-bold text-gray-500 bg-gray-100 border-2 border-black px-2 py-0.5">
+                            {new Date(comment.created_at).toLocaleString('id-ID')}
+                          </span>
                         </div>
-                        <div className="description-text" style={{ fontSize: '0.9rem', color: '#374151' }}>{comment.komentar}</div>
+                        <div className="font-bold text-lg text-gray-800 break-words">{comment.komentar}</div>
                       </div>
                     </div>
                   )
                 })}
+                {comments.length === 0 && (
+                  <div className="border-4 border-dashed border-gray-400 p-8 text-center bg-gray-50 font-bold text-gray-500 uppercase">
+                    Belum ada komentar. Jadilah yang pertama!
+                  </div>
+                )}
               </div>
-
-              {comments.length === 0 && (
-                <div style={{ color: '#9ca3af', fontSize: '0.9rem', textAlign: 'center', padding: '12px 0' }}>
-                  Belum ada komentar. Jadilah yang pertama memberikan komentar!
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Right Sidebar */}
-          <div className="task-detail-sidebar">
-            <div className="sidebar-section">
-              <div className="sidebar-section-title">AKSI</div>
-              <div className="sidebar-action" onClick={() => setIsEditing(true)}>
-                <PlusSquare size={16} /> Edit Task
-              </div>
-              <div className="sidebar-action" onClick={handleShare}>
-                <LinkIcon size={16} /> Salin Link
-              </div>
-              <div className="sidebar-action" style={{ color: '#dc2626' }} onClick={() => setShowDeleteConfirm(true)}>
-                <Trash2 size={16} /> Hapus Task
+          {/* Sidebar (Right) */}
+          <div className="w-full md:w-64 lg:w-72 bg-[#f0f0f0] p-6 overflow-y-auto shrink-0 flex flex-col gap-10">
+            
+            <div>
+              <div className="font-black text-sm uppercase tracking-widest mb-4 pb-2 border-b-4 border-black">Aksi Cepat</div>
+              <div className="flex flex-col gap-3">
+                <button className="flex items-center gap-3 w-full border-4 border-black bg-white px-4 py-3 font-black uppercase text-left shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={() => setIsEditing(true)}>
+                  <PlusSquare size={20} className="stroke-[2.5]" /> Edit Task
+                </button>
+                <button className="flex items-center gap-3 w-full border-4 border-black bg-white px-4 py-3 font-black uppercase text-left shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={handleShare}>
+                  <LinkIcon size={20} className="stroke-[2.5]" /> Salin Link
+                </button>
+                <button className="flex items-center gap-3 w-full border-4 border-black bg-red-100 text-red-700 px-4 py-3 font-black uppercase text-left shadow-[4px_4px_0px_0px_rgba(dc,38,38,1)] hover:bg-red-500 hover:text-white hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={() => setShowDeleteConfirm(true)}>
+                  <Trash2 size={20} className="stroke-[2.5]" /> Hapus Task
+                </button>
               </div>
             </div>
 
-            <div className="sidebar-section">
-              <div className="sidebar-section-title">STATUS CEPAT</div>
-              {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                <div key={val} className="sidebar-action" onClick={() => handleStatusChange(val)}
-                  style={{ fontWeight: task.status === val ? 600 : 400, color: task.status === val ? '#111827' : '#374151' }}>
-                  <CheckCircle2 size={16} color={task.status === val ? '#16a34a' : '#d1d5db'} /> {label}
-                </div>
-              ))}
+            <div>
+              <div className="font-black text-sm uppercase tracking-widest mb-4 pb-2 border-b-4 border-black">Ubah Status</div>
+              <div className="flex flex-col gap-3">
+                {Object.entries(STATUS_LABELS).map(([val, label]) => {
+                  const isActive = task.status === val;
+                  return (
+                    <button 
+                      key={val} 
+                      className={`flex items-center gap-3 w-full border-4 border-black px-4 py-3 font-black uppercase text-left transition-all ${
+                        isActive 
+                          ? 'bg-green-400 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[2px] translate-y-[2px]' 
+                          : 'bg-white text-gray-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-green-200 hover:text-black hover:translate-y-1 hover:translate-x-1 hover:shadow-none'
+                      }`}
+                      onClick={() => handleStatusChange(val)}
+                    >
+                      <CheckCircle2 size={20} className="stroke-[3]" color={isActive ? 'black' : '#9ca3af'} /> {label}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
+
           </div>
         </div>
 
-        {/* Delete Confirmation */}
+        {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, zIndex: 50 }}>
-            <div style={{ background: 'white', padding: 24, borderRadius: 8, maxWidth: 400, textAlign: 'center' }}>
-              <h3 style={{ marginBottom: 8, fontWeight: 600 }}>Hapus Task?</h3>
-              <p style={{ color: '#6b7280', marginBottom: 16, fontSize: '0.9rem' }}>
-                Tindakan ini tidak dapat dibatalkan. Yakin ingin menghapus &quot;{task.judul}&quot;?
+          <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[60] p-4 animate-fade-in" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="bg-red-100 p-8 border-8 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-[450px] w-full text-center" onClick={e => e.stopPropagation()}>
+              <Trash2 size={48} className="mx-auto mb-4 stroke-[2.5] text-red-600" />
+              <h3 className="mb-4 font-black text-3xl uppercase tracking-tighter text-black">Hapus Task?</h3>
+              <p className="text-black font-bold mb-8 text-lg border-4 border-black bg-white p-4">
+                Tindakan ini permanen. Yakin ingin menghapus <br/><span className="text-red-600 underline decoration-4 underline-offset-4">{task.judul}</span>?
               </p>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                <button className="btn-outline" onClick={() => setShowDeleteConfirm(false)}>Batal</button>
-                <button className="btn-dark" style={{ background: '#dc2626' }} onClick={handleDelete} disabled={loading}>
-                  {loading ? 'Menghapus...' : 'Hapus'}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button className="flex-1 px-6 py-4 border-4 border-black bg-white font-black uppercase text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-200 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={() => setShowDeleteConfirm(false)}>Batal</button>
+                <button className="flex-1 px-6 py-4 border-4 border-black bg-red-600 text-white font-black uppercase text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-red-700 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50" onClick={handleDelete} disabled={loading}>
+                  {loading ? '...' : 'Ya, Hapus'}
                 </button>
               </div>
             </div>

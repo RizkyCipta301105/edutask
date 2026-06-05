@@ -53,16 +53,16 @@ export default function TaskModal({ task = null, mataKuliah = [], onSave, onClos
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-up">
+      <div className="relative bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-zinc-600">
+        <div className="flex items-center justify-between px-6 py-4 border-b-4 border-black bg-[#fef08a]">
+          <h2 className="text-xl font-black uppercase tracking-wide text-black">
             {isEdit ? 'Edit Task' : 'New Task'}
           </h2>
           <button onClick={onClose}
-            className="text-primary-400 hover:text-primary-700 transition-colors p-1 rounded-lg hover:bg-primary-50">
-            <X size={20} />
+            className="text-black hover:rotate-90 transition-transform p-1">
+            <X size={24} className="stroke-[3]" />
           </button>
         </div>
 
@@ -105,14 +105,13 @@ export default function TaskModal({ task = null, mataKuliah = [], onSave, onClos
                 return (
                   <button key={p} type="button"
                     onClick={() => setValue('prioritas', p)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl
-                      border-2 text-sm font-semibold transition-all
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-sm font-black transition-all hover:-translate-y-1 hover:translate-x-1 hover:shadow-none uppercase
                       ${active
-                        ? `${s.bg} ${s.text} border-current`
-                        : 'border-primary-100 text-primary-400 hover:border-primary-300'
+                        ? `${s.bg} text-white`
+                        : 'bg-white text-black hover:bg-yellow-300'
                       }`}>
                     <span className={`w-2 h-2 rounded-full ${s.dot}`} />
-                    {s.label}
+                    {p}
                   </button>
                 )
               })}

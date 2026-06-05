@@ -303,11 +303,11 @@ export default function CalendarView({
           <div className="calendar-grid-panel">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <Calendar className="text-[#B8842A]" size={22} />
+                <h1 className="text-2xl font-black text-black uppercase flex items-center gap-2">
+                  <Calendar className="text-black stroke-2" size={24} />
                   {calendarTitle}
                 </h1>
-                 <p className="text-xs text-slate-500 mt-1">
+                 <p className="font-bold text-black border-2 border-black bg-white inline-block px-3 py-1 mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                    {roleView === 'umum' 
                      ? 'Kelola jadwal kegiatan dan tugas secara visual' 
                      : 'Kelola jadwal kuliah dan tugas secara visual'}
@@ -421,11 +421,11 @@ export default function CalendarView({
 
       <style>{`
         .premium-calendar-wrapper {
-          background: #f8fafc;
-          border-radius: 20px;
+          background: #fff;
+          border: 4px solid #000;
+          box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
           padding: 24px;
           height: 100%;
-          border: 1px solid #f1f5f9;
         }
         
         .calendar-main-layout {
@@ -444,11 +444,10 @@ export default function CalendarView({
         /* PANEL KIRI: KALENDER GRID */
         .calendar-grid-panel {
           flex: 1;
-          background: white;
-          border-radius: 16px;
+          background: #fde047;
+          border: 4px solid #000;
           padding: 24px;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+          box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
           display: flex;
           flex-direction: column;
         }
@@ -458,104 +457,104 @@ export default function CalendarView({
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
-          background: #f8fafc;
+          background: #fff;
           padding: 8px 16px;
-          border-radius: 12px;
-          border: 1px solid #edf2f7;
+          border: 4px solid #000;
+          box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
         }
 
         .month-year-label {
-          font-size: 1.05rem;
-          font-weight: 700;
-          color: #1e293b;
+          font-size: 1.25rem;
+          font-weight: 900;
+          color: #000;
+          text-transform: uppercase;
         }
 
         .nav-arrow-btn {
           padding: 6px;
-          border-radius: 8px;
-          border: 1px solid #e2e8f0;
-          background: white;
-          color: #64748b;
+          border: 2px solid #000;
+          background: #fff;
+          color: #000;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: transform 0.2s;
+          box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
         }
 
         .nav-arrow-btn:hover {
-          background: #f1f5f9;
-          color: #0f172a;
-          transform: scale(1.05);
+          background: #f472b6;
+          transform: translate(-1px, -1px);
+          box-shadow: 3px 3px 0px 0px rgba(0,0,0,1);
         }
 
         .calendar-grid-container {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          gap: 6px;
+          gap: 8px;
           flex: 1;
         }
 
         .calendar-day-label {
           text-align: center;
-          font-weight: 700;
-          color: #94a3b8;
-          font-size: 0.75rem;
+          font-weight: 900;
+          color: #000;
+          font-size: 0.85rem;
           text-transform: uppercase;
           letter-spacing: 0.05em;
           padding-bottom: 8px;
-          border-b: 1px solid #f1f5f9;
+          border-b: 4px solid #000;
         }
 
         .calendar-cell {
-          border: 1px solid #f1f5f9;
-          border-radius: 10px;
+          border: 2px solid #000;
           padding: 10px 8px;
           min-height: 75px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          background: white;
+          background: #fff;
           cursor: pointer;
           position: relative;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: transform 0.2s;
+          box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
         }
 
         .calendar-cell:hover:not(.empty) {
-          border-color: #cbd5e1;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-          background: #f8fafc;
+          transform: translate(-2px, -2px);
+          box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+          background: #fcd34d;
         }
 
         .calendar-cell.empty {
-          background: #f8fafc/30;
-          border: none;
+          background: rgba(255,255,255,0.5);
+          border: 2px dashed #000;
           cursor: default;
           pointer-events: none;
+          box-shadow: none;
         }
 
         .calendar-cell.today {
-          border-color: #bfdbfe;
-          background: #eff6ff/70;
+          background: #bfdbfe;
+          border: 4px solid #000;
         }
         
         .calendar-cell.today .calendar-date-number {
-          color: #2563eb;
-          background: #dbeafe;
-          border-radius: 6px;
+          color: #000;
+          background: #fff;
+          border: 2px solid #000;
           padding: 2px 6px;
+          font-weight: 900;
         }
 
         .calendar-cell.selected {
-          border-color: #B8842A;
-          background: #fdfaf4;
-          box-shadow: 0 0 0 2px rgba(184, 132, 42, 0.15);
+          border: 4px solid #000;
+          background: #f472b6;
         }
 
         .calendar-date-number {
-          font-weight: 700;
-          font-size: 0.85rem;
-          color: #475569;
+          font-weight: 900;
+          font-size: 1rem;
+          color: #000;
           align-self: flex-end;
-          transition: all 0.2s;
         }
 
         .calendar-dot-indicators {
@@ -567,26 +566,24 @@ export default function CalendarView({
         }
 
         .dot-indicator {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
+          width: 8px;
+          height: 8px;
+          border: 2px solid #000;
         }
 
         .dot-indicator.class { background: #3b82f6; }
         .dot-indicator.pending-task { background: #f59e0b; }
         .dot-indicator.done-task { background: #10b981; }
 
-
         /* PANEL KANAN: SIDEBAR DETAIL AGENDA */
         .calendar-detail-sidebar {
           width: 100%;
-          background: white;
-          border-radius: 16px;
+          background: #bfdbfe;
+          border: 4px solid #000;
           padding: 24px;
-          border: 1px solid #e2e8f0;
           display: flex;
           flex-direction: column;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+          box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
         }
 
         @media (min-width: 1024px) {
@@ -601,21 +598,26 @@ export default function CalendarView({
           gap: 8px;
           margin-bottom: 16px;
           flex-wrap: wrap;
+          background: #fff;
+          padding: 8px;
+          border: 2px solid #000;
+          box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
         }
 
         .sidebar-date-title {
-          font-size: 0.95rem;
-          font-weight: 800;
-          color: #1e293b;
+          font-size: 1rem;
+          font-weight: 900;
+          color: #000;
+          text-transform: uppercase;
         }
 
         .today-badge {
-          background: #fef3c7;
-          color: #d97706;
-          font-size: 0.65rem;
-          font-weight: 700;
+          background: #fde047;
+          color: #000;
+          font-size: 0.75rem;
+          font-weight: 900;
           padding: 2px 8px;
-          border-radius: 20px;
+          border: 2px solid #000;
           text-transform: uppercase;
         }
 
@@ -625,25 +627,25 @@ export default function CalendarView({
 
         .quick-add-task-btn {
           width: 100%;
-          background: #4B3A2F;
-          color: white;
-          border: none;
+          background: #f472b6;
+          color: #000;
+          border: 4px solid #000;
           padding: 10px;
-          border-radius: 10px;
-          font-weight: 700;
-          font-size: 0.8rem;
+          font-weight: 900;
+          font-size: 0.9rem;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 6px;
-          transition: all 0.2s;
+          transition: transform 0.2s;
+          box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+          text-transform: uppercase;
         }
 
         .quick-add-task-btn:hover {
-          background: #3d3025;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(75, 58, 47, 0.2);
+          transform: translate(-2px, -2px);
+          box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
         }
 
         .agenda-scroll-container {
@@ -654,42 +656,53 @@ export default function CalendarView({
         }
 
         .agenda-section-title {
-          font-size: 0.75rem;
-          font-weight: 800;
-          color: #64748b;
+          font-size: 0.85rem;
+          font-weight: 900;
+          color: #000;
           text-transform: uppercase;
           letter-spacing: 0.05em;
           margin-bottom: 12px;
           display: flex;
           align-items: center;
           gap: 6px;
+          background: #fff;
+          padding: 4px 8px;
+          border: 2px solid #000;
+          box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+          display: inline-flex;
         }
 
         .agenda-empty-state {
-          font-size: 0.75rem;
-          color: #94a3b8;
-          background: #f8fafc;
+          font-size: 0.85rem;
+          color: #000;
+          background: #fff;
           padding: 16px;
-          border-radius: 10px;
-          border: 1px dashed #e2e8f0;
+          border: 4px dashed #000;
           text-align: center;
+          font-weight: 900;
+          text-transform: uppercase;
         }
 
         .agenda-list {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 12px;
         }
 
         .agenda-class-card {
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-left: 4px solid #B8842A;
-          border-radius: 8px;
+          background: #fff;
+          border: 4px solid #000;
           padding: 10px 12px;
           display: flex;
           flex-direction: column;
           gap: 4px;
+          box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+          transition: transform 0.2s;
+        }
+        
+        .agenda-class-card:hover {
+          transform: translate(-2px, -2px);
+          box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
         }
 
         .class-card-header {
@@ -700,45 +713,48 @@ export default function CalendarView({
         }
 
         .class-name {
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: #1e293b;
+          font-size: 0.9rem;
+          font-weight: 900;
+          color: #000;
+          text-transform: uppercase;
         }
 
         .class-room {
-          background: #eff6ff;
-          color: #2563eb;
-          font-size: 0.65rem;
-          font-weight: 700;
-          padding: 1px 6px;
-          border-radius: 4px;
+          background: #fde047;
+          color: #000;
+          font-size: 0.75rem;
+          font-weight: 900;
+          padding: 2px 6px;
+          border: 2px solid #000;
           white-space: nowrap;
+          text-transform: uppercase;
         }
 
         .class-time {
-          font-size: 0.7rem;
-          color: #64748b;
+          font-size: 0.8rem;
+          color: #000;
           display: flex;
           align-items: center;
           gap: 4px;
+          font-weight: 900;
         }
 
         .agenda-task-card {
-          background: white;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
+          background: #fff;
+          border: 4px solid #000;
           padding: 10px 12px;
           cursor: pointer;
           display: flex;
           flex-direction: column;
           gap: 6px;
-          transition: all 0.2s;
+          transition: transform 0.2s;
+          box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
         }
 
         .agenda-task-card:hover {
-          border-color: #cbd5e1;
-          background: #f8fafc;
-          transform: translateX(2px);
+          background: #fcd34d;
+          transform: translate(-2px, -2px);
+          box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
         }
 
         .task-card-main {
@@ -749,45 +765,51 @@ export default function CalendarView({
         }
 
         .task-title {
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: #1e293b;
+          font-size: 0.9rem;
+          font-weight: 900;
+          color: #000;
           line-height: 1.25;
+          text-transform: uppercase;
         }
 
         .agenda-task-card.done .task-title {
-          color: #94a3b8;
+          color: #000;
           text-decoration: line-through;
+          text-decoration-thickness: 3px;
         }
 
         .task-status-badge {
-          font-size: 0.6rem;
-          font-weight: 700;
-          padding: 1px 6px;
-          border-radius: 4px;
+          font-size: 0.7rem;
+          font-weight: 900;
+          padding: 2px 6px;
+          border: 2px solid #000;
           white-space: nowrap;
           text-transform: uppercase;
         }
 
         .task-status-badge.todo {
-          background: #f1f5f9;
-          color: #475569;
+          background: #fff;
+          color: #000;
         }
 
         .task-status-badge.progress {
-          background: #fffbeb;
-          color: #d97706;
+          background: #fde047;
+          color: #000;
         }
 
         .task-status-badge.done {
-          background: #ecfdf5;
-          color: #059669;
+          background: #4ade80;
+          color: #000;
         }
 
         .task-course-tag {
-          font-size: 0.65rem;
-          color: #94a3b8;
-          font-weight: 600;
+          font-size: 0.75rem;
+          color: #000;
+          font-weight: 900;
+          text-transform: uppercase;
+          border-top: 2px solid #000;
+          padding-top: 4px;
+          margin-top: 2px;
         }
       `}</style>
     </div>

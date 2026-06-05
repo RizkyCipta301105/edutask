@@ -8,6 +8,7 @@ from . import views
 urlpatterns = [
     # Mata Kuliah
     path('mata-kuliah/',        views.MataKuliahListCreateView.as_view(), name='mata-kuliah-list'),
+    path('mata-kuliah/cleanup/', views.MataKuliahCleanupView.as_view(), name='mata-kuliah-cleanup'),
     path('mata-kuliah/<uuid:pk>/', views.MataKuliahDetailView.as_view(),  name='mata-kuliah-detail'),
 
     # Task (FR-04, FR-05)

@@ -27,16 +27,16 @@ export default function FeatureGate({ feature, children, fallback }) {
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-        <Lock size={20} className="text-amber-600" />
+      <div className="w-16 h-16 rounded-xl border-4 border-black bg-yellow-300 flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <Lock size={28} className="text-black stroke-[3px]" />
       </div>
-      <h3 className="font-semibold text-slate-800 mb-1">Fitur Terkunci</h3>
-      <p className="text-sm text-slate-500 mb-4 max-w-xs">
+      <h3 className="text-2xl font-black text-black dark:text-white uppercase tracking-tight mb-2">Fitur Terkunci</h3>
+      <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-6 max-w-xs">
         Fitur ini tersedia untuk paket Pro atau Team. Upgrade sekarang untuk mengakses.
       </p>
       <Link
         to="/checkout?plan=pro"
-        className="bg-[#4B3A2F] text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-[#3a2c23] transition-colors"
+        className="bg-green-400 border-4 border-black text-black text-lg font-black uppercase px-6 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
       >
         Upgrade ke Pro
       </Link>

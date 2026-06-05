@@ -24,51 +24,50 @@ function DashboardOverview({ tasks, mataKuliah, latestThread, user, roleView, na
   const DAYS_NAME = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 
   return (
-    <div className="bento-grid">
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {/* 1. Radial Progress Bento Card */}
-      <div className="bento-card bento-card-radial">
-        <h4 className="bento-card-title">
-          <Sparkles size={16} className="text-[#B8842A]" />
-          Progress Tugas Anda
+      <div className="border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-[#0ea5e9] p-6 transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+        <h4 className="font-black uppercase flex items-center gap-2 border-b-4 border-black pb-2 mb-4 text-black text-lg bg-white p-2 border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -rotate-1">
+          <Sparkles size={20} className="stroke-2" />
+          Progress Tugas
         </h4>
-        <div className="radial-progress-container">
-          <svg width="140" height="140" viewBox="0 0 140 140">
-            <circle cx="70" cy="70" r={radius} className="circle-bg" />
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <svg width="140" height="140" viewBox="0 0 140 140" className="drop-shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <circle cx="70" cy="70" r={radius} className="fill-white stroke-black stroke-[4]" />
             <circle 
-              cx="70" cy="70" r={radius} className="circle-progress"
+              cx="70" cy="70" r={radius} className="fill-transparent stroke-yellow-300 stroke-[16]"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               transform="rotate(-90 70 70)"
             />
-            <text x="70" y="70" className="circle-text">
+            <text x="70" y="70" className="fill-black font-black text-3xl" textAnchor="middle" dominantBaseline="middle">
               {percentComplete}%
             </text>
           </svg>
-          <div className="text-center mt-4">
-            <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{completedTasks} dari {totalTasks} Tugas Selesai</div>
-            <div className="text-xs text-slate-400 mt-1">{pendingTasks} tugas masih berjalan</div>
+          <div className="text-center mt-6 border-2 border-black bg-white p-2 w-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="text-sm font-black text-black">{completedTasks} / {totalTasks} SELESAI</div>
           </div>
         </div>
       </div>
 
       {/* 2. Today's Agenda Bento Card */}
-      <div className="bento-card bento-card-agenda">
-        <h4 className="bento-card-title">
-          <Clock size={16} className="text-[#B8842A]" />
-          Jadwal Hari Ini ({DAYS_NAME[todayDay]})
+      <div className="border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-pink-300 p-6 transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+        <h4 className="font-black uppercase flex items-center gap-2 border-b-4 border-black pb-2 mb-4 text-black text-lg bg-white p-2 border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rotate-1">
+          <Clock size={20} className="stroke-2" />
+          Jadwal ({DAYS_NAME[todayDay]})
         </h4>
-        <div className="flex-1 flex flex-col gap-3 overflow-y-auto" style={{ maxHeight: 300 }}>
+        <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-2" style={{ maxHeight: 300 }}>
           {todayClasses.length === 0 ? (
-            <div className="text-center my-auto py-8">
-              <span className="text-xs text-slate-400 font-medium italic">Tidak ada jadwal kuliah/kegiatan hari ini</span>
+            <div className="text-center my-auto py-8 bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <span className="font-black uppercase text-black">Libur!</span>
             </div>
           ) : (
             todayClasses.map(mk => (
-              <div key={mk.id} className="border border-slate-100 dark:border-slate-800 p-3 rounded-xl flex flex-col gap-1 relative" style={{ borderLeft: `4px solid ${mk.warna || '#B8842A'}` }}>
-                <span className="font-bold text-xs text-slate-800 dark:text-slate-200">{mk.nama}</span>
+              <div key={mk.id} className="border-4 border-black bg-white p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 transition-colors">
+                <span className="font-black text-black uppercase block">{mk.nama}</span>
                 {mk.jam_mulai && mk.jam_selesai && (
-                  <span className="text-[10px] text-slate-400 font-semibold">
-                    🕒 {mk.jam_mulai.substring(0,5)} - {mk.jam_selesai.substring(0,5)} {mk.ruangan && `| 📍 ${mk.ruangan}`}
+                  <span className="text-sm font-bold text-black block mt-2 border-t-2 border-black pt-1">
+                    {mk.jam_mulai.substring(0,5)} - {mk.jam_selesai.substring(0,5)} {mk.ruangan && `| 📍 ${mk.ruangan}`}
                   </span>
                 )}
               </div>
@@ -79,60 +78,68 @@ function DashboardOverview({ tasks, mataKuliah, latestThread, user, roleView, na
 
       {/* 3. Latest Inbox Bento Card */}
       <div 
-        className="bento-card bento-card-inbox group cursor-pointer hover:border-[#B8842A] hover:shadow-lg transition-all duration-300"
+        className="border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-yellow-300 p-6 transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col cursor-pointer"
         onClick={() => {
           setActiveTab('Inbox')
           navigate(`/dashboard/${roleView}?tab=Inbox`)
         }}
       >
-        <h4 className="bento-card-title transition-colors group-hover:text-[#B8842A]">
-          <MessageSquare size={16} className="text-[#B8842A] transition-transform group-hover:scale-110" />
-          Inbox Kolaborasi Terbaru
+        <h4 className="font-black uppercase flex items-center gap-2 border-b-4 border-black pb-2 mb-4 text-black text-lg bg-white p-2 border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -rotate-1">
+          <MessageSquare size={20} className="stroke-2" />
+          Inbox Terbaru
         </h4>
         <div className="flex-1 flex flex-col justify-center">
           {latestThread ? (() => {
-            const displayTitle = latestThread.title || latestThread.participants?.filter(p => p.id !== user.id).map(p => p.nama_lengkap).join(', ') || 'Diskusi Kolaborasi'
+            const displayTitle = latestThread.title || latestThread.participants?.filter(p => p.id !== user.id).map(p => p.nama_lengkap).join(', ') || 'Diskusi'
             const lastMessageText = latestThread.last_message ? latestThread.last_message.text : 'Belum ada pesan'
             const getInitials = (name) => {
               if (!name) return '?'
               return name.split(' ').filter(Boolean).map(n => n[0]).slice(0, 2).join('').toUpperCase()
             }
             return (
-              <div className="bento-inbox-snippet flex items-center gap-4 p-3.5 bg-amber-50/40 dark:bg-amber-950/20 border border-amber-100/70 dark:border-amber-900/30 rounded-2xl transition-all duration-200">
-                <div className="w-10 h-10 rounded-xl bg-amber-100/80 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 flex items-center justify-center font-bold text-sm border border-amber-200/50 dark:border-amber-800/30 shadow-sm flex-shrink-0">
+              <div className="flex items-center gap-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4 transition-transform hover:rotate-1">
+                <div className="w-12 h-12 bg-blue-400 border-2 border-black flex items-center justify-center font-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
                   {getInitials(displayTitle)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="block font-bold text-xs text-amber-900 dark:text-amber-200 truncate">
+                  <span className="block font-black text-black uppercase truncate">
                     {displayTitle}
                   </span>
-                  <span className="block text-[11px] text-amber-700/80 dark:text-amber-400 truncate mt-0.5">
+                  <span className="block text-sm font-bold text-gray-700 truncate mt-1">
                     {lastMessageText}
                   </span>
                 </div>
-                <ArrowRight size={16} className="text-amber-700/80 dark:text-amber-400 flex-shrink-0 transition-transform group-hover:translate-x-1" />
+                <ArrowRight size={24} className="text-black stroke-2 flex-shrink-0" />
               </div>
             )
           })() : (
-            <span className="text-xs text-slate-400 font-medium italic text-center py-4">Belum ada percakapan inbox</span>
+            <div className="text-center py-6 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <span className="font-black uppercase text-black">Kosong!</span>
+            </div>
           )}
         </div>
       </div>
 
       {/* 4. Quick Actions Bento Card */}
-      <div className="bento-card bento-card-quick">
-        <h4 className="bento-card-title">
-          <Calendar size={16} className="text-[#B8842A]" />
-          Pintasan Aksi Cepat
+      <div className="border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] bg-green-400 p-6 transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col">
+        <h4 className="font-black uppercase flex items-center gap-2 border-b-4 border-black pb-2 mb-4 text-black text-lg bg-white p-2 border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rotate-1">
+          <Calendar size={20} className="stroke-2" />
+          Aksi Cepat
         </h4>
-        <div className="bento-quick-btn-grid">
-          <button className="bento-quick-btn" onClick={() => navigate('/tasks')}>
-            <Plus size={14} className="text-[#B8842A]" />
+        <div className="flex flex-col gap-4 mt-2">
+          <button 
+            className="w-full flex items-center justify-center gap-2 border-4 border-black bg-white px-4 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-yellow-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+            onClick={() => navigate('/tasks')}
+          >
+            <Plus size={20} className="stroke-2" />
             Buat Tugas Baru
           </button>
-          <button className="bento-quick-btn" onClick={() => navigate('/schedule')}>
-            <Calendar size={14} className="text-[#B8842A]" />
-            Tambah Agenda Baru
+          <button 
+            className="w-full flex items-center justify-center gap-2 border-4 border-black bg-white px-4 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-pink-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+            onClick={() => navigate('/schedule')}
+          >
+            <Calendar size={20} className="stroke-2" />
+            Tambah Agenda
           </button>
         </div>
       </div>
@@ -150,6 +157,7 @@ import Report from '../components/tasks/Report'
 import RuangEdukasiList from '../components/tasks/RuangEdukasiList'
 import Inbox from '../components/dashboard/Inbox'
 import FeatureGate from '../components/common/FeatureGate'
+import { motion } from 'framer-motion'
 
 export default function DashboardPage({ roleView = null }) {
   const { user } = useAuth()
@@ -306,16 +314,16 @@ export default function DashboardPage({ roleView = null }) {
   }
 
   return (
-    <AppLayout scrollable={activeTab !== 'Inbox'}>
+    <AppLayout showSearch={false}>
       <div className={`p-8 ${activeTab === 'Inbox' ? 'flex-1 min-h-0 flex flex-col' : ''}`}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-slate-100 pb-6 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-4 border-black pb-6 gap-4 bg-yellow-300 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Dashboard Utama</h1>
-            <p className="text-xs text-slate-500 mt-1">Pantau ruang kelas, laporan performa akademis, dan inbox kolaborasi Anda</p>
+            <h1 className="text-4xl font-black text-black uppercase">Dashboard</h1>
+            <p className="font-bold text-black border-2 border-black bg-white inline-block px-3 py-1 mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pantau kelas, laporan, & inbox</p>
           </div>
           
           {/* Horizontal pill navigation bar */}
-          <div className="flex bg-slate-100/80 p-1 rounded-xl gap-1 border border-slate-200/50 self-start md:self-auto">
+          <div className="flex flex-wrap bg-white p-2 gap-2 border-4 border-black self-start md:self-auto shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative z-10">
             {filteredTabs.map(t => {
               const Icon = t.icon
               const isActive = activeTab === t.key
@@ -323,14 +331,22 @@ export default function DashboardPage({ roleView = null }) {
                 <button
                   key={t.key}
                   onClick={() => setActiveTab(t.key)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  className={`relative flex items-center gap-2 px-4 py-2 font-black uppercase transition-all duration-200 z-10 ${
                     isActive 
-                      ? 'bg-white text-slate-800 shadow-sm' 
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
+                      ? 'text-white translate-x-[1px] translate-y-[1px]' 
+                      : 'border-2 border-black bg-white text-black hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1'
                   }`}
                 >
-                  <Icon size={14} />
-                  {t.label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="dashboardTabIndicator"
+                      className="absolute inset-0 bg-[#ea580c] border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] z-[-1]"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <Icon size={18} className="stroke-2 relative z-10" />
+                  <span className="relative z-10">{t.label}</span>
                 </button>
               )
             })}

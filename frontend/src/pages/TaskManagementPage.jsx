@@ -17,6 +17,7 @@ import TaskDetailModal from '../components/tasks/TaskDetailModal'
 import MataKuliahModal from '../components/tasks/MataKuliahModal'
 import DosenBroadcastView from '../components/dashboard/DosenBroadcastView'
 import FeatureGate from '../components/common/FeatureGate'
+import { motion } from 'framer-motion'
 
 const STATUS_MAP = {
   todo: 'To Do',
@@ -49,6 +50,7 @@ export default function TaskManagementPage() {
   const [selectedCourseId, setSelectedCourseId] = useState(null)
   const [showMataKuliahModal, setShowMataKuliahModal] = useState(false)
   const [initialDeadline, setInitialDeadline] = useState('')
+  const [showAllCourses, setShowAllCourses] = useState(false)
 
   // Open task detail or add task from URL parameters
   useEffect(() => {
@@ -242,23 +244,23 @@ export default function TaskManagementPage() {
   }
 
   return (
-    <AppLayout showSearch={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery} scrollable={activeTab !== 'Board'}>
+    <AppLayout showSearch={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
       <div className="p-8">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b border-slate-100 pb-6 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-4 border-black pb-6 gap-4 bg-yellow-300 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">{role === 'umum' ? 'Manajemen Tugas & Proyek' : 'Manajemen Tugas Akademik'}</h1>
-            <p className="text-xs text-slate-500 mt-1">
+            <h1 className="text-4xl font-black text-black uppercase">{role === 'umum' ? 'Tugas & Proyek' : 'Tugas Akademik'}</h1>
+            <p className="font-bold text-black border-2 border-black bg-white inline-block px-3 py-1 mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               {role === 'umum' 
-                ? 'Kelola, saring, dan monitor tugas dan proyek Anda secara visual' 
-                : 'Kelola, saring, dan monitor tugas kuliah Anda secara visual'}
+                ? 'Kelola tugas dan proyek' 
+                : 'Kelola tugas kuliah'}
             </p>
           </div>
           
-          <div className="flex items-center gap-3 self-start md:self-auto">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 self-start md:self-auto">
             {/* Horizontal pill navigation bar */}
-            <div className="flex bg-slate-100/80 p-1 rounded-xl gap-1 border border-slate-200/50">
+            <div className="flex flex-wrap bg-white p-2 gap-2 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative z-10">
               {filteredTabs.map(t => {
                 const Icon = t.icon
                 const isActive = activeTab === t.key
@@ -266,24 +268,32 @@ export default function TaskManagementPage() {
                   <button
                     key={t.key}
                     onClick={() => setActiveTab(t.key)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${
+                    className={`relative flex items-center gap-2 px-4 py-2 font-black uppercase transition-all duration-200 z-10 ${
                       isActive 
-                        ? 'bg-white text-slate-800 shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
+                        ? 'text-white translate-x-[1px] translate-y-[1px]' 
+                        : 'border-2 border-black bg-white text-black hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1'
                     }`}
                   >
-                    <Icon size={14} />
-                    {t.label}
+                    {isActive && (
+                      <motion.div
+                        layoutId="taskTabIndicator"
+                        className="absolute inset-0 bg-[#ea580c] border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] z-[-1]"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <Icon size={18} className="stroke-2 relative z-10" />
+                    <span className="relative z-10">{t.label}</span>
                   </button>
                 )
               })}
             </div>
             
             <button 
-              className="rounded-lg bg-[#4B3A2F] hover:bg-[#3d3025] px-4 py-2 text-xs font-bold text-white transition flex items-center gap-1.5 shadow-sm"
+              className="border-4 border-black bg-pink-400 px-6 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center gap-2 cursor-pointer"
               onClick={handleAddTask}
             >
-              <Plus size={14} />
+              <Plus size={20} className="stroke-2" />
               Tambah Task
             </button>
           </div>
@@ -291,39 +301,47 @@ export default function TaskManagementPage() {
 
         {/* Course Filter Pills */}
         {mataKuliah && mataKuliah.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">
-              {role === 'umum' ? 'Saring Agenda / Kategori:' : 'Saring Mata Kuliah:'}
+          <div className="flex flex-wrap items-center gap-3 mb-6 bg-blue-300 p-4 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <span className="font-black text-black uppercase tracking-wider mr-2 bg-white px-2 py-1 border-2 border-black">
+              {role === 'umum' ? 'Filter Agenda:' : 'Filter Kelas:'}
             </span>
             <button
               onClick={() => setSelectedCourseId(null)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`px-4 py-2 border-2 border-black font-black uppercase transition-all flex-shrink-0 ${
                 selectedCourseId === null
-                  ? 'bg-[#4B3A2F] text-white shadow-sm'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                  ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                  : 'bg-white text-black hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
               }`}
             >
               Semua
             </button>
-            {mataKuliah.map(mk => (
+            {mataKuliah.slice(0, showAllCourses ? mataKuliah.length : 3).map(mk => (
               <button
                 key={mk.id}
                 onClick={() => setSelectedCourseId(prev => prev === mk.id ? null : mk.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-2 border-2 border-black font-black uppercase transition-all flex items-center gap-2 flex-shrink-0 ${
                   selectedCourseId === mk.id
-                    ? 'bg-[#4B3A2F] text-white shadow-sm'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                    : 'bg-white text-black hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                 }`}
               >
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: mk.warna || '#B8842A' }} />
+                <span className="w-3 h-3 border border-black shadow-sm" style={{ backgroundColor: mk.warna || '#B8842A' }} />
                 {mk.nama}
               </button>
             ))}
+            {mataKuliah.length > 3 && (
+              <button
+                onClick={() => setShowAllCourses(!showAllCourses)}
+                className="px-4 py-2 border-2 border-black bg-pink-200 font-black uppercase text-black hover:bg-pink-300 transition-all flex items-center gap-1 flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              >
+                {showAllCourses ? 'Sembunyikan' : `+ ${mataKuliah.length - 3} Lainnya`}
+              </button>
+            )}
             <button
               onClick={() => setShowMataKuliahModal(true)}
-              className="px-3 py-1 border border-dashed border-slate-300 rounded-full text-xs font-semibold text-slate-500 hover:bg-slate-50 flex items-center gap-1 ml-auto"
+              className="px-4 py-2 border-2 border-dashed border-black bg-white font-black uppercase text-black hover:bg-yellow-300 flex items-center gap-1 ml-auto shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             >
-              {role === 'umum' ? '+ Tambah / Edit Agenda' : '+ Tambah / Edit Kelas'}
+              <Plus size={16} className="stroke-2" /> {role === 'umum' ? 'Edit Agenda' : 'Edit Kelas'}
             </button>
           </div>
         )}

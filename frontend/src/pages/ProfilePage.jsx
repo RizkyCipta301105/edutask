@@ -12,9 +12,11 @@ export default function ProfilePage() {
       <div className="p-8">
         
         {/* Header Section */}
-        <div className="mb-8 border-b border-slate-100 pb-6">
-          <h1 className="text-2xl font-bold text-slate-800">Pengaturan Akun & Profil</h1>
-          <p className="text-xs text-slate-500 mt-1">Kelola data diri, keamanan kata sandi, preferensi notifikasi, dan sesi perangkat Anda</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-4 border-black pb-6 gap-4 bg-[#fbcfe8] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div>
+            <h1 className="text-4xl font-black text-black uppercase">Pengaturan Akun & Profil</h1>
+            <p className="font-bold text-black border-2 border-black bg-white inline-block px-3 py-1 mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Kelola data diri, keamanan kata sandi, preferensi notifikasi, dan sesi perangkat Anda</p>
+          </div>
         </div>
 
         {/* Premium Settings Content */}

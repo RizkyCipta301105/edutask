@@ -25,6 +25,7 @@ export default function Inbox({ user }) {
   
   const fileInputRef = useRef(null)
   const messagesEndRef = useRef(null)
+  const threadContainerRef = useRef(null)
 
   const emojis = ['😊', '👍', '🔥', '✅', '🚀', '🙌', '✨', '💡', '🎉', '🙏']
 
@@ -73,10 +74,8 @@ export default function Inbox({ user }) {
     try {
       const data = await inboxService.getMessages(threadId)
       setMessages(prev => {
-        // Prevent updates if messages are identical to avoid unnecessary renders
-        const hasChanged = prev.length !== data.length || 
-                           (prev.length > 0 && prev[prev.length - 1].id !== data[data.length - 1].id)
-        return hasChanged ? data : prev
+        if (JSON.stringify(prev) !== JSON.stringify(data)) return data;
+        return prev;
       })
     } catch (err) {
       console.error(err)
@@ -90,7 +89,12 @@ export default function Inbox({ user }) {
 
   const scrollToBottom = () => {
     setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      if (threadContainerRef.current) {
+        threadContainerRef.current.scrollTo({
+          top: threadContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        })
+      }
     }, 100)
   }
 
@@ -228,47 +232,63 @@ export default function Inbox({ user }) {
   }
 
   return (
-    <div className="inbox-layout">
+    <div className="flex h-[calc(100vh-140px)] w-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
       {/* SIDEBAR */}
-      <div className="inbox-sidebar">
-        <div className="inbox-search">
-          <div className="inbox-search-input">
-            <Search size={16} color="#9ca3af" />
-            <input type="text" placeholder="Cari pesan" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+      <div className="flex w-[380px] min-w-[380px] flex-col border-r-4 border-black bg-white">
+        <div className="flex gap-3 border-b-4 border-black bg-[#fef08a] p-4">
+          <div className="flex flex-1 items-center border-4 border-black bg-white px-3 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-colors focus-within:bg-yellow-100">
+            <Search size={18} className="text-black stroke-[3]" />
+            <input 
+              type="text" 
+              placeholder="Cari pesan" 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="ml-2 w-full bg-transparent font-bold text-black outline-none placeholder:text-gray-500"
+            />
           </div>
-          <button className="inbox-edit-btn" title="Pesan baru" onClick={() => setShowNewChat(true)}>
-            <Edit3 size={18} />
+          <button 
+            className="flex h-[44px] w-[44px] items-center justify-center border-4 border-black bg-[#ea580c] text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none" 
+            title="Pesan baru" 
+            onClick={() => setShowNewChat(true)}
+          >
+            <Edit3 size={20} className="stroke-[3]" />
           </button>
         </div>
 
-        <div className="inbox-list">
+        <div className="flex-1 overflow-y-auto bg-white">
           {filteredThreads.map(t => (
-            <div key={t.id} className={`inbox-item ${t.id === activeThreadId ? 'active' : ''}`} onClick={() => { setActiveThreadId(t.id); setShowNewChat(false); }}>
-              <div className="inbox-item-icon">
-                <div className="small-avatar-inbox" style={{ background: t.is_group ? '#3b82f6' : '#6b7280' }}>
+            <div 
+              key={t.id} 
+              className={`relative flex cursor-pointer gap-4 border-b-4 border-black p-4 transition-colors ${t.id === activeThreadId ? 'bg-yellow-200' : 'hover:bg-yellow-100'}`} 
+              onClick={() => { setActiveThreadId(t.id); setShowNewChat(false); }}
+            >
+              <div className="mt-1 flex-shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center border-4 border-black font-black uppercase text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" style={{ background: t.is_group ? '#3b82f6' : '#ea580c' }}>
                   {getInitials(getThreadName(t))}
                 </div>
               </div>
-              <div className="inbox-item-content">
-                <div className="inbox-item-header">
-                  <span className="inbox-item-title" style={{ fontWeight: t.unread_count > 0 ? 700 : 500 }}>{getThreadName(t)}</span>
+              <div className="flex flex-1 flex-col min-w-0">
+                <div className="mb-1">
+                  <span className={`block truncate text-sm uppercase ${t.unread_count > 0 ? 'font-black text-black' : 'font-bold text-gray-800'}`}>
+                    {getThreadName(t)}
+                  </span>
                 </div>
-                <div className="inbox-item-text" style={{ fontWeight: t.unread_count > 0 ? 600 : 400, color: t.unread_count > 0 ? '#111827' : '#6b7280' }}>
+                <div className={`text-xs truncate ${t.unread_count > 0 ? 'font-bold text-black' : 'font-semibold text-gray-600'}`}>
                   {t.last_message ? (
                     t.last_message.attachment ? '📎 Lampiran' : t.last_message.text
                   ) : 'Belum ada pesan'}
                 </div>
                 {t.last_message && (
-                  <div className="inbox-item-time">
+                  <div className="mt-1 text-[10px] font-black text-gray-500">
                     {new Date(t.last_message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 )}
               </div>
-              {t.unread_count > 0 && <div className="unread-dot" />}
+              {t.unread_count > 0 && <div className="absolute right-4 top-4 h-3 w-3 border-2 border-black bg-red-500 rounded-full" />}
             </div>
           ))}
           {filteredThreads.length === 0 && !showNewChat && (
-             <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af', fontSize: '0.9rem' }}>
+             <div className="p-8 text-center text-sm font-black uppercase text-gray-500">
                Belum ada percakapan.
              </div>
           )}
@@ -276,50 +296,69 @@ export default function Inbox({ user }) {
       </div>
 
       {/* MAIN VIEW */}
-      <div className="inbox-main">
+      <div className="flex flex-1 flex-col bg-[#fbcfe8]">
         {showNewChat ? (
-          <div style={{ padding: 32, display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 600, color: '#111827' }}>Pesan Baru</h2>
-              <button onClick={() => { setShowNewChat(false); setSelectedContacts([]) }} className="btn-outline" style={{ padding: '4px 8px', border: 'none' }}><X size={20} /></button>
+          <div className="flex h-full flex-col p-8">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-black uppercase text-black">Pesan Baru</h2>
+              <button 
+                onClick={() => { setShowNewChat(false); setSelectedContacts([]) }} 
+                className="border-4 border-black bg-white p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+              >
+                <X size={24} className="stroke-[3]" />
+              </button>
             </div>
             
-            <div style={{ marginBottom: 16, fontSize: '0.9rem', color: '#6b7280' }}>Pilih orang untuk diajak mengobrol:</div>
-            <div style={{ flex: 1, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+            <div className="mb-4 text-sm font-black uppercase text-black">Pilih orang untuk diajak mengobrol:</div>
+            <div className="flex-1 overflow-y-auto border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               {contacts.map(c => (
-                <div key={c.id} onClick={() => toggleContactSelection(c)} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selectedContacts.find(x => x.id === c.id) ? '#eff6ff' : 'white' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#6b7280', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, marginRight: 12 }}>
+                <div 
+                  key={c.id} 
+                  onClick={() => toggleContactSelection(c)} 
+                  className={`flex cursor-pointer items-center border-b-4 border-black p-4 transition-colors ${selectedContacts.find(x => x.id === c.id) ? 'bg-yellow-200' : 'hover:bg-yellow-100'}`}
+                >
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center border-4 border-black bg-purple-300 font-black uppercase text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     {getInitials(c.nama_lengkap)}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.95rem' }}>{c.nama_lengkap}</div>
-                    <div style={{ color: '#6b7280', fontSize: '0.8rem', textTransform: 'capitalize' }}>{c.role}</div>
+                  <div className="flex-1">
+                    <div className="font-black uppercase text-black">{c.nama_lengkap}</div>
+                    <div className="text-xs font-bold capitalize text-gray-700">{c.role}</div>
                   </div>
-                  {selectedContacts.find(x => x.id === c.id) && <Check size={20} color="#3b82f6" />}
+                  {selectedContacts.find(x => x.id === c.id) && <Check size={24} className="stroke-[3] text-black" />}
                 </div>
               ))}
               {contacts.length === 0 && (
-                <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>Tidak ada kontak yang tersedia untuk Role Anda.</div>
+                <div className="p-8 text-center text-sm font-black uppercase text-gray-500">Tidak ada kontak yang tersedia untuk Role Anda.</div>
               )}
             </div>
-            <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={handleCreateThread} className="btn-primary" disabled={selectedContacts.length === 0}>
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={handleCreateThread} 
+                className="border-4 border-black bg-[#ea580c] px-6 py-3 font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-[#c2410c] hover:translate-x-1 hover:translate-y-1 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50" 
+                disabled={selectedContacts.length === 0}
+              >
                 Mulai Percakapan {selectedContacts.length > 1 ? `(${selectedContacts.length})` : ''}
               </button>
             </div>
           </div>
         ) : activeThreadId && currentThread ? (
           <>
-            <div className="inbox-main-header">
-              <span className="collab-label" style={{ fontWeight: 600, color: '#111827' }}>{getThreadName(currentThread)}</span>
-              <div className="collaborators">
+            <div className="flex items-center justify-between border-b-4 border-black bg-white p-4 shadow-sm">
+              <span className="text-lg font-black uppercase text-black">{getThreadName(currentThread)}</span>
+              <div className="flex -space-x-2">
                 {currentThread.participants.filter(p => p.id !== user?.id).map((p) => (
-                  <div key={p.id} title={p.nama_lengkap} className="small-avatar-collab" style={{ background: '#3b82f6' }}>{getInitials(p.nama_lengkap)}</div>
+                  <div 
+                    key={p.id} 
+                    title={p.nama_lengkap} 
+                    className="flex h-8 w-8 items-center justify-center border-2 border-black bg-blue-300 text-xs font-black uppercase text-black"
+                  >
+                    {getInitials(p.nama_lengkap)}
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="inbox-thread" style={{ flex: 1, overflowY: 'auto', padding: 24, background: '#f9fafb' }}>
+            <div ref={threadContainerRef} className="inbox-thread" style={{ flex: 1, overflowY: 'auto', padding: 24, background: '#f9fafb' }}>
               <div className="thread-content-wrapper">
                 <div className="chat-messages-list">
                   {messages.map((msg) => {
@@ -447,55 +486,67 @@ export default function Inbox({ user }) {
               </div>
             </div>
 
-            <div className="chat-input-area" style={{ borderTop: '1px solid #e5e7eb', padding: '16px 24px', background: 'white', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="flex flex-col gap-3 border-t-4 border-black bg-white p-4">
               {pendingFile && (
-                <div style={{ display: 'flex', alignItems: 'center', background: '#f3f4f6', padding: '12px 16px', borderRadius: 8, justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ background: '#e5e7eb', padding: 8, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {pendingFile.type.startsWith('image/') ? <ImageIcon size={24} color="#6b7280" /> : <FileText size={24} color="#6b7280" />}
+                <div className="flex items-center justify-between border-4 border-black bg-[#fef08a] p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center border-4 border-black bg-white">
+                      {pendingFile.type.startsWith('image/') ? <ImageIcon size={20} className="stroke-[3] text-black" /> : <FileText size={20} className="stroke-[3] text-black" />}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#111827' }}>{pendingFile.name}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{(pendingFile.size / 1024).toFixed(1)} KB</div>
+                      <div className="font-black uppercase text-black">{pendingFile.name}</div>
+                      <div className="text-xs font-bold text-gray-700">{(pendingFile.size / 1024).toFixed(1)} KB</div>
                     </div>
                   </div>
-                  <button onClick={() => setPendingFile(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: 4 }}>
-                    <X size={20} />
+                  <button onClick={() => setPendingFile(null)} className="flex h-8 w-8 items-center justify-center border-4 border-black bg-white hover:bg-red-500 hover:text-white transition-colors">
+                    <X size={16} className="stroke-[3]" />
                   </button>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', width: '100%' }}>
-                <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
-                <button className="chat-icon-btn" title="Lampirkan File" onClick={() => fileInputRef.current.click()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
-                  <Paperclip size={20} />
+              <div className="flex items-center gap-3">
+                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                <button 
+                  title="Lampirkan File" 
+                  onClick={() => fileInputRef.current.click()} 
+                  className="flex h-12 w-12 flex-shrink-0 items-center justify-center border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-yellow-200 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+                >
+                  <Paperclip size={20} className="stroke-[3] text-black" />
                 </button>
                 
-                <div className="chat-input-box" style={{ flex: 1, display: 'flex', alignItems: 'center', background: 'white', border: '1px solid #e5e7eb', borderRadius: 24, padding: '0 16px' }}>
+                <div className="relative flex flex-1 items-center border-4 border-black bg-white px-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus-within:bg-yellow-100">
                   <input 
                     type="text" 
                     placeholder={pendingFile ? "Tambahkan keterangan (opsional)..." : "Ketik pesan..."} 
                     value={msgInput} 
                     onChange={e => setMsgInput(e.target.value)} 
                     onKeyDown={(e) => { if(e.key === 'Enter') handleSend() }} 
-                    style={{ flex: 1, padding: '12px 0', border: 'none', outline: 'none', fontSize: '0.95rem', background: 'transparent' }}
+                    className="w-full bg-transparent py-3 font-bold text-black outline-none placeholder:font-bold placeholder:text-gray-500"
                   />
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 8 }}>
-                    <Smile size={20} color={showEmoji ? '#3b82f6' : '#9ca3af'} style={{ cursor: 'pointer' }} onClick={() => setShowEmoji(!showEmoji)} />
+                  <div className="relative ml-2 flex items-center">
+                    <Smile size={20} className="cursor-pointer stroke-[3] text-black hover:text-[#ea580c]" onClick={() => setShowEmoji(!showEmoji)} />
                     {showEmoji && (
-                      <div className="emoji-picker-simple" style={{ position: 'absolute', bottom: 40, right: 0, background: 'white', border: '1px solid #e5e7eb', padding: 8, borderRadius: 8, display: 'flex', gap: 8, zIndex: 10 }}>
-                        {emojis.map(e => <span key={e} style={{ cursor: 'pointer', fontSize: '1.2rem' }} onClick={() => { setMsgInput(p => p + e); setShowEmoji(false) }}>{e}</span>)}
+                      <div className="absolute bottom-12 right-0 z-10 flex gap-2 border-4 border-black bg-white p-2 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                        {emojis.map(e => (
+                          <span key={e} className="cursor-pointer text-xl hover:scale-125 transition-transform" onClick={() => { setMsgInput(p => p + e); setShowEmoji(false) }}>{e}</span>
+                        ))}
                       </div>
                     )}
                   </div>
                 </div>
-                <button className="chat-send-btn" onClick={handleSend} disabled={!msgInput.trim() && !pendingFile} style={{ background: (msgInput.trim() || pendingFile) ? '#111827' : '#e5e7eb', color: (msgInput.trim() || pendingFile) ? 'white' : '#9ca3af', padding: '8px 16px', borderRadius: 20, border: 'none', fontWeight: 600, cursor: (msgInput.trim() || pendingFile) ? 'pointer' : 'not-allowed' }}>
+                <button 
+                  onClick={handleSend} 
+                  disabled={!msgInput.trim() && !pendingFile} 
+                  className="flex h-12 items-center justify-center border-4 border-black bg-[#ea580c] px-6 font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-[#c2410c] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                >
                   Kirim
                 </button>
               </div>
             </div>
           </>
-        ) : (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>Pilih percakapan untuk mulai mengirim pesan</div>
+         ) : (
+          <div className="flex flex-1 items-center justify-center p-8 text-center text-lg font-black uppercase text-gray-500">
+            Pilih percakapan untuk mulai mengirim pesan
+          </div>
         )}
       </div>
     </div>

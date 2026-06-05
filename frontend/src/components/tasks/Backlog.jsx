@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Filter, ArrowUpDown } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const PRIORITAS_COLORS = {
   tinggi: { bg: '#fef2f2', color: '#dc2626', label: 'Tinggi' },
@@ -73,80 +74,90 @@ export default function Backlog({ tasks = [], onTaskClick, onAddTask, searchQuer
     const sectionTasks = sortTasks(filteredAndGroupedTasks[key] || [])
     
     return (
-      <div key={key}>
-        <div className="section-header" onClick={() => toggleSection(key)}>
-          <div className="section-title">
-            {expandedSections[key] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-            {title} <span className="task-count">{sectionTasks.length} tasks</span>
+      <div key={key} className="mb-6 border-4 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div 
+          className={`flex justify-between items-center p-4 bg-yellow-300 cursor-pointer hover:bg-yellow-400 transition-colors ${expandedSections[key] ? 'border-b-4 border-black' : ''}`}
+          onClick={() => toggleSection(key)}
+        >
+          <div className="font-black text-black uppercase flex items-center gap-2 text-lg">
+            {expandedSections[key] ? <ChevronDown size={24} className="stroke-2" /> : <ChevronRight size={24} className="stroke-2" />}
+            {title} <span className="bg-white border-2 border-black px-2 py-0.5 text-sm font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">{sectionTasks.length} TASKS</span>
           </div>
-          <div className="section-actions">
-            <Plus size={18} style={{ cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); onAddTask(); }} />
-            <MoreHorizontal size={18} style={{ cursor: 'pointer' }} />
+          <div className="flex items-center gap-3 text-black">
+            <Plus size={24} className="stroke-2 hover:scale-110 cursor-pointer" onClick={(e) => { e.stopPropagation(); onAddTask(); }} />
+            <MoreHorizontal size={24} className="stroke-2 cursor-pointer" />
           </div>
         </div>
-        {expandedSections[key] && (
-          <>
-            <div className="task-list-container">
-              {sectionTasks.length === 0 && (
-                <div style={{ padding: 16, color: '#9ca3af', fontSize: '0.9rem', textAlign: 'center' }}>
-                  Belum ada task di section ini
-                </div>
-              )}
-              {sectionTasks.map(task => {
-                const p = PRIORITAS_COLORS[task.prioritas] || PRIORITAS_COLORS.sedang
-                return (
-                  <div key={task.id} className="task-row" onClick={() => onTaskClick(task.id)}>
-                    <div className="task-info">
-                      <div className="task-title">{task.judul}</div>
-                      {task.mata_kuliah_detail?.nama && (
-                        <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                          📚 {task.mata_kuliah_detail.nama}
-                        </div>
-                      )}
-                    </div>
-                    <div className="task-labels">
-                      <span className="label" style={{ background: p.bg, color: p.color }}>
-                        {p.label}
-                      </span>
-                      {task.deadline && (
-                        <span className="label" style={{ background: '#f3f4f6', color: '#374151' }}>
-                          📅 {new Date(task.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                        </span>
-                      )}
-                    </div>
+        <AnimatePresence initial={false}>
+          {expandedSections[key] && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div className="flex flex-col p-4 bg-blue-100 gap-3">
+                {sectionTasks.length === 0 && (
+                  <div className="text-center font-black text-black border-4 border-dashed border-black p-4 bg-white/50 uppercase">
+                    BELUM ADA TASK DI SECTION INI
                   </div>
-                )
-              })}
-            </div>
-            <div className="add-task-inline" onClick={onAddTask}>
-              <Plus size={16} /> Tambah task
-            </div>
-          </>
-        )}
+                )}
+                {sectionTasks.map(task => {
+                  const p = PRIORITAS_COLORS[task.prioritas] || PRIORITAS_COLORS.sedang
+                  return (
+                    <div key={task.id} className="flex justify-between items-center bg-white border-4 border-black p-4 cursor-pointer hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform" onClick={() => onTaskClick(task.id)}>
+                      <div>
+                        <div className="font-black text-black uppercase">{task.judul}</div>
+                        {task.mata_kuliah_detail?.nama && (
+                          <div className="font-black text-black text-sm mt-1 uppercase">
+                            📚 {task.mata_kuliah_detail.nama}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-black px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase" style={{ background: p.bg, color: 'black' }}>
+                          {p.label}
+                        </span>
+                        {task.deadline && (
+                          <span className="text-xs font-black px-2 py-1 border-2 border-black bg-pink-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">
+                            📅 {new Date(task.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="p-4 bg-green-400 border-t-4 border-black font-black uppercase text-center cursor-pointer hover:bg-green-500 transition-colors" onClick={onAddTask}>
+                <Plus size={20} className="inline-block stroke-2 mr-2" /> TAMBAH TASK
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     )
   }
 
   return (
-    <div className="yd-backlog">
-      <div className="page-header">
-        <div className="page-title">
+    <div className="w-full">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 border-b-4 border-black pb-4">
+        <div className="font-black text-2xl uppercase flex items-center gap-2 bg-yellow-300 border-4 border-black p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -rotate-1">
           {roleView === 'dosen' ? 'Daftar Evaluasi / Tugas' : (roleView === 'mahasiswa' ? 'Daftar Pekerjaan Kuliah' : 'Daftar Pekerjaan')}
-          <ChevronDown size={20} color="#111827" />
+          <ChevronDown size={24} className="stroke-2 text-black" />
         </div>
-        <div className="page-controls">
+        <div className="flex items-center gap-3">
           <div
-            className={`control-item ${sortBy === 'priority' ? 'active-filter' : ''}`}
+            className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-black uppercase cursor-pointer transition-all hover:bg-yellow-300 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${sortBy === 'priority' ? 'bg-black text-white' : 'bg-white text-black'}`}
             onClick={() => setSortBy(prev => prev === 'priority' ? 'default' : 'priority')}
           >
-            <Filter size={16} /> <span className="control-label">Sort Prioritas</span>
+            <Filter size={18} className="stroke-2" /> <span>Sort Prioritas</span>
           </div>
           <div
-            className={`control-item ${sortBy === 'title' ? 'active-filter' : ''}`}
+            className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-black uppercase cursor-pointer transition-all hover:bg-pink-300 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${sortBy === 'title' ? 'bg-black text-white' : 'bg-white text-black'}`}
             onClick={() => setSortBy(prev => prev === 'title' ? 'default' : 'title')}
           >
-            <ArrowUpDown size={16} />
-            <span className="control-label">Sort Judul</span>
+            <ArrowUpDown size={18} className="stroke-2" />
+            <span>Sort Judul</span>
           </div>
         </div>
       </div>

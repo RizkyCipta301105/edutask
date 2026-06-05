@@ -109,14 +109,13 @@ export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], i
             </div>
 
             {/* Deadline */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Calendar size={14} color="#6b7280" />
+            <div className="flex items-center gap-2">
+              <Calendar size={14} color="#000" className="stroke-2" />
               <input
                 type="date"
                 value={deadline}
                 onChange={e => setDeadline(e.target.value)}
-                className={errors.deadline ? 'input-error' : ''}
-                style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 12px', fontSize: '0.85rem', outline: 'none' }}
+                className={`border-4 border-black font-bold px-3 py-1.5 outline-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 ${errors.deadline ? 'input-error' : ''}`}
               />
             </div>
           </div>
@@ -124,39 +123,39 @@ export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], i
 
           {/* Mata Kuliah */}
           {mataKuliah && mataKuliah.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <div className="section-label"><BookOpen size={16} /> Mata Kuliah</div>
+            <div className="mb-6">
+              <div className="section-label font-black text-black"><BookOpen size={16} className="stroke-2" /> Mata Kuliah</div>
               <select
                 value={mataKuliahId}
                 onChange={e => setMataKuliahId(e.target.value)}
-                style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 12px', fontSize: '0.9rem', outline: 'none', background: 'white' }}
+                className="w-full border-4 border-black bg-white p-2 font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100"
               >
                 <option value="">— Tanpa mata kuliah —</option>
                 {mataKuliah.map(mk => (
-                  <option key={mk.id} value={mk.id}>{mk.nama}</option>
+                  <option key={mk.id} value={mk.id} className="font-bold">{mk.nama}</option>
                 ))}
               </select>
             </div>
           )}
 
           {/* Deskripsi */}
-          <div className="rich-text-editor">
-            <div className="rich-text-toolbar">
-              <span className="section-label" style={{ marginBottom: 0 }}>Deskripsi</span>
+          <div className="rich-text-editor border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white p-0">
+            <div className="rich-text-toolbar border-b-4 border-black bg-[#fef08a] p-2">
+              <span className="section-label font-black text-black m-0 uppercase tracking-wider">Deskripsi</span>
             </div>
             <textarea
               placeholder="Tambahkan deskripsi atau detail task..."
               value={deskripsi}
               onChange={e => setDeskripsi(e.target.value)}
-              style={{ width: '100%', border: 'none', outline: 'none', resize: 'vertical', minHeight: 80, fontSize: '0.95rem', color: '#374151', fontFamily: 'inherit' }}
+              className="w-full min-h-[120px] p-4 font-bold text-black outline-none resize-y focus:bg-yellow-100"
             />
           </div>
         </div>
 
-        <div className="modal-footer">
-          <button className="btn-outline" onClick={onClose}>Batal</button>
-          <button className="btn-dark" onClick={handleCreate} disabled={loading} style={{ background: '#4b5563', opacity: loading ? 0.6 : 1 }}>
-            {loading ? 'Membuat...' : 'Buat Task'}
+        <div className="modal-footer border-t-4 border-black bg-[#fbcfe8] p-4 flex justify-end gap-3">
+          <button className="px-5 py-2.5 border-4 border-black bg-white font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={onClose}>Batal</button>
+          <button className="px-5 py-2.5 border-4 border-black bg-[#ea580c] font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#c2410c] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50" onClick={handleCreate} disabled={loading}>
+            {loading ? 'Menyimpan...' : 'Buat Task'}
           </button>
         </div>
       </div>

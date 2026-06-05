@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/landing/Hero';
 import KanbanDemo from '../components/landing/KanbanDemo';
 import { Layout, Clock, Users, BarChart3, ShieldCheck, MessageSquare, Shield, CreditCard, Twitter, Github, Facebook, Heart, Check, Minus } from 'lucide-react';
+import PageTransition from '../components/common/PageTransition';
 
 export default function LandingPage() {
   const scrollToSection = (id) => {
@@ -9,6 +10,7 @@ export default function LandingPage() {
   };
 
   return (
+    <PageTransition>
     <div className="min-h-screen text-black flex flex-col bg-white border-t-8 border-black">
       
       {/* Header */}
@@ -376,5 +378,6 @@ export default function LandingPage() {
       </footer>
 
     </div>
+    </PageTransition>
   );
 }

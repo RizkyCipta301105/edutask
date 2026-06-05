@@ -25,6 +25,10 @@ const taskService = {
   deleteMataKuliah: async (id) => {
     await api.delete(`${BASE}/mata-kuliah/${id}/`)
   },
+  cleanupMataKuliah: async () => {
+    const res = await api.delete(`${BASE}/mata-kuliah/cleanup/`)
+    return getResponseData(res)
+  },
 
   // ── Tasks (FR-04, FR-05) ───────────────────────────────────────────────
   getTasks: async (filters = {}) => {

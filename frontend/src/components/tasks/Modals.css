@@ -5,7 +5,7 @@
 .edutask-dashboard .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,16 +14,21 @@
 }
 
 .edutask-dashboard .modal-container {
-  background: white;
-  border-radius: 8px;
+  background: #fff;
+  border: 4px solid #000;
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
   overflow: hidden;
   animation: yd-slideUp 0.3s ease-out;
+}
+.dark .edutask-dashboard .modal-container {
+  background: #111;
+  border-color: #fff;
+  box-shadow: 8px 8px 0px 0px rgba(255,255,255,1);
 }
 
 .edutask-dashboard .modal-header {
@@ -31,45 +36,72 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #6b7280;
+  border-bottom: 4px solid #000;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #000;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: #fef08a;
+}
+.dark .edutask-dashboard .modal-header {
+  border-bottom-color: #fff;
+  color: #111;
 }
 
 .edutask-dashboard .modal-header-actions {
   display: flex;
   gap: 16px;
   align-items: center;
-  color: #6b7280;
+  color: #000;
 }
-.edutask-dashboard .modal-header-actions svg { cursor: pointer; }
+.dark .edutask-dashboard .modal-header-actions {
+  color: #111;
+}
+.edutask-dashboard .modal-header-actions svg { cursor: pointer; stroke-width: 3; }
 
 .edutask-dashboard .modal-body {
   padding: 24px;
   overflow-y: auto;
   flex: 1;
+  background: #fff;
+}
+.dark .edutask-dashboard .modal-body {
+  background: #111;
+  color: #fff;
 }
 
 .edutask-dashboard .modal-footer {
   padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 4px solid #000;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  background: #fbcfe8;
+}
+.dark .edutask-dashboard .modal-footer {
+  border-top-color: #fff;
+  background: #111;
 }
 
 /* Add Task */
 .edutask-dashboard .add-task-title-input {
   width: 100%;
   font-size: 1.8rem;
-  font-weight: 700;
-  border: none;
-  outline: none;
-  color: #111827;
+  font-weight: 900;
+  border: 4px solid #000;
+  padding: 12px;
+  background: #fff;
+  color: #000;
   margin-bottom: 24px;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+  outline: none;
+}
+.dark .edutask-dashboard .add-task-title-input {
+  background: #111;
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 4px 4px 0px 0px rgba(255,255,255,1);
 }
 
 .edutask-dashboard .add-task-toolbar {
@@ -83,14 +115,35 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: white;
-  color: #374151;
-  font-size: 0.85rem;
-  font-weight: 500;
+  padding: 8px 16px;
+  border: 3px solid #000;
+  background: #fff;
+  color: #000;
+  font-size: 0.9rem;
+  font-weight: 900;
   cursor: pointer;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+  transition: all 0.1s;
+}
+.edutask-dashboard .toolbar-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
+}
+.edutask-dashboard .toolbar-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px rgba(0,0,0,1);
+}
+.dark .edutask-dashboard .toolbar-btn {
+  background: #111;
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 4px 4px 0px 0px rgba(255,255,255,1);
+}
+.dark .edutask-dashboard .toolbar-btn:hover {
+  box-shadow: 6px 6px 0px 0px rgba(255,255,255,1);
+}
+.dark .edutask-dashboard .toolbar-btn:active {
+  box-shadow: 0px 0px 0px 0px rgba(255,255,255,1);
 }
 
 .edutask-dashboard .section-label {
@@ -244,27 +297,45 @@
   position: absolute;
   top: 100%; left: 0;
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
   z-index: 50;
   min-width: 140px;
-  padding: 4px;
-  margin-top: 4px;
+  padding: 0;
+  margin-top: 8px;
+}
+.dark .edutask-dashboard .dropdown-menu {
+  background: #111;
+  border-color: #fff;
+  box-shadow: 4px 4px 0px 0px rgba(255,255,255,1);
 }
 
 .edutask-dashboard .dropdown-item {
-  padding: 8px 12px;
-  font-size: 0.85rem;
-  color: #374151;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #000;
   cursor: pointer;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 8px;
+  border-bottom: 2px solid #000;
+  background: #fff;
+  transition: all 0.1s;
 }
-.edutask-dashboard .dropdown-item:hover { background: #f3f4f6; }
-.edutask-dashboard .dropdown-item.active { background: #f0fdf4; font-weight: 600; }
+.edutask-dashboard .dropdown-item:last-child {
+  border-bottom: none;
+}
+.edutask-dashboard .dropdown-item:hover { background: #bfdbfe; }
+.edutask-dashboard .dropdown-item.active { background: #fef08a; font-weight: 900; }
+
+.dark .edutask-dashboard .dropdown-item {
+  color: #fff;
+  border-bottom-color: #fff;
+  background: #111;
+}
+.dark .edutask-dashboard .dropdown-item:hover { background: #1e3a8a; }
+.dark .edutask-dashboard .dropdown-item.active { background: #854d0e; }
 
 /* Validation */
 .edutask-dashboard .input-error { border-color: #dc2626 !important; }

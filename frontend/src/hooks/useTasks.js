@@ -7,15 +7,25 @@ import { useState, useCallback, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import taskService from '../services/taskService'
 
+// Global cache untuk SWR pattern (Stale-While-Revalidate)
+let globalBoardCache = null;
+let globalMataKuliahCache = null;
+
 export function useTasks() {
-  const [board, setBoard]           = useState({ todo: [], in_progress: [], done: [] })
-  const [mataKuliah, setMataKuliah] = useState([])
-  const [loading, setLoading]       = useState(true)
+  const [board, setBoard]           = useState(globalBoardCache || { todo: [], in_progress: [], done: [] })
+  const [mataKuliah, setMataKuliah] = useState(globalMataKuliahCache || [])
+  const [loading, setLoading]       = useState(!globalBoardCache) // Jangan loading jika cache ada
+
+  // Selalu sinkronkan state terbaru ke global cache
+  useEffect(() => { globalBoardCache = board }, [board])
+  useEffect(() => { globalMataKuliahCache = mataKuliah }, [mataKuliah])
 
   // ── Fetch kanban board ─────────────────────────────────────────────────
-  const fetchBoard = useCallback(async () => {
+  const fetchBoard = useCallback(async (force = false) => {
     try {
-      setLoading(true)
+      if (!globalBoardCache || force) {
+        setLoading(true)
+      }
       const [kanban, mk] = await Promise.all([
         taskService.getKanban(),
         taskService.getMataKuliah(),
