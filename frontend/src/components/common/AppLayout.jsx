@@ -215,7 +215,7 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
 
         {/* Main Content Area */}
         <main className="main-content !bg-white">
-          <header className="header !border-b-4 !border-black !mb-6 !pb-4">
+          <header className="header relative z-[100] !border-b-4 !border-black !mb-6 !pb-4">
             {/* Mobile Burger Menu */}
             <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
               <MenuIcon size={24} />

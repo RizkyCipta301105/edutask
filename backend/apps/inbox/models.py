@@ -39,3 +39,15 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.nama_lengkap} at {self.created_at}"
+
+class ThreadClearHistory(models.Model):
+    thread = models.ForeignKey(ChatThread, on_delete=models.CASCADE, related_name='clear_histories')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    cleared_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'inbox_thread_clear_history'
+        unique_together = ['thread', 'user']
+
+    def __str__(self):
+        return f"{self.user.nama_lengkap} cleared {self.thread} at {self.cleared_at}"

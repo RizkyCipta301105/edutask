@@ -64,6 +64,12 @@ function SortableCard({ card, onTaskClick, viewMode }) {
           {!isCompact && card.mata_kuliah_detail?.nama && (
             <span className="text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-pink-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">📚 {card.mata_kuliah_detail.nama}</span>
           )}
+          {!isCompact && card.workspace_detail?.nama_ruang && (
+            <span className="text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-blue-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">🏢 {card.workspace_detail.nama_ruang}</span>
+          )}
+          {!isCompact && !card.mata_kuliah_detail && !card.workspace_detail && (
+            <span className="text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-gray-200 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">👤 Pribadi</span>
+          )}
         </div>
         {!isCompact && card.deadline && (
           <div className="text-xs font-bold text-gray-700 dark:text-gray-300 mt-3 border-t-2 border-black dark:border-gray-500 pt-2">

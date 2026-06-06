@@ -113,6 +113,16 @@ export default function Backlog({ tasks = [], onTaskClick, onAddTask, searchQuer
                             📚 {task.mata_kuliah_detail.nama}
                           </div>
                         )}
+                        {task.workspace_detail?.nama_ruang && (
+                          <div className="font-black text-black text-sm mt-1 uppercase">
+                            🏢 {task.workspace_detail.nama_ruang}
+                          </div>
+                        )}
+                        {!task.mata_kuliah_detail && !task.workspace_detail && (
+                          <div className="font-black text-black text-sm mt-1 uppercase text-gray-600">
+                            👤 PRIBADI
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-black px-2 py-1 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase" style={{ background: p.bg, color: 'black' }}>

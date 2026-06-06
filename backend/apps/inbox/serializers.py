@@ -31,13 +31,29 @@ class ChatThreadSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'is_group', 'participants', 'last_message', 'unread_count', 'updated_at']
 
     def get_last_message(self, obj):
-        last = obj.messages.order_by('-created_at').first()
+        request = self.context.get('request')
+        messages = obj.messages.all()
+        if request:
+            from .models import ThreadClearHistory
+            try:
+                ch = ThreadClearHistory.objects.get(thread=obj, user=request.user)
+                messages = messages.filter(created_at__gt=ch.cleared_at)
+            except ThreadClearHistory.DoesNotExist:
+                pass
+        last = messages.order_by('-created_at').first()
         if last:
-            return MessageSerializer(last).data
+            return MessageSerializer(last, context=self.context).data
         return None
 
     def get_unread_count(self, obj):
         request = self.context.get('request')
         if not request:
             return 0
-        return obj.messages.exclude(sender=request.user).filter(is_read=False).count()
+        messages = obj.messages.exclude(sender=request.user).filter(is_read=False)
+        try:
+            from .models import ThreadClearHistory
+            ch = ThreadClearHistory.objects.get(thread=obj, user=request.user)
+            messages = messages.filter(created_at__gt=ch.cleared_at)
+        except ThreadClearHistory.DoesNotExist:
+            pass
+        return messages.count()

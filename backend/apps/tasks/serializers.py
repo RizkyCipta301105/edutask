@@ -36,6 +36,7 @@ class TaskSerializer(
     serializers.ModelSerializer,
 ):
     mata_kuliah_detail = MataKuliahSerializer(source='mata_kuliah', read_only=True)
+    workspace_detail   = serializers.SerializerMethodField()
     is_overdue         = serializers.SerializerMethodField()
 
     class Meta:
@@ -44,13 +45,22 @@ class TaskSerializer(
             'id', 'judul', 'deskripsi', 'deadline',
             'prioritas', 'status', 'urutan',
             'mata_kuliah', 'mata_kuliah_detail',
-            'attachment',
+            'workspace', 'workspace_detail', 'attachment',
             'is_overdue', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'is_overdue']
 
     def get_is_overdue(self, obj):
         return obj.is_overdue
+
+    def get_workspace_detail(self, obj):
+        if obj.workspace:
+            return {
+                'id': str(obj.workspace.id),
+                'nama_ruang': obj.workspace.nama_ruang,
+                'is_workspace': obj.workspace.is_workspace
+            }
+        return None
 
 
 # ── Task Create Serializer (FR-04) ───────────────────────────────────────────
@@ -65,7 +75,7 @@ class TaskCreateSerializer(
         model  = Task
         fields = [
             'judul', 'deskripsi', 'deadline',
-            'prioritas', 'status', 'mata_kuliah', 'attachment',
+            'prioritas', 'status', 'mata_kuliah', 'workspace', 'attachment',
         ]
 
     def create(self, validated_data):

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Users, Copy, Check, Users2, Trash2, Hash, LogIn, Search, CheckCircle2 } from 'lucide-react'
+import { Plus, Users, Copy, Check, Users2, Trash2, Hash, LogIn, Search, CheckCircle2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import authService from '../../services/authService'
 
-export default function RuangEdukasiList({ role }) {
+export default function RuangEdukasiList({ role, user, isWorkspaceMode = false }) {
   const [ruang, setRuang] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
@@ -27,13 +27,13 @@ export default function RuangEdukasiList({ role }) {
 
   useEffect(() => {
     fetchRuang()
-  }, [])
+  }, [isWorkspaceMode])
 
   const fetchRuang = async () => {
     try {
       setLoading(true)
       const data = await authService.getRuang()
-      setRuang(data)
+      setRuang(data.filter(r => isWorkspaceMode ? r.is_workspace : !r.is_workspace))
     } catch (err) {
       toast.error('Gagal memuat daftar ruang edukasi.')
     } finally {
@@ -48,13 +48,14 @@ export default function RuangEdukasiList({ role }) {
         nama_ruang: formData.nama_ruang,
         deskripsi: formData.deskripsi,
         hari: formData.hari !== "" ? Number(formData.hari) : null,
-        jam_mulai: (formData.hari !== "" && formData.jam_mulai) ? formData.jam_mulai : null,
-        jam_selesai: (formData.hari !== "" && formData.jam_selesai) ? formData.jam_selesai : null,
-        ruangan: formData.hari !== "" ? formData.ruangan : null,
-        warna: formData.warna
+        jam_mulai: (!isWorkspaceMode && formData.hari !== "" && formData.jam_mulai) ? formData.jam_mulai : null,
+        jam_selesai: (!isWorkspaceMode && formData.hari !== "" && formData.jam_selesai) ? formData.jam_selesai : null,
+        ruangan: (!isWorkspaceMode && formData.hari !== "") ? formData.ruangan : null,
+        warna: formData.warna,
+        is_workspace: isWorkspaceMode
       }
       await authService.createRuang(payload)
-      toast.success('Ruang berhasil dibuat!')
+      toast.success(isWorkspaceMode ? 'Workspace berhasil dibuat!' : 'Ruang kelas berhasil dibuat!')
       setShowCreate(false)
       setFormData({ 
         nama_ruang: '', 
@@ -118,21 +119,22 @@ export default function RuangEdukasiList({ role }) {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Ruang Edukasi</h2>
+          <h2 className="text-2xl font-bold text-slate-800">{isWorkspaceMode ? 'Workspace Kolaborasi' : 'Ruang Kelas'}</h2>
           <p className="text-sm text-slate-500 mt-1">
-            {role === 'dosen' ? 'Kelola ruang kelas Anda dan bagikan kode ke mahasiswa.' : 'Daftar ruang kelas yang Anda ikuti.'}
+            {isWorkspaceMode ? 'Kelola proyek kolaboratif bersama tim Anda.' : (role === 'dosen' ? 'Kelola ruang kelas Anda dan bagikan kode ke mahasiswa.' : 'Daftar ruang kelas yang Anda ikuti.')}
           </p>
         </div>
-        <div>
-          {role === 'dosen' ? (
+        <div className="flex gap-2">
+          {(!isWorkspaceMode && role === 'dosen') || isWorkspaceMode ? (
             <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 border-4 border-black bg-[#ea580c] px-5 py-2.5 text-sm font-black text-white uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none hover:bg-[#c2410c] focus:outline-none">
-              <Plus size={18} className="stroke-[3]" /> Buat Ruang
+              <Plus size={18} className="stroke-[3]" /> Buat {isWorkspaceMode ? 'Workspace' : 'Ruang'}
             </button>
-          ) : (
-            <button onClick={() => setShowJoin(true)} className="flex items-center gap-2 border-4 border-black bg-[#ea580c] px-5 py-2.5 text-sm font-black text-white uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none hover:bg-[#c2410c] focus:outline-none">
-              <Plus size={18} className="stroke-[3]" /> Gabung Ruang
+          ) : null}
+          {(!isWorkspaceMode && role !== 'dosen') || isWorkspaceMode ? (
+            <button onClick={() => setShowJoin(true)} className="flex items-center gap-2 border-4 border-black bg-white px-5 py-2.5 text-sm font-black text-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none hover:bg-yellow-100 focus:outline-none">
+              <LogIn size={18} className="stroke-[3]" /> Gabung {isWorkspaceMode ? 'Workspace' : 'Ruang'}
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -145,9 +147,9 @@ export default function RuangEdukasiList({ role }) {
           <div className="mb-4 flex h-20 w-20 items-center justify-center border-4 border-black bg-yellow-300">
             <Users2 size={40} className="text-black stroke-[3]" />
           </div>
-          <h3 className="text-xl font-black uppercase text-black mb-2">Belum Ada Ruang Edukasi</h3>
+          <h3 className="text-xl font-black uppercase text-black mb-2">{isWorkspaceMode ? 'Belum Ada Workspace' : 'Belum Ada Ruang Kelas'}</h3>
           <p className="text-sm font-bold text-black max-w-sm">
-            {role === 'dosen' ? 'Anda belum membuat ruang edukasi apa pun. Buat ruang sekarang untuk membagikan tugas ke mahasiswa.' : 'Anda belum bergabung dengan ruang edukasi mana pun. Minta kode dari dosen Anda.'}
+            {isWorkspaceMode ? 'Buat atau gabung workspace untuk mulai berkolaborasi.' : (role === 'dosen' ? 'Anda belum membuat ruang kelas apa pun. Buat ruang sekarang untuk membagikan tugas ke mahasiswa.' : 'Anda belum bergabung dengan ruang kelas mana pun. Minta kode dari dosen Anda.')}
           </p>
         </div>
       ) : (
@@ -169,7 +171,7 @@ export default function RuangEdukasiList({ role }) {
                     {r.jumlah_anggota} anggota
                   </button>
                   
-                  {role === 'dosen' && (
+                  {((!isWorkspaceMode && role === 'dosen') || (isWorkspaceMode && user && r.kreator_id === user.id)) && (
                     <div className="flex items-center gap-2">
                       <button 
                         onClick={() => handleCopy(r.kode_join)}
@@ -207,8 +209,8 @@ export default function RuangEdukasiList({ role }) {
           <div className="w-full max-w-md border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[90vh] flex flex-col">
             <div className="border-b-4 border-black bg-[#fef08a] p-6 flex-shrink-0 flex justify-between items-start">
               <div>
-                <h3 className="text-xl font-black uppercase text-black">Buat Ruang Edukasi Baru</h3>
-                <p className="mt-1 text-sm font-bold text-gray-700">Ruang ini digunakan untuk mem-broadcast tugas ke mahasiswa.</p>
+                <h3 className="text-xl font-black uppercase text-black">Buat {isWorkspaceMode ? 'Workspace Kolaborasi' : 'Ruang Kelas'} Baru</h3>
+                <p className="mt-1 text-sm font-bold text-gray-700">{isWorkspaceMode ? 'Workspace ini digunakan untuk bekerja sama dalam tim.' : 'Ruang ini digunakan untuk mem-broadcast tugas ke mahasiswa.'}</p>
               </div>
               <button onClick={() => setShowCreate(false)} className="hover:rotate-90 transition-transform"><X size={24} className="stroke-[3] text-black" /></button>
             </div>
@@ -237,8 +239,9 @@ export default function RuangEdukasiList({ role }) {
               </div>
 
               {/* Schedule Fields */}
-              <div className="border-t-4 border-black pt-4 mt-4">
-                <h4 className="text-sm font-black uppercase tracking-wider text-black mb-3 bg-yellow-200 inline-block px-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Jadwal Kuliah (Opsional)</h4>
+              {!isWorkspaceMode && (
+                <div className="border-t-4 border-black pt-4 mt-4">
+                  <h4 className="text-sm font-black uppercase tracking-wider text-black mb-3 bg-yellow-200 inline-block px-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Jadwal Kuliah (Opsional)</h4>
                 
                 <div className="mb-4">
                   <label className="mb-1.5 block text-sm font-black uppercase tracking-wider text-black">Hari Kuliah</label>
@@ -318,10 +321,11 @@ export default function RuangEdukasiList({ role }) {
                   </>
                 )}
               </div>
+              )}
               
               <div className="flex items-center justify-end gap-3 pt-6 border-t-4 border-black mt-6 flex-shrink-0">
                 <button type="button" className="px-5 py-3 border-4 border-black bg-white font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all" onClick={() => setShowCreate(false)}>Batal</button>
-                <button type="submit" className="px-5 py-3 border-4 border-black bg-[#ea580c] font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#c2410c] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">Buat Ruang</button>
+                <button type="submit" className="px-5 py-3 border-4 border-black bg-[#ea580c] font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#c2410c] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">Buat {isWorkspaceMode ? 'Workspace' : 'Ruang'}</button>
               </div>
             </form>
           </div>
@@ -364,16 +368,18 @@ export default function RuangEdukasiList({ role }) {
       {/* MODAL ANGGOTA */}
       {showMembers && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col">
+          <div className="w-full max-w-md border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative flex flex-col max-h-[90vh] overflow-y-auto">
             <h3 className="text-2xl font-black uppercase text-black">Anggota Ruang</h3>
             <p className="text-sm font-bold text-gray-700 mb-6 pb-4 border-b-4 border-black">{selectedRuangName}</p>
             
             <div className="max-h-[50vh] overflow-y-auto space-y-4 pr-2">
               {/* Dosen / Kreator */}
               {membersData.kreator && (
-                <div>
-                  <h4 className="text-sm font-black uppercase tracking-wider text-black mb-2 bg-yellow-200 inline-block px-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Tenaga Pengajar (Dosen)</h4>
-                  <div className="flex items-center gap-3 p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="mb-6">
+                  <h4 className="text-sm font-black uppercase tracking-wider text-black mb-3 bg-yellow-200 inline-block px-2 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    {isWorkspaceMode ? 'Pembuat Workspace' : 'Tenaga Pengajar (Dosen)'}
+                  </h4>
+                  <div className="flex items-center gap-4 p-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mt-1">
                     <div className="w-12 h-12 border-4 border-black bg-[#ea580c] text-white flex items-center justify-center font-black text-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                       {membersData.kreator.nama.charAt(0).toUpperCase()}
                     </div>
@@ -386,14 +392,16 @@ export default function RuangEdukasiList({ role }) {
               )}
 
               {/* Mahasiswa */}
-              <div className="pt-2">
-                <h4 className="text-sm font-black uppercase tracking-wider text-black mb-2 bg-[#fbcfe8] inline-block px-2 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Mahasiswa ({membersData.anggota.length})</h4>
+              <div className="pt-2 pb-4">
+                <h4 className="text-sm font-black uppercase tracking-wider text-black mb-3 bg-[#fbcfe8] inline-block px-2 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  {isWorkspaceMode ? 'Anggota Workspace' : 'Mahasiswa'} ({membersData.anggota.length})
+                </h4>
                 {membersData.anggota.length === 0 ? (
-                  <p className="text-sm font-bold text-gray-500 italic mt-2">Belum ada mahasiswa yang bergabung.</p>
+                  <p className="text-sm font-bold text-gray-500 italic mt-2">Belum ada anggota yang bergabung.</p>
                 ) : (
-                  <div className="space-y-3 mt-3">
+                  <div className="space-y-4 mt-4">
                     {membersData.anggota.map(m => (
-                      <div key={m.id} className="flex items-center gap-3 p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <div key={m.id} className="flex items-center gap-4 p-4 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <div className="w-10 h-10 border-4 border-black bg-blue-300 text-black flex items-center justify-center font-black text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                           {m.nama.charAt(0).toUpperCase()}
                         </div>
@@ -408,10 +416,10 @@ export default function RuangEdukasiList({ role }) {
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t-4 border-black flex justify-end">
+            <div className="mt-8 pt-6 border-t-4 border-black flex justify-end">
               <button 
                 onClick={() => setShowMembers(false)}
-                className="px-5 py-3 border-4 border-black bg-white font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
+                className="px-6 py-3 border-4 border-black bg-white font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
               >
                 Tutup
               </button>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, CheckCircle2, Share2, Flag, Calendar, BookOpen, Trash2, MessageSquare, PlusSquare, Link as LinkIcon, Paperclip } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../context/AuthContext'
 import taskService from '../../services/taskService'
 import { useEffect } from 'react'
@@ -116,8 +117,9 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, onA
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
+  return createPortal(
+    <div className="edutask-dashboard">
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4 animate-fade-in" onClick={onClose}>
       <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col w-full max-w-[1000px] max-h-[90vh] overflow-hidden relative" onClick={e => e.stopPropagation()}>
         
         {/* Header */}
@@ -366,5 +368,7 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete, onA
         )}
       </div>
     </div>
+    </div>,
+    document.body
   )
 }

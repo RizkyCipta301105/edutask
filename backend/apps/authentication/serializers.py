@@ -46,16 +46,17 @@ class KelasSerializer(serializers.ModelSerializer):
 
 class RuangEdukasiSerializer(serializers.ModelSerializer):
     kreator_nama = serializers.CharField(source='kreator.nama_lengkap', read_only=True)
+    kreator_id = serializers.UUIDField(source='kreator.id', read_only=True)
     jumlah_anggota = serializers.SerializerMethodField()
 
     class Meta:
         model = RuangEdukasi
         fields = [
             'id', 'kode_join', 'nama_ruang', 'deskripsi', 
-            'kreator_nama', 'jumlah_anggota', 'created_at',
-            'hari', 'jam_mulai', 'jam_selesai', 'ruangan', 'warna'
+            'kreator_nama', 'kreator_id', 'jumlah_anggota', 'created_at',
+            'hari', 'jam_mulai', 'jam_selesai', 'ruangan', 'warna', 'is_workspace'
         ]
-        read_only_fields = ['id', 'kode_join', 'kreator_nama', 'jumlah_anggota', 'created_at']
+        read_only_fields = ['id', 'kode_join', 'kreator_nama', 'kreator_id', 'jumlah_anggota', 'created_at']
 
     def get_jumlah_anggota(self, obj):
         return obj.anggota.count()
@@ -220,13 +221,13 @@ class UserProfileSerializer(NamaLengkapValidationMixin, serializers.ModelSeriali
         model = User
         fields = [
             'id', 'email', 'nama_lengkap', 'tipe_akun', 'role',
-            'nrp', 'prodi', 'nip', 'mata_kuliah',
+            'prodi', 'mata_kuliah', 'chat_code',
             'foto_profil', 'foto_profil_url',
             'is_email_verified', 'tanggal_daftar', 'last_login'
         ]
         read_only_fields = [
-            'id', 'email', 'tipe_akun', 'role', 'nrp', 'prodi', 'nip',
-            'mata_kuliah', 'is_email_verified', 'tanggal_daftar', 'last_login'
+            'id', 'email', 'tipe_akun', 'role', 'prodi',
+            'mata_kuliah', 'chat_code', 'is_email_verified', 'tanggal_daftar', 'last_login'
         ]
         extra_kwargs = {
             'foto_profil': {'write_only': True, 'required': False}

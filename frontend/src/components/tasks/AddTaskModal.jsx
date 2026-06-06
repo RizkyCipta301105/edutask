@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { X, Flag, RefreshCw, Calendar, ChevronDown, BookOpen } from 'lucide-react'
+import { X, Flag, RefreshCw, Calendar, ChevronDown, BookOpen, Users } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import './Modals.css'
 
 const STATUSES = [
@@ -13,13 +14,14 @@ const PRIORITIES = [
   { value: 'rendah', label: 'Rendah', color: '#16a34a' },
 ]
 
-export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], initialDeadline = '' }) {
+export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], workspaces = [], initialDeadline = '' }) {
   const [judul, setJudul] = useState('')
   const [deskripsi, setDeskripsi] = useState('')
   const [status, setStatus] = useState('todo')
   const [prioritas, setPrioritas] = useState('sedang')
   const [deadline, setDeadline] = useState(initialDeadline)
   const [mataKuliahId, setMataKuliahId] = useState('')
+  const [workspaceId, setWorkspaceId] = useState('')
   const [showStatusDrop, setShowStatusDrop] = useState(false)
   const [showPriorityDrop, setShowPriorityDrop] = useState(false)
   const [errors, setErrors] = useState({})
@@ -44,6 +46,7 @@ export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], i
         prioritas,
         deadline,
         mata_kuliah: mataKuliahId || null,
+        workspace: workspaceId || null,
       })
       onClose()
     } catch (err) {
@@ -54,8 +57,9 @@ export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], i
     }
   }
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
+  return createPortal(
+    <div className="edutask-dashboard">
+      <div className="modal-overlay !z-[9999]" onClick={onClose}>
       <div className="modal-container" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <span>Task Baru</span>
@@ -123,16 +127,33 @@ export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], i
 
           {/* Mata Kuliah */}
           {mataKuliah && mataKuliah.length > 0 && (
-            <div className="mb-6">
-              <div className="section-label font-black text-black"><BookOpen size={16} className="stroke-2" /> Mata Kuliah</div>
+            <div className="mb-4">
+              <div className="section-label font-black text-black"><BookOpen size={16} className="stroke-2" /> Kelas / Mata Kuliah</div>
               <select
                 value={mataKuliahId}
-                onChange={e => setMataKuliahId(e.target.value)}
+                onChange={e => { setMataKuliahId(e.target.value); if (e.target.value) setWorkspaceId(''); }}
                 className="w-full border-4 border-black bg-white p-2 font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100"
               >
-                <option value="">— Tanpa mata kuliah —</option>
+                <option value="">— Tanpa kelas —</option>
                 {mataKuliah.map(mk => (
                   <option key={mk.id} value={mk.id} className="font-bold">{mk.nama}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Workspace */}
+          {workspaces && workspaces.length > 0 && (
+            <div className="mb-6">
+              <div className="section-label font-black text-black"><Users size={16} className="stroke-2" /> Workspace Kolaborasi</div>
+              <select
+                value={workspaceId}
+                onChange={e => { setWorkspaceId(e.target.value); if (e.target.value) setMataKuliahId(''); }}
+                className="w-full border-4 border-black bg-white p-2 font-bold outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100"
+              >
+                <option value="">— Tanpa workspace —</option>
+                {workspaces.map(w => (
+                  <option key={w.id} value={w.id} className="font-bold">{w.nama_ruang}</option>
                 ))}
               </select>
             </div>
@@ -160,5 +181,7 @@ export default function AddTaskModal({ onClose, onCreateTask, mataKuliah = [], i
         </div>
       </div>
     </div>
+    </div>,
+    document.body
   )
 }

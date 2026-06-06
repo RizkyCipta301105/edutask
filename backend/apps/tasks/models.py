@@ -112,6 +112,11 @@ class Task(models.Model):
         null=True, blank=True, related_name='distributed_tasks',
         verbose_name='Sumber Penugasan Dosen'
     )
+    workspace = models.ForeignKey(
+        'authentication.RuangEdukasi', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='workspace_tasks',
+        verbose_name='Workspace Kolaborasi'
+    )
 
     # ── Data Task ─────────────────────────────────────────────────────────────
     judul       = models.CharField(max_length=200, verbose_name='Judul Task')

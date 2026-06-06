@@ -82,7 +82,7 @@ Before completing tasks:
 - **Sprint 3**: ✅ Completed — Multi-role Dashboard, Ruang Edukasi, Task Broadcast, Analytics
 - **Sprint 4**: ✅ Completed — Interactive Calendar, Reminder System, Notifications, Progress Tracker
 - **Sprint 5**: ✅ Completed — Inbox Kolaborasi (ChatThread + Message), Dosen Export, UI/UX Polish
-- **Sprint 6**: 🔄 In Progress — Integration refinements, Google OAuth & SMTP Email implemented, UI translation (Indonesian), Logout redirect fix, UX improvements, documentation
+- **Sprint 6**: 🔄 In Progress — Integration refinements, Google OAuth & SMTP Email implemented, UI translation (Indonesian), Logout redirect fix, UX improvements, documentation, Clear Chat implementation, Modal UI scoping fixes, PRO subscription validation enhancements
 
 ### Key Architecture Decisions (Sprint 5-6)
 - **Ruang Edukasi → Jadwal Kuliah integration**: `GET /api/tasks/mata-kuliah/` now merges personal `MataKuliah` records with schedule data from joined/created `RuangEdukasi`. The `is_academic: True` flag marks official class schedules from Ruang Edukasi. Students no longer need to manually enter class schedules — they inherit them from the rooms they join.
@@ -92,6 +92,8 @@ Before completing tasks:
 - **Inbox navigation**: Bento card in `DashboardOverview` now uses `setActiveTab('Inbox')` + `navigate(...)` with a valid `roleView` path so clicking the card correctly opens the Inbox tab.
 - **Academic schedule badge**: Timetable cards marked `is_academic: True` show a 🔒 Akademik badge and hide edit/delete controls.
 - **Task page terminology**: Labels changed from Mahasiswa-specific ("tugas akademik") to role-neutral terms ("tugas", "kegiatan") to support Umum role users.
+- **Clear Chat Feature**: Allows users to hide chat history from their inbox without affecting the other participant's history using `ThreadClearHistory` model and `cleared_at` timestamp filtering.
+- **PRO Subscription Enforcement**: Added `is_email_verified` barrier before allowing PRO upgrades. Features like `RuangEdukasiList`, `Report`, and `Inbox` are gated behind `FeatureGate` requiring `pro` or `team` subscription plan.
 
 ### Current priorities
 1. Stability & Bug fixing

@@ -15,6 +15,10 @@ const inboxService = {
     const res = await api.post(`${BASE}/threads/`, { participants, title })
     return getResponseData(res)
   },
+  startChatByCode: async (chatCodes, title = '') => {
+    const res = await api.post(`${BASE}/start-chat/`, { chat_codes: chatCodes, title })
+    return getResponseData(res)
+  },
   getMessages: async (threadId) => {
     const res = await api.get(`${BASE}/threads/${threadId}/messages/`)
     return getResponseData(res)
@@ -44,6 +48,11 @@ const inboxService = {
 
   reactToMessage: async (threadId, messageId, emoji) => {
     const res = await api.post(`${BASE}/threads/${threadId}/messages/${messageId}/react/`, { emoji })
+    return getResponseData(res)
+  },
+
+  clearChat: async (threadId) => {
+    const res = await api.delete(`${BASE}/threads/${threadId}/clear/`)
     return getResponseData(res)
   }
 }

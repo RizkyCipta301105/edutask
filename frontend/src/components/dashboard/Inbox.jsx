@@ -21,7 +21,10 @@ export default function Inbox({ user }) {
   const [activeReactMenu, setActiveReactMenu] = useState(null)
   
   const [showNewChat, setShowNewChat] = useState(false)
-  const [selectedContacts, setSelectedContacts] = useState([])
+  const [chatCodeInput, setChatCodeInput] = useState('')
+  const [chatCodesList, setChatCodesList] = useState([])
+  const [groupTitle, setGroupTitle] = useState('')
+  const [isGroupChat, setIsGroupChat] = useState(false)
   
   const fileInputRef = useRef(null)
   const messagesEndRef = useRef(null)
@@ -52,12 +55,7 @@ export default function Inbox({ user }) {
   }, [activeThreadId])
 
   const fetchContacts = async () => {
-    try {
-      const data = await inboxService.getContacts()
-      setContacts(data)
-    } catch (err) {
-      console.error(err)
-    }
+    // Legacy contacts fetch can be disabled or kept
   }
 
   const fetchThreads = async () => {
@@ -177,6 +175,20 @@ export default function Inbox({ user }) {
     }
   }
 
+  const handleClearChat = async (threadId) => {
+    if (!window.confirm('Yakin ingin menghapus riwayat obrolan ini dari layar Anda?')) return
+    try {
+      await inboxService.clearChat(threadId)
+      toast.success('Riwayat obrolan berhasil dihapus')
+      if (activeThreadId === threadId) {
+        setActiveThreadId(null)
+      }
+      fetchThreads()
+    } catch (err) {
+      toast.error('Gagal menghapus riwayat obrolan')
+    }
+  }
+
   const handleReact = async (msgId, emoji) => {
     try {
       await inboxService.reactToMessage(activeThreadId, msgId, emoji)
@@ -187,10 +199,38 @@ export default function Inbox({ user }) {
     }
   }
 
+  const handleAddChatCode = () => {
+    if (!chatCodeInput.trim()) return
+    const code = chatCodeInput.trim().toUpperCase()
+    if (code === user?.chat_code) {
+      toast.error('Tidak bisa menggunakan kode Anda sendiri')
+      return
+    }
+    if (chatCodesList.includes(code)) {
+      toast.error('Kode sudah ditambahkan')
+      return
+    }
+    setChatCodesList(prev => [...prev, code])
+    setChatCodeInput('')
+  }
+
+  const handleRemoveChatCode = (code) => {
+    setChatCodesList(prev => prev.filter(c => c !== code))
+  }
+
   const handleCreateThread = async () => {
-    if (selectedContacts.length === 0) return
+    let codesToSubmit = chatCodesList
+    if (!isGroupChat && chatCodeInput.trim()) {
+      codesToSubmit = [chatCodeInput.trim().toUpperCase()]
+    }
+
+    if (codesToSubmit.length === 0) {
+      toast.error('Masukkan kode chat terlebih dahulu')
+      return
+    }
+
     try {
-      const newThread = await inboxService.createThread(selectedContacts.map(c => c.id))
+      const newThread = await inboxService.startChatByCode(codesToSubmit, isGroupChat ? groupTitle : '')
       setThreads(prev => {
         const exists = prev.find(t => t.id === newThread.id)
         if (!exists) return [newThread, ...prev]
@@ -198,18 +238,12 @@ export default function Inbox({ user }) {
       })
       setActiveThreadId(newThread.id)
       setShowNewChat(false)
-      setSelectedContacts([])
+      setChatCodesList([])
+      setChatCodeInput('')
+      setGroupTitle('')
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Gagal membuat percakapan')
     }
-  }
-
-  const toggleContactSelection = (contact) => {
-    setSelectedContacts(prev => 
-      prev.find(c => c.id === contact.id) 
-        ? prev.filter(c => c.id !== contact.id)
-        : [...prev, contact]
-    )
   }
 
   const currentThread = threads.find(t => t.id === activeThreadId)
@@ -235,31 +269,39 @@ export default function Inbox({ user }) {
     <div className="flex h-[calc(100vh-140px)] w-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
       {/* SIDEBAR */}
       <div className="flex w-[380px] min-w-[380px] flex-col border-r-4 border-black bg-white">
-        <div className="flex gap-3 border-b-4 border-black bg-[#fef08a] p-4">
-          <div className="flex flex-1 items-center border-4 border-black bg-white px-3 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-colors focus-within:bg-yellow-100">
-            <Search size={18} className="text-black stroke-[3]" />
-            <input 
-              type="text" 
-              placeholder="Cari pesan" 
-              value={searchQuery} 
-              onChange={e => setSearchQuery(e.target.value)} 
-              className="ml-2 w-full bg-transparent font-bold text-black outline-none placeholder:text-gray-500"
-            />
+        <div className="flex gap-3 border-b-4 border-black bg-[#fef08a] p-4 flex-col">
+          <div className="flex justify-between items-center bg-white border-4 border-black p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="text-xs font-bold text-gray-700 uppercase">Kode Chat Anda:</div>
+            <div className="font-black text-black tracking-widest bg-yellow-200 px-2 border-2 border-black">
+              {user?.chat_code || '------'}
+            </div>
           </div>
-          <button 
-            className="flex h-[44px] w-[44px] items-center justify-center border-4 border-black bg-[#ea580c] text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none" 
-            title="Pesan baru" 
-            onClick={() => setShowNewChat(true)}
-          >
-            <Edit3 size={20} className="stroke-[3]" />
-          </button>
+          <div className="flex gap-3">
+            <div className="flex flex-1 items-center border-4 border-black bg-white px-3 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-colors focus-within:bg-yellow-100">
+              <Search size={18} className="text-black stroke-[3]" />
+              <input 
+                type="text" 
+                placeholder="Cari pesan" 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="ml-2 w-full bg-transparent font-bold text-black outline-none placeholder:text-gray-500"
+              />
+            </div>
+            <button 
+              className="flex h-[44px] w-[44px] items-center justify-center border-4 border-black bg-[#ea580c] text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none" 
+              title="Pesan baru" 
+              onClick={() => { setShowNewChat(true); setIsGroupChat(false); }}
+            >
+              <Plus size={20} className="stroke-[3]" />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto bg-white">
           {filteredThreads.map(t => (
             <div 
               key={t.id} 
-              className={`relative flex cursor-pointer gap-4 border-b-4 border-black p-4 transition-colors ${t.id === activeThreadId ? 'bg-yellow-200' : 'hover:bg-yellow-100'}`} 
+              className={`relative flex cursor-pointer gap-4 border-b-4 border-black p-4 transition-colors group ${t.id === activeThreadId ? 'bg-yellow-200' : 'hover:bg-yellow-100'}`} 
               onClick={() => { setActiveThreadId(t.id); setShowNewChat(false); }}
             >
               <div className="mt-1 flex-shrink-0">
@@ -267,7 +309,7 @@ export default function Inbox({ user }) {
                   {getInitials(getThreadName(t))}
                 </div>
               </div>
-              <div className="flex flex-1 flex-col min-w-0">
+              <div className="flex flex-1 flex-col min-w-0 pr-6">
                 <div className="mb-1">
                   <span className={`block truncate text-sm uppercase ${t.unread_count > 0 ? 'font-black text-black' : 'font-bold text-gray-800'}`}>
                     {getThreadName(t)}
@@ -285,6 +327,14 @@ export default function Inbox({ user }) {
                 )}
               </div>
               {t.unread_count > 0 && <div className="absolute right-4 top-4 h-3 w-3 border-2 border-black bg-red-500 rounded-full" />}
+              
+              <button
+                className="absolute right-4 bottom-4 hidden group-hover:flex items-center justify-center p-1.5 border-2 border-black bg-white text-red-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-red-500 hover:text-white hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all z-10"
+                onClick={(e) => { e.stopPropagation(); handleClearChat(t.id); }}
+                title="Bersihkan Chat"
+              >
+                <Trash size={14} className="stroke-[3]" />
+              </button>
             </div>
           ))}
           {filteredThreads.length === 0 && !showNewChat && (
@@ -299,45 +349,100 @@ export default function Inbox({ user }) {
       <div className="flex flex-1 flex-col bg-[#fbcfe8]">
         {showNewChat ? (
           <div className="flex h-full flex-col p-8">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-black uppercase text-black">Pesan Baru</h2>
+            <div className="mb-6 flex items-center justify-between border-b-4 border-black pb-4">
+              <h2 className="text-2xl font-black uppercase text-black">
+                {isGroupChat ? 'Buat Grup Baru' : 'Mulai Chat Baru'}
+              </h2>
               <button 
-                onClick={() => { setShowNewChat(false); setSelectedContacts([]) }} 
+                onClick={() => { setShowNewChat(false); setChatCodesList([]); setChatCodeInput(''); setGroupTitle(''); }} 
                 className="border-4 border-black bg-white p-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
               >
                 <X size={24} className="stroke-[3]" />
               </button>
             </div>
             
-            <div className="mb-4 text-sm font-black uppercase text-black">Pilih orang untuk diajak mengobrol:</div>
-            <div className="flex-1 overflow-y-auto border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              {contacts.map(c => (
-                <div 
-                  key={c.id} 
-                  onClick={() => toggleContactSelection(c)} 
-                  className={`flex cursor-pointer items-center border-b-4 border-black p-4 transition-colors ${selectedContacts.find(x => x.id === c.id) ? 'bg-yellow-200' : 'hover:bg-yellow-100'}`}
-                >
-                  <div className="mr-4 flex h-10 w-10 items-center justify-center border-4 border-black bg-purple-300 font-black uppercase text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    {getInitials(c.nama_lengkap)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-black uppercase text-black">{c.nama_lengkap}</div>
-                    <div className="text-xs font-bold capitalize text-gray-700">{c.role}</div>
-                  </div>
-                  {selectedContacts.find(x => x.id === c.id) && <Check size={24} className="stroke-[3] text-black" />}
+            <div className="mb-4 flex gap-4 border-b-4 border-black pb-4">
+              <button 
+                className={`flex-1 border-4 border-black py-2 font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${!isGroupChat ? 'bg-[#ea580c] text-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none' : 'bg-white text-black hover:bg-yellow-100'}`}
+                onClick={() => { setIsGroupChat(false); setChatCodesList([]); setChatCodeInput(''); }}
+              >
+                Chat Personal
+              </button>
+              <button 
+                className={`flex-1 border-4 border-black py-2 font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${isGroupChat ? 'bg-[#3b82f6] text-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none' : 'bg-white text-black hover:bg-yellow-100'}`}
+                onClick={() => { setIsGroupChat(true); setChatCodeInput(''); }}
+              >
+                Grup Chat
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {isGroupChat && (
+                <div className="mb-6">
+                  <label className="mb-2 block text-sm font-black uppercase text-black">Nama Grup (Opsional):</label>
+                  <input 
+                    type="text" 
+                    value={groupTitle}
+                    onChange={(e) => setGroupTitle(e.target.value)}
+                    placeholder="Contoh: Tim Proyek EduTask"
+                    className="w-full border-4 border-black bg-white p-3 font-bold text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none"
+                  />
                 </div>
-              ))}
-              {contacts.length === 0 && (
-                <div className="p-8 text-center text-sm font-black uppercase text-gray-500">Tidak ada kontak yang tersedia untuk Role Anda.</div>
+              )}
+
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-black uppercase text-black">
+                  {isGroupChat ? 'Masukkan Kode Chat Teman:' : 'Masukkan Kode Chat Teman:'}
+                </label>
+                <div className="flex gap-3">
+                  <input 
+                    type="text" 
+                    value={chatCodeInput}
+                    onChange={(e) => setChatCodeInput(e.target.value.toUpperCase())}
+                    placeholder="Contoh: A1B2C3"
+                    maxLength={6}
+                    className="flex-1 border-4 border-black bg-white p-3 font-black tracking-widest text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:bg-yellow-100 outline-none uppercase"
+                    onKeyDown={(e) => { if (e.key === 'Enter' && isGroupChat) handleAddChatCode() }}
+                  />
+                  {isGroupChat && (
+                    <button 
+                      onClick={handleAddChatCode}
+                      disabled={!chatCodeInput.trim() || chatCodeInput.length < 6}
+                      className="border-4 border-black bg-green-400 px-6 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-green-500 hover:translate-x-1 hover:translate-y-1 hover:shadow-none disabled:opacity-50"
+                    >
+                      Tambah
+                    </button>
+                  )}
+                </div>
+                <div className="mt-2 text-xs font-bold text-gray-600">
+                  Minta teman Anda untuk membagikan kode chat unik mereka.
+                </div>
+              </div>
+
+              {isGroupChat && chatCodesList.length > 0 && (
+                <div className="mb-6">
+                  <div className="mb-2 text-sm font-black uppercase text-black">Kode ditambahkan ({chatCodesList.length}):</div>
+                  <div className="flex flex-wrap gap-3">
+                    {chatCodesList.map((code, idx) => (
+                      <div key={idx} className="flex items-center gap-2 border-4 border-black bg-white px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <span className="font-black tracking-widest">{code}</span>
+                        <button onClick={() => handleRemoveChatCode(code)} className="text-red-500 hover:text-red-700">
+                          <X size={16} className="stroke-[3]" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-            <div className="mt-6 flex justify-end">
+
+            <div className="mt-6 flex justify-end border-t-4 border-black pt-6">
               <button 
                 onClick={handleCreateThread} 
                 className="border-4 border-black bg-[#ea580c] px-6 py-3 font-black uppercase text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-[#c2410c] hover:translate-x-1 hover:translate-y-1 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50" 
-                disabled={selectedContacts.length === 0}
+                disabled={isGroupChat ? chatCodesList.length === 0 : !chatCodeInput.trim() || chatCodeInput.length < 6}
               >
-                Mulai Percakapan {selectedContacts.length > 1 ? `(${selectedContacts.length})` : ''}
+                {isGroupChat ? 'Buat Grup' : 'Mulai Percakapan'}
               </button>
             </div>
           </div>
@@ -445,7 +550,7 @@ export default function Inbox({ user }) {
                                   <Smile size={16} />
                                 </button>
                                 {activeReactMenu === msg.id && (
-                                  <div style={{ position: 'absolute', bottom: 35, [isMe ? 'right' : 'left']: 0, background: 'white', border: '1px solid #e5e7eb', padding: '8px', borderRadius: 24, display: 'flex', gap: 6, zIndex: 20, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+                                  <div style={{ position: 'absolute', top: '100%', marginTop: 4, [isMe ? 'right' : 'left']: 0, background: 'white', border: '1px solid #e5e7eb', padding: '8px', borderRadius: 24, display: 'flex', gap: 6, zIndex: 20, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
                                     {emojis.slice(0,6).map(e => (
                                       <span key={e} style={{ cursor: 'pointer', fontSize: '1.4rem', padding: '4px', borderRadius: '50%', transition: 'transform 0.1s', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleReact(msg.id, e)} onMouseEnter={ev => ev.target.style.transform = 'scale(1.2)'} onMouseLeave={ev => ev.target.style.transform = 'scale(1)'}>
                                         {e}
@@ -461,7 +566,7 @@ export default function Inbox({ user }) {
                                     <MoreVertical size={16} />
                                   </button>
                                   {activeMessageMenu === msg.id && (
-                                    <div style={{ position: 'absolute', bottom: 30, right: 0, background: 'white', border: '1px solid #e5e7eb', padding: '4px 0', borderRadius: 8, zIndex: 10, minWidth: 100, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+                                    <div style={{ position: 'absolute', top: '100%', marginTop: 4, right: 0, background: 'white', border: '1px solid #e5e7eb', padding: '4px 0', borderRadius: 8, zIndex: 10, minWidth: 100, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
                                       <div style={{ padding: '8px 12px', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#111827' }} onClick={() => handleEditInit(msg)} onMouseEnter={e => e.target.style.background = '#f3f4f6'} onMouseLeave={e => e.target.style.background = 'transparent'}>
                                         <Edit2 size={14} /> Edit
                                       </div>

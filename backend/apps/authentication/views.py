@@ -296,11 +296,9 @@ class RuangEdukasiListCreateView(generics.ListCreateAPIView):
     serializer_class = RuangEdukasiSerializer
 
     def get_queryset(self):
+        from django.db.models import Q
         user = self.request.user
-        if user.role == User.Role.DOSEN:
-            return RuangEdukasi.objects.filter(kreator=user)
-        else:
-            return RuangEdukasi.objects.filter(anggota=user)
+        return RuangEdukasi.objects.filter(Q(kreator=user) | Q(anggota=user)).distinct()
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -311,7 +309,16 @@ class RuangEdukasiListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return validation_error_response(serializer.errors)
+        
+        is_workspace = serializer.validated_data.get('is_workspace', False)
+        if is_workspace:
+            if not hasattr(request.user, 'subscription') or not request.user.subscription.is_active or request.user.subscription.plan not in ['pro', 'team']:
+                from rest_framework import status
+                return validation_error_response({'detail': ['Pembuatan Workspace Proyek memerlukan langganan PRO atau TEAM.']}, status_code=status.HTTP_403_FORBIDDEN)
+                
         ruang = serializer.save(kreator=request.user)
+        # Tambahkan kreator otomatis sebagai anggota agar filter tasks & ruang konsisten
+        ruang.anggota.add(request.user)
         return success_response(data=self.get_serializer(ruang).data, message=f'Ruang {ruang.nama_ruang} berhasil dibuat.')
 
 class RuangEdukasiDetailView(APIView):
@@ -372,7 +379,7 @@ class RuangEdukasiMemberView(APIView):
             'role': ruang.kreator.role
         }
         
-        anggota_qs = ruang.anggota.all()
+        anggota_qs = ruang.anggota.exclude(id=ruang.kreator.id)
         anggota_data = [
             {
                 'id': a.id,

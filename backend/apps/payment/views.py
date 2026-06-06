@@ -95,6 +95,9 @@ class CreateInvoiceView(APIView):
         plan = PLANS[plan_key]
         user = request.user
 
+        if not user.is_email_verified:
+            return error_response(message='Anda harus memverifikasi email Anda terlebih dahulu sebelum berlangganan paket berbayar.')
+
         # Cek apakah sudah ada invoice pending untuk plan ini
         existing = PaymentProof.objects.filter(
             user=user,
@@ -277,6 +280,9 @@ class SubmitProofView(APIView):
             return error_response(message='Paket tidak valid.')
         if not proof_file:
             return error_response(message='Bukti pembayaran wajib diupload.')
+
+        if not request.user.is_email_verified:
+            return error_response(message='Anda harus memverifikasi email Anda terlebih dahulu sebelum berlangganan paket berbayar.')
 
         if proof_file.size > 5 * 1024 * 1024:
             return error_response(message='Ukuran file maksimal 5MB.')

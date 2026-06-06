@@ -250,9 +250,10 @@ export default function DashboardPage({ roleView = null }) {
       { key: 'Overview', label: 'Overview Ringkas', icon: Sparkles },
     ]
     if (roleView !== 'umum') {
-      baseTabs.push({ key: 'Ruang', label: 'Ruang Edukasi', icon: Users })
+      baseTabs.push({ key: 'Ruang', label: 'Ruang Kelas', icon: Users })
     }
     baseTabs.push(
+      { key: 'Workspace', label: 'Workspace Kolaborasi', icon: Users },
       { key: 'Report',   label: 'Laporan Performa',   icon: BarChart2 },
       { key: 'Inbox',    label: 'Inbox Diskusi',    icon: MessageSquare }
     )
@@ -287,7 +288,13 @@ export default function DashboardPage({ roleView = null }) {
       case 'Ruang':
         return (
           <FeatureGate feature="ruang_edukasi">
-            <RuangEdukasiList role={roleView} />
+            <RuangEdukasiList role={roleView} user={user} isWorkspaceMode={false} />
+          </FeatureGate>
+        )
+      case 'Workspace':
+        return (
+          <FeatureGate feature="inbox">
+            <RuangEdukasiList role={roleView} user={user} isWorkspaceMode={true} />
           </FeatureGate>
         )
       case 'Report':
@@ -354,7 +361,7 @@ export default function DashboardPage({ roleView = null }) {
         </div>
 
         {/* Tab content view */}
-        <div className={`animate-fade-in ${activeTab === 'Inbox' ? 'flex-1 min-h-0 flex flex-col' : ''}`}>
+        <div className={`relative z-50 animate-fade-in ${activeTab === 'Inbox' ? 'flex-1 min-h-0 flex flex-col' : ''}`}>
           {renderTabContent()}
         </div>
       </div>

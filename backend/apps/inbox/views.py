@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import get_user_model
 from apps.common.utils import success_response, validation_error_response
-from .models import ChatThread, Message
+from .models import ChatThread, Message, ThreadClearHistory
 from .serializers import UserContactSerializer, ChatThreadSerializer, MessageSerializer
 
 User = get_user_model()
@@ -29,15 +29,84 @@ class ContactListView(APIView):
         serializer = UserContactSerializer(queryset, many=True)
         return success_response(data=serializer.data, message='Daftar kontak berhasil diambil.')
 
+class CreateChatByCodeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Cek apakah user punya akses PRO
+        if not hasattr(request.user, 'subscription') or not request.user.subscription.is_active or request.user.subscription.plan not in ['pro', 'team']:
+            return validation_error_response({'detail': ['Fitur ini memerlukan langganan PRO atau TEAM.']}, status_code=status.HTTP_403_FORBIDDEN)
+
+        chat_codes = request.data.get('chat_codes', [])
+        title = request.data.get('title', '')
+
+        if not isinstance(chat_codes, list) or not chat_codes:
+            # Also support single code
+            single_code = request.data.get('chat_code')
+            if single_code:
+                chat_codes = [single_code]
+            else:
+                return validation_error_response({'chat_codes': ['Harus memberikan setidaknya satu kode chat.']})
+
+        # Remove own code if mistakenly included
+        chat_codes = list(set([code.upper() for code in chat_codes if code.upper() != request.user.chat_code]))
+
+        if not chat_codes:
+            return validation_error_response({'chat_codes': ['Kode chat tidak valid atau Anda memasukkan kode sendiri.']})
+
+        users = User.objects.filter(chat_code__in=chat_codes)
+        if len(users) != len(chat_codes):
+            return validation_error_response({'chat_codes': ['Satu atau beberapa kode chat tidak ditemukan.']})
+
+        participant_ids = [str(u.id) for u in users] + [str(request.user.id)]
+
+        if len(participant_ids) > 50:
+            return validation_error_response({'chat_codes': ['Maksimal anggota untuk group chat adalah 50 orang.']})
+
+        if len(participant_ids) == 2:
+            # 1-on-1 chat
+            threads = ChatThread.objects.filter(participants=request.user).filter(is_group=False)
+            for t in threads:
+                if t.participants.count() == 2 and t.participants.filter(id=participant_ids[0]).exists():
+                    serializer = ChatThreadSerializer(t, context={'request': request})
+                    return success_response(data=serializer.data, message='Percakapan sudah ada.')
+
+        is_group = len(participant_ids) > 2
+        if is_group and not title:
+            title = "Grup Baru"
+
+        thread = ChatThread.objects.create(title=title if is_group else '', is_group=is_group)
+        thread.participants.set(User.objects.filter(id__in=participant_ids))
+        
+        serializer = ChatThreadSerializer(thread, context={'request': request})
+        return success_response(data=serializer.data, message='Percakapan berhasil dibuat.', status_code=status.HTTP_201_CREATED)
+
 class ThreadListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         threads = ChatThread.objects.filter(participants=request.user)
-        serializer = ChatThreadSerializer(threads, many=True, context={'request': request})
+        valid_threads = []
+        for thread in threads:
+            try:
+                ch = ThreadClearHistory.objects.get(thread=thread, user=request.user)
+                last_msg = thread.messages.order_by('-created_at').first()
+                if last_msg and last_msg.created_at <= ch.cleared_at:
+                    continue
+                if not last_msg:
+                    continue
+            except ThreadClearHistory.DoesNotExist:
+                pass
+            valid_threads.append(thread)
+            
+        serializer = ChatThreadSerializer(valid_threads, many=True, context={'request': request})
         return success_response(data=serializer.data, message='Daftar percakapan berhasil diambil.')
 
     def post(self, request):
+        # Cek apakah user punya akses PRO
+        if not hasattr(request.user, 'subscription') or not request.user.subscription.is_active or request.user.subscription.plan not in ['pro', 'team']:
+            return validation_error_response({'detail': ['Fitur ini memerlukan langganan PRO atau TEAM.']}, status_code=status.HTTP_403_FORBIDDEN)
+
         participant_ids = request.data.get('participants', [])
         title = request.data.get('title', '')
         
@@ -49,6 +118,9 @@ class ThreadListCreateView(APIView):
 
         if len(participant_ids) < 2:
             return validation_error_response({'participants': ['Percakapan harus melibatkan minimal 2 orang.']})
+
+        if len(participant_ids) > 50:
+            return validation_error_response({'participants': ['Maksimal anggota untuk group chat adalah 50 orang.']})
 
         users = User.objects.filter(id__in=participant_ids)
         if len(users) != len(participant_ids):
@@ -84,6 +156,12 @@ class MessageListCreateView(APIView):
             return validation_error_response({'detail': ['Percakapan tidak ditemukan.']}, status_code=status.HTTP_404_NOT_FOUND)
             
         messages = thread.messages.all()
+        try:
+            ch = ThreadClearHistory.objects.get(thread=thread, user=request.user)
+            messages = messages.filter(created_at__gt=ch.cleared_at)
+        except ThreadClearHistory.DoesNotExist:
+            pass
+
         serializer = MessageSerializer(messages, many=True, context={'request': request})
         return success_response(data=serializer.data, message='Pesan berhasil diambil.')
 
@@ -177,3 +255,20 @@ class MessageReactView(APIView):
         
         serializer = MessageSerializer(message, context={'request': request})
         return success_response(data=serializer.data, message='Reaksi berhasil diperbarui.')
+
+class ClearChatView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, thread_id):
+        try:
+            thread = ChatThread.objects.get(pk=thread_id, participants=request.user)
+        except ChatThread.DoesNotExist:
+            return validation_error_response({'detail': ['Percakapan tidak ditemukan.']}, status_code=status.HTTP_404_NOT_FOUND)
+            
+        ch, created = ThreadClearHistory.objects.get_or_create(thread=thread, user=request.user)
+        if not created:
+            from django.utils import timezone
+            ch.cleared_at = timezone.now()
+            ch.save()
+            
+        return success_response(message='Riwayat percakapan berhasil dihapus dari tampilan Anda.')

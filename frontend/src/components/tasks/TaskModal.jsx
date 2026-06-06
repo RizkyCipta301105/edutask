@@ -3,6 +3,7 @@
  * Modal form untuk membuat dan mengedit task
  */
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Calendar, BookOpen, AlignLeft, Save, CircleDashed } from 'lucide-react'
 import { useForm } from '../../hooks/useForm'
 import InputField from '../common/InputField'
@@ -47,8 +48,8 @@ export default function TaskModal({ task = null, mataKuliah = [], onSave, onClos
     }
   })
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
@@ -171,6 +172,7 @@ export default function TaskModal({ task = null, mataKuliah = [], onSave, onClos
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

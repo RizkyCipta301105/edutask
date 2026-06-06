@@ -53,7 +53,16 @@ export default function TaskManagementPage() {
   const [showAllCourses, setShowAllCourses] = useState(false)
 
   // Open task detail or add task from URL parameters
+  const [workspaces, setWorkspaces] = useState([])
+
   useEffect(() => {
+    // Fetch workspaces for the modal
+    import('../services/authService').then(module => {
+      module.default.getRuang().then(data => {
+        setWorkspaces(data.filter(r => r.is_workspace))
+      }).catch(console.error)
+    })
+
     const params = new URLSearchParams(window.location.search)
     const taskId = params.get('task')
     if (taskId) {
@@ -102,7 +111,9 @@ export default function TaskManagementPage() {
       flatList = flatList.filter(t => {
         const judulMatch = t.judul?.toLowerCase().includes(q)
         const deskripsiMatch = t.deskripsi?.toLowerCase().includes(q)
-        return judulMatch || deskripsiMatch
+        const workspaceMatch = t.workspace_detail?.nama_ruang?.toLowerCase().includes(q)
+        const mataKuliahMatch = t.mata_kuliah_detail?.nama?.toLowerCase().includes(q)
+        return judulMatch || deskripsiMatch || workspaceMatch || mataKuliahMatch
       })
     }
     
@@ -359,6 +370,7 @@ export default function TaskManagementPage() {
           onClose={handleCloseModal}
           onCreateTask={handleCreateTask}
           mataKuliah={mataKuliah}
+          workspaces={workspaces}
           initialDeadline={initialDeadline}
         />
       )}

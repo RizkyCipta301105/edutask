@@ -161,7 +161,10 @@ class TaskListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        qs = Task.objects.filter(user=request.user).select_related('mata_kuliah')
+        from django.db.models import Q
+        qs = Task.objects.filter(
+            Q(user=request.user) | Q(workspace__anggota=request.user) | Q(workspace__kreator=request.user)
+        ).select_related('mata_kuliah', 'workspace').distinct()
 
         status_q      = request.query_params.get('status')
         prioritas_q   = request.query_params.get('prioritas')
@@ -208,6 +211,8 @@ class TaskDetailView(APIView):
     def get_object(self, pk, user):
         task = get_object_or_404(Task, pk=pk)
         if task.user == user:
+            return task
+        if task.workspace and task.workspace.anggota.filter(id=user.id).exists():
             return task
         if task.source_assignment and task.source_assignment.dosen == user:
             return task
@@ -260,9 +265,10 @@ class KanbanBoardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from django.db.models import Q
         tasks = Task.objects.filter(
-            user=request.user
-        ).select_related('mata_kuliah').order_by('urutan', 'deadline')
+            Q(user=request.user) | Q(workspace__anggota=request.user) | Q(workspace__kreator=request.user)
+        ).select_related('mata_kuliah', 'workspace').order_by('urutan', 'deadline').distinct()
 
         serialized = TaskSerializer(tasks, many=True, context={'request': request}).data
 
@@ -286,7 +292,11 @@ class KanbanMoveView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk):
-        task = get_object_or_404(Task, pk=pk, user=request.user)
+        task = get_object_or_404(Task, pk=pk)
+        if task.user != request.user and not (task.workspace and task.workspace.anggota.filter(id=request.user.id).exists()):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied("Anda tidak memiliki akses untuk memindahkan tugas ini.")
+        
         ser  = KanbanMoveSerializer(data=request.data)
 
         if not ser.is_valid():

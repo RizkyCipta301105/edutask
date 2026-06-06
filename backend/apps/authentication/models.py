@@ -22,6 +22,7 @@ class RuangEdukasi(models.Model):
     deskripsi = models.TextField(blank=True, verbose_name='Deskripsi')
     kreator = models.ForeignKey('User', on_delete=models.CASCADE, related_name='ruang_dibuat')
     anggota = models.ManyToManyField('User', related_name='ruang_diikuti', blank=True)
+    is_workspace = models.BooleanField(default=False, verbose_name='Apakah Workspace Proyek?')
     
     class HariPilihan(models.IntegerChoices):
         SENIN = 1, 'Senin'
@@ -125,13 +126,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=Role.UMUM,
         verbose_name='Role'
     )
-    nrp = models.CharField(
-        max_length=30,
-        unique=True,
-        null=True,
-        blank=True,
-        verbose_name='NRP / NIM'
-    )
     prodi = models.CharField(
         max_length=100,
         blank=True,
@@ -145,17 +139,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         related_name='mahasiswa_list',
         verbose_name='Kelas Mahasiswa'
     )
-    nip = models.CharField(
-        max_length=30,
-        unique=True,
-        null=True,
-        blank=True,
-        verbose_name='NIP'
-    )
     mata_kuliah = models.CharField(
         max_length=120,
         blank=True,
         verbose_name='Mata Kuliah Dosen'
+    )
+
+    # Kode Undangan Chat
+    chat_code = models.CharField(
+        max_length=6, unique=True, null=True, blank=True, verbose_name='Kode Chat'
     )
 
     # Status
@@ -180,6 +172,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.nama_lengkap} <{self.email}>'
+
+    def save(self, *args, **kwargs):
+        if not self.chat_code:
+            # Generate if doesn't exist, handle uniqueness
+            self.chat_code = generate_join_code()
+            # Basic collision prevention
+            while User.objects.filter(chat_code=self.chat_code).exists():
+                self.chat_code = generate_join_code()
+        super().save(*args, **kwargs)
 
     @property
     def is_pens_user(self):
