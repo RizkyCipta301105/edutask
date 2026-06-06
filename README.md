@@ -362,10 +362,11 @@ Base URL: `http://localhost:8000`
 | JWT Authentication | `djangorestframework-simplejwt` |
 | Token blacklist saat logout | `rest_framework_simplejwt.token_blacklist` |
 | Auto token refresh | Axios interceptor di frontend |
-| CORS | `django-cors-headers` |
+| CORS | `django-cors-headers` + `.env` validation |
 | Input validation | DRF Serializers + Django password validators |
 | Data isolation | Semua queryset difilter berdasarkan `request.user` |
 | Role-based access | `IsRole` permission class + `RoleRoute` di frontend |
+| Production Middlewares | `SECURE_SSL_REDIRECT`, `SECURE_BROWSER_XSS_FILTER`, `SESSION_COOKIE_SECURE`, `SECURE_CONTENT_TYPE_NOSNIFF` |
 
 ---
 
@@ -494,6 +495,9 @@ Lihat [`cypress/SMOKE_TEST_REPORT.md`](frontend/cypress/SMOKE_TEST_REPORT.md) un
 | Google OAuth 500 Internal Server Error | `error_response()` dipanggil dengan keyword argument `code` yang tidak valid | Ganti `code=` menjadi `status_code=` di `google_views.py` |
 | Google OAuth 401 "Token used too early" | Clock komputer maju ~1 menit dari Google server (clock skew) | Tambah `clock_skew_in_seconds=120` ke `id_token.verify_oauth2_token()` |
 | `settings.py` membaca `GOOGLE_OAUTH_CLIENT_ID` tapi `.env` pakai `GOOGLE_CLIENT_ID` | Nama env variable tidak konsisten | Seragamkan ke `GOOGLE_CLIENT_ID` di `settings.py` dan `google_views.py` |
+| Group Chat member spam | Tidak ada limit jumlah anggota dalam pembuatan chat | Tambah limit maksimum 50 orang per `ChatThread` di backend |
+| Fitur Hapus Chat Pihak Tunggal | Kebutuhan untuk membersihkan *inbox* secara lokal tanpa menghapus untuk orang lain | Implementasi model `ThreadClearHistory` untuk *filter* mandiri berdasarkan `cleared_at` |
+| Keamanan Server Pra-Deploy | Server kurang tangguh untuk dipublish ke public cloud | Tambah SSL, XSS, dan CSRF Cookie secure configs berbasis `.env` di `settings.py` |
 
 
 ## 🚀 Roadmap Berikutnya
