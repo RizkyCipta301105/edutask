@@ -98,3 +98,5 @@ frontend/cypress/screenshots/
 *.pdf
 *.pptx
 *.xlsx
+*.md
+!README.md
