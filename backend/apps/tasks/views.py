@@ -542,8 +542,23 @@ class PenugasanExportView(APIView):
 class TaskCommentListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
+    def _get_task_for_user(self, pk, user):
+        """Ambil task hanya jika user punya akses (pemilik, anggota workspace, atau dosen penugasan)."""
         task = get_object_or_404(Task, pk=pk)
+        if task.user == user:
+            return task
+        if task.workspace and (
+            task.workspace.kreator == user or
+            task.workspace.anggota.filter(id=user.id).exists()
+        ):
+            return task
+        if task.source_assignment and task.source_assignment.dosen == user:
+            return task
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied("Anda tidak memiliki akses ke komentar tugas ini.")
+
+    def get(self, request, pk):
+        task = self._get_task_for_user(pk, request.user)
         comments = TaskComment.objects.filter(task=task)
         return success_response(
             data=TaskCommentSerializer(comments, many=True).data,
@@ -551,7 +566,7 @@ class TaskCommentListCreateView(APIView):
         )
 
     def post(self, request, pk):
-        task = get_object_or_404(Task, pk=pk)
+        task = self._get_task_for_user(pk, request.user)
         ser = TaskCommentSerializer(data=request.data)
         if ser.is_valid():
             ser.save(task=task, user=request.user)

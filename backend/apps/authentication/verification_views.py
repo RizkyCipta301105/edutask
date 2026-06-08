@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 import threading
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from apps.common.permissions import PasswordResetRateThrottle
 
 class EmailThread(threading.Thread):
     def __init__(self, subject, message, from_email, recipient_list):
@@ -88,6 +89,7 @@ class VerifyEmailView(APIView):
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request):
         email = request.data.get('email')

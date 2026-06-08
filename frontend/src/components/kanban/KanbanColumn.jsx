@@ -79,9 +79,6 @@ export default function KanbanColumn({
         {/* Empty state */}
         {tasks.length === 0 && (
           <div className="flex flex-col items-center justify-center h-24 text-primary-300 text-xs text-center gap-1 select-none">
-            <span className="text-2xl">
-              {colKey === 'todo' ? '📋' : colKey === 'in_progress' ? '⚙️' : '✅'}
-            </span>
             <span>{isOver ? 'Lepaskan di sini' : 'Belum ada task'}</span>
           </div>
         )}

@@ -23,13 +23,14 @@ const DEFAULT_FEATURES = {
   kanban: true,
   calendar: true,
   notifications: true,
-  ruang_edukasi: false,
+  // Ruang Edukasi tidak ada di sini — aksesnya ditentukan oleh role user, bukan plan
   inbox: false,
   broadcast: false,
   analytics: false,
   export_csv: false,
-  multiple_ruang: false,
-  max_members: 1,
+  // Workspace proyek limits (FREE defaults)
+  max_workspace: 1,
+  max_members_per_workspace: 3,
 }
 
 export function useSubscription() {
@@ -60,6 +61,9 @@ export function useSubscription() {
   const plan = subscription?.plan ?? 'free'
   const isActive = subscription?.is_active ?? false
 
+  // Helper: apakah user bisa akses Ruang Edukasi (cek di komponen pakai user.role)
+  // isPro / isTeam hanya untuk fitur inbox, broadcast, analytics, workspace proyek extra
+
   return {
     subscription,
     features,
@@ -68,6 +72,9 @@ export function useSubscription() {
     isFree: plan === 'free' || !isActive,
     isPro: (plan === 'pro' || plan === 'team') && isActive,
     isTeam: plan === 'team' && isActive,
+    // Batas workspace proyek (dari features yang datang dari backend)
+    maxWorkspace: features.max_workspace,                         // null = unlimited
+    maxMembersPerWorkspace: features.max_members_per_workspace,
     loading,
     refetch: fetchSubscription,
   }

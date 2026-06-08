@@ -133,6 +133,19 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon':             '100/hour',
+        'user':             '1000/hour',
+        'login':            '10/min',
+        'register':         '5/min',
+        'password_reset':   '5/hour',
+        'google_login':     '10/min',
+        'change_password':  '5/hour',
+    },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'EXCEPTION_HANDLER': 'apps.common.exceptions.edutask_exception_handler',
@@ -192,11 +205,9 @@ GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default=None)
 APSCHEDULER_DATETIME_FORMAT = 'N j, Y, f:s a'  # Format tampilan waktu di admin
 APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Timeout (detik) untuk job yang dijalankan manual
 
-# ─── BayarIn Payment Gateway ──────────────────────────────────────────────────
-BAYARIN_API_KEY = config('BAYARIN_API_KEY', default='')
-BAYARIN_WEBHOOK_SECRET = config('BAYARIN_WEBHOOK_SECRET', default='')
-BAYARIN_BASE_URL = config('BAYARIN_BASE_URL', default='http://localhost:8001')
-BAYARIN_FRONTEND_URL = config('BAYARIN_FRONTEND_URL', default='http://localhost:5174')
+# ─── KlikQRIS Payment Gateway ─────────────────────────────────────────────────
+KLIKQRIS_API_KEY    = config('KLIKQRIS_API_KEY',    default='0zxexZuuVkwYWE0cp8OFIXvPYCHxpBeqf7qaQ2Iv')
+KLIKQRIS_MERCHANT   = config('KLIKQRIS_MERCHANT_ID', default='178038526372')
 EDUTASK_BASE_URL = config('EDUTASK_BASE_URL', default='http://localhost:8000')
 EDUTASK_FRONTEND_URL = config('EDUTASK_FRONTEND_URL', default='http://localhost:5173')
 

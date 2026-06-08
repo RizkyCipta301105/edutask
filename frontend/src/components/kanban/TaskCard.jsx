@@ -111,7 +111,7 @@ export default function TaskCard({ task, onEdit, onDelete }) {
       {task.mata_kuliah_detail && (
         <div className="mb-2">
           <span className="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 font-medium">
-            📚 {task.mata_kuliah_detail.nama}
+            {task.mata_kuliah_detail.nama}
           </span>
         </div>
       )}

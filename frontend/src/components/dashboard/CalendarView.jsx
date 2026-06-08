@@ -264,12 +264,12 @@ export default function CalendarView({
             <div className="calendar-hover-popover z-[100]">
               {dayClasses.slice(0, 3).map(mk => (
                 <div key={mk.id} className="calendar-popover-item" style={{ borderLeft: `3px solid ${mk.warna || '#B8842A'}`, background: '#f8fafc', color: '#1e293b' }}>
-                  🕒 {mk.nama}
+                  {mk.nama}
                 </div>
               ))}
               {dayTasks.slice(0, 3).map(t => (
                 <div key={t.id} className="calendar-popover-item" style={{ borderLeft: '3px solid #f59e0b', background: '#fffbeb', color: '#b45309' }}>
-                  📅 {t.judul}
+                  {t.judul}
                 </div>
               ))}
               {(dayClasses.length > 3 || dayTasks.length > 3) && (
@@ -426,6 +426,7 @@ export default function CalendarView({
           box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
           padding: 24px;
           height: 100%;
+          overflow: hidden;
         }
         
         .calendar-main-layout {
@@ -450,6 +451,7 @@ export default function CalendarView({
           box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
           display: flex;
           flex-direction: column;
+          min-width: 0;
         }
 
         .calendar-navigation-header {
@@ -488,9 +490,19 @@ export default function CalendarView({
 
         .calendar-grid-container {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
+          grid-template-columns: repeat(7, minmax(0, 1fr));
           gap: 8px;
           flex: 1;
+          width: 100%;
+        }
+
+        @media (max-width: 768px) {
+          .calendar-grid-container {
+            gap: 4px;
+          }
+          .calendar-grid-panel {
+            padding: 12px;
+          }
         }
 
         .calendar-day-label {
@@ -506,8 +518,8 @@ export default function CalendarView({
 
         .calendar-cell {
           border: 2px solid #000;
-          padding: 10px 8px;
-          min-height: 75px;
+          padding: 8px 6px;
+          min-height: 60px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -516,6 +528,22 @@ export default function CalendarView({
           position: relative;
           transition: transform 0.2s;
           box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+        }
+
+        @media (max-width: 480px) {
+          .calendar-cell {
+            padding: 4px;
+            min-height: 50px;
+            border: 1px solid #000;
+            box-shadow: 1px 1px 0px 0px rgba(0,0,0,1);
+          }
+          .calendar-date-number {
+            font-size: 0.8rem;
+          }
+          .calendar-day-label {
+            font-size: 0.7rem;
+            padding-bottom: 4px;
+          }
         }
 
         .calendar-cell:hover:not(.empty) {

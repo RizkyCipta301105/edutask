@@ -916,9 +916,8 @@
   .edutask-dashboard .inbox-sidebar { width: 300px; min-width: 300px; }
   .edutask-dashboard .settings-row { flex-direction: column; }
   .edutask-dashboard .settings-left { width: 100%; padding-right: 0; margin-bottom: 16px; }
+  .edutask-dashboard .report-main-grid { grid-template-columns: 1fr; }
 }
-
-/* ── Profile Dropdown ───────────────────────── */
 .edutask-dashboard .profile-dropdown {
   position: absolute;
   top: 100%;
@@ -959,39 +958,69 @@
 
 
 @media (max-width: 768px) {
+  /* Sidebar: off-canvas slide-in */
   .edutask-dashboard .mobile-menu-btn { display: inline-flex !important; align-items: center; justify-content: center; order: 1; color: #111827; }
   .edutask-dashboard .sidebar-overlay { display: block !important; }
   .edutask-dashboard .sidebar {
     position: fixed;
-    z-index: 50;
+    z-index: 105;
     left: -280px;
     top: 0;
     bottom: 0;
+    width: 260px;
+    min-width: 260px;
     transition: left 0.3s ease;
   }
-  .edutask-dashboard .sidebar.open { left: 0; box-shadow: 4px 0 24px rgba(0,0,0,0.1); }
-  .edutask-dashboard .header { padding-top: 16px; gap: 12px; flex-wrap: wrap; }
-  .edutask-dashboard .search-bar { display: flex; width: 100%; order: 3; margin-top: 4px; }
+  .edutask-dashboard .sidebar.open { left: 0; box-shadow: 4px 0 24px rgba(0,0,0,0.15); }
+
+  /* Header */
+  .edutask-dashboard .header { padding-top: 12px; gap: 8px; flex-wrap: wrap; }
+  .edutask-dashboard .search-bar { display: flex; width: 100%; order: 3; margin-top: 12px; }
   .edutask-dashboard .header-actions { margin-left: auto; order: 2; }
+
+  /* Main content padding */
+  .edutask-dashboard .main-content { padding: 12px 16px; }
+
+  /* Page header */
   .edutask-dashboard .page-header { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
   .edutask-dashboard .page-title { font-size: 1.3rem; }
   .edutask-dashboard .page-controls { width: 100%; overflow-x: auto; gap: 12px; padding-bottom: 4px; }
   .edutask-dashboard .control-label { display: none; }
-  .edutask-dashboard .kanban-board { height: 100%; gap: 16px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding-bottom: 16px; }
-  .edutask-dashboard .kanban-col { width: 280px; min-width: 280px; scroll-snap-align: start; }
+
+  /* Kanban */
+  .edutask-dashboard .kanban-board { height: auto; gap: 16px; flex-direction: column; overflow-x: hidden; padding-bottom: 16px; }
+  .edutask-dashboard .kanban-col { width: 100%; min-width: 100%; }
+  .edutask-dashboard .kanban-cards-container { max-height: none; overflow-y: visible; }
+
+  /* Inbox */
   .edutask-dashboard .inbox-layout { flex-direction: column; }
   .edutask-dashboard .inbox-sidebar { width: 100%; min-width: 100%; max-height: 40vh; border-right: none; border-bottom: 1px solid #e5e7eb; }
-  .edutask-dashboard .chat-input-area { padding: 16px; flex-wrap: wrap; gap: 8px; }
+  .edutask-dashboard .chat-input-area { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
   .edutask-dashboard .chat-input-box { width: 100%; order: 1; }
   .edutask-dashboard .chat-icons { order: 2; }
   .edutask-dashboard .chat-send-btn { order: 3; margin-left: auto; }
+
+  /* Settings */
   .edutask-dashboard .settings-row { flex-direction: column; }
   .edutask-dashboard .settings-left { width: 100%; padding-right: 0; margin-bottom: 16px; }
-  .edutask-dashboard .report-stats-grid { grid-template-columns: 1fr; gap: 16px; }
+  .edutask-dashboard .deactivate-card { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .edutask-dashboard .session-item { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .edutask-dashboard .auth-status { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* Report */
+  .edutask-dashboard .report-stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .edutask-dashboard .report-main-grid { grid-template-columns: 1fr; }
+  .edutask-dashboard .report-section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+  /* Backlog task rows */
   .edutask-dashboard .task-row { flex-direction: column; gap: 12px; padding: 12px; }
   .edutask-dashboard .task-labels { flex-wrap: wrap; }
-  .edutask-dashboard .dashboard-tabs { overflow-x: auto; }
+
+  /* Dashboard tabs */
+  .edutask-dashboard .dashboard-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Notification dropdown */
+  .edutask-dashboard .notif-dropdown { width: 280px; right: -60px; }
 }
 
 @media (max-width: 480px) {
@@ -999,6 +1028,11 @@
   .edutask-dashboard .kanban-col { width: 240px; min-width: 240px; }
   .edutask-dashboard .kanban-card { padding: 12px; }
   .edutask-dashboard .btn-dark { padding: 6px 12px; font-size: 0.8rem; }
+  .edutask-dashboard .report-stats-grid { grid-template-columns: 1fr; gap: 12px; }
+  .edutask-dashboard .header { gap: 6px; }
+  .edutask-dashboard .notif-dropdown { width: 260px; right: -80px; }
+  /* Stack header action icons tighter on very small screens */
+  .edutask-dashboard .main-content { padding: 8px 12px; }
 }
 
 /* ── Layout & Sidebar (Yahya) ───────────────── */
@@ -1034,9 +1068,15 @@
 }
 
 
+@media (max-width: 1024px) {
+  .edutask-dashboard .main-content {
+    padding: 20px 24px;
+  }
+}
+
 @media (max-width: 768px) {
   .edutask-dashboard .main-content {
-    padding: 16px 20px;
+    padding: 12px 16px;
   }
 }
 
@@ -1240,7 +1280,7 @@
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.4);
-  z-index: 40;
+  z-index: 104;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;

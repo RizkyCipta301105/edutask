@@ -256,72 +256,85 @@ export default function TaskManagementPage() {
 
   return (
     <AppLayout showSearch={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
-      <div className="p-8">
+      <div className="p-3 md:p-6 lg:p-8">
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-4 border-black pb-6 gap-4 bg-yellow-300 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <div>
-            <h1 className="text-4xl font-black text-black uppercase">{role === 'umum' ? 'Tugas & Proyek' : 'Tugas Akademik'}</h1>
-            <p className="font-bold text-black border-2 border-black bg-white inline-block px-3 py-1 mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              {role === 'umum' 
-                ? 'Kelola tugas dan proyek' 
-                : 'Kelola tugas kuliah'}
-            </p>
-          </div>
-          
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 self-start md:self-auto">
-            {/* Horizontal pill navigation bar */}
-            <div className="flex flex-wrap bg-white p-2 gap-2 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative z-10">
-              {filteredTabs.map(t => {
-                const Icon = t.icon
-                const isActive = activeTab === t.key
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => setActiveTab(t.key)}
-                    className={`relative flex items-center gap-2 px-4 py-2 font-black uppercase transition-all duration-200 z-10 ${
-                      isActive 
-                        ? 'text-white translate-x-[1px] translate-y-[1px]' 
-                        : 'border-2 border-black bg-white text-black hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1'
-                    }`}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="taskTabIndicator"
-                        className="absolute inset-0 bg-[#ea580c] border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] z-[-1]"
-                        initial={false}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                    <Icon size={18} className="stroke-2 relative z-10" />
-                    <span className="relative z-10">{t.label}</span>
-                  </button>
-                )
-              })}
+        {/* ── Neo-Brut Header ── */}
+        <div className="relative mb-5 md:mb-8 overflow-hidden border-[5px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-[#FF4D00]">
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 1.5px, transparent 0, transparent 10px)', backgroundSize: '14px 14px' }} />
+          <div className="relative z-10 p-4 md:p-6 flex flex-col gap-4">
+            <div>
+              <div className="inline-block bg-black text-white font-black text-xs uppercase px-3 py-1 mb-2 -rotate-1 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]">
+                {role === 'dosen' ? 'Manajemen Tugas' : 'Task Manager'}
+              </div>
+              <h1 className="text-3xl md:text-5xl font-black text-white uppercase leading-none tracking-tight" style={{ textShadow: '4px 4px 0px rgba(0,0,0,0.3)' }}>
+                {role === 'umum' ? 'Tugas & Proyek' : 'Tugas Akademik'}
+              </h1>
+              <div className="mt-2 border-[3px] border-black bg-white inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rotate-1">
+                <span className="font-black text-black text-xs md:text-sm uppercase">
+                  {role === 'umum' ? 'Kelola tugas & proyek' : 'Kelola tugas kuliah'}
+                </span>
+              </div>
             </div>
             
-            <button 
-              className="border-4 border-black bg-pink-400 px-6 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center gap-2 cursor-pointer"
-              onClick={handleAddTask}
-            >
-              <Plus size={20} className="stroke-2" />
-              Tambah Task
-            </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* Tab navigation — scrollable on mobile */}
+              <div className="overflow-x-auto flex-1 -mx-1 px-1">
+                <div className="flex border-[3px] border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative z-10 min-w-max">
+                  {filteredTabs.map(t => {
+                    const Icon = t.icon
+                    const isActive = activeTab === t.key
+                    return (
+                      <button
+                        key={t.key}
+                        onClick={() => setActiveTab(t.key)}
+                        className={`relative flex items-center gap-2 px-4 md:px-5 py-3 font-black uppercase transition-all duration-150 z-10 text-xs md:text-sm whitespace-nowrap border-r-[3px] border-black last:border-r-0 ${
+                          isActive
+                            ? 'bg-[#FFE500] text-black'
+                            : 'bg-white text-black hover:bg-[#FFE500]/40'
+                        }`}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="taskTabIndicator"
+                            className="absolute inset-0 bg-[#FFE500] z-[-1]"
+                            initial={false}
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          />
+                        )}
+                        {isActive && (
+                          <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-black" />
+                        )}
+                        <Icon size={14} className="stroke-[2.5] relative z-10 shrink-0" />
+                        <span className="relative z-10">{t.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              
+              <button 
+                className="border-[4px] border-black bg-[#FFE500] px-4 md:px-6 py-3 font-black uppercase text-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer flex-shrink-0 text-sm"
+                onClick={handleAddTask}
+              >
+                <Plus size={18} className="stroke-[3]" />
+                Tambah Task
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Course Filter Pills */}
         {mataKuliah && mataKuliah.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 mb-6 bg-blue-300 p-4 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <span className="font-black text-black uppercase tracking-wider mr-2 bg-white px-2 py-1 border-2 border-black">
-              {role === 'umum' ? 'Filter Agenda:' : 'Filter Kelas:'}
+          <div className="flex flex-wrap items-center gap-2 mb-6 bg-[#00cfff] p-3 md:p-4 border-[4px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <span className="font-black text-black uppercase text-xs bg-white px-2 py-1 border-[2px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mr-1 flex-shrink-0">
+              {role === 'umum' ? 'Filter:' : 'Filter Kelas:'}
             </span>
             <button
               onClick={() => setSelectedCourseId(null)}
-              className={`px-4 py-2 border-2 border-black font-black uppercase transition-all flex-shrink-0 ${
+              className={`px-3 py-1.5 border-[2px] border-black font-black uppercase text-xs transition-all flex-shrink-0 ${
                 selectedCourseId === null
                   ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                  : 'bg-white text-black hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                  : 'bg-white text-black hover:bg-[#FFE500]'
               }`}
             >
               Semua
@@ -330,29 +343,29 @@ export default function TaskManagementPage() {
               <button
                 key={mk.id}
                 onClick={() => setSelectedCourseId(prev => prev === mk.id ? null : mk.id)}
-                className={`px-4 py-2 border-2 border-black font-black uppercase transition-all flex items-center gap-2 flex-shrink-0 ${
+                className={`px-3 py-1.5 border-[2px] border-black font-black uppercase text-xs transition-all flex items-center gap-1.5 flex-shrink-0 ${
                   selectedCourseId === mk.id
                     ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                    : 'bg-white text-black hover:bg-yellow-300 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                    : 'bg-white text-black hover:bg-[#FFE500]'
                 }`}
               >
-                <span className="w-3 h-3 border border-black shadow-sm" style={{ backgroundColor: mk.warna || '#B8842A' }} />
+                <span className="w-2.5 h-2.5 border border-black" style={{ backgroundColor: mk.warna || '#B8842A' }} />
                 {mk.nama}
               </button>
             ))}
             {mataKuliah.length > 3 && (
               <button
                 onClick={() => setShowAllCourses(!showAllCourses)}
-                className="px-4 py-2 border-2 border-black bg-pink-200 font-black uppercase text-black hover:bg-pink-300 transition-all flex items-center gap-1 flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                className="px-3 py-1.5 border-[2px] border-black bg-[#FF6B9D] font-black uppercase text-xs text-black hover:bg-[#e91e8c] transition-all flex items-center gap-1 flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               >
-                {showAllCourses ? 'Sembunyikan' : `+ ${mataKuliah.length - 3} Lainnya`}
+                {showAllCourses ? '▲ Sembunyikan' : `+ ${mataKuliah.length - 3} Lainnya`}
               </button>
             )}
             <button
               onClick={() => setShowMataKuliahModal(true)}
-              className="px-4 py-2 border-2 border-dashed border-black bg-white font-black uppercase text-black hover:bg-yellow-300 flex items-center gap-1 ml-auto shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              className="px-3 py-1.5 border-[2px] border-dashed border-black bg-white font-black uppercase text-xs text-black hover:bg-[#FFE500] flex items-center gap-1 ml-auto shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             >
-              <Plus size={16} className="stroke-2" /> {role === 'umum' ? 'Edit Agenda' : 'Edit Kelas'}
+              <Plus size={12} className="stroke-[2.5]" /> {role === 'umum' ? 'Edit Agenda' : 'Edit Kelas'}
             </button>
           </div>
         )}

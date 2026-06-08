@@ -1,8 +1,43 @@
 """
-Reusable DRF permission classes for role-based access.
+Reusable DRF permission classes and throttle classes for EduTask.
 """
 from rest_framework.permissions import BasePermission
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
+
+# ─── Throttle Classes ────────────────────────────────────────────────────────
+
+class LoginRateThrottle(AnonRateThrottle):
+    """Max 10 percobaan login per menit per IP."""
+    scope = 'login'
+    rate = '10/min'
+
+
+class RegisterRateThrottle(AnonRateThrottle):
+    """Max 5 registrasi per menit per IP."""
+    scope = 'register'
+    rate = '5/min'
+
+
+class PasswordResetRateThrottle(AnonRateThrottle):
+    """Max 5 permintaan reset password per jam per IP."""
+    scope = 'password_reset'
+    rate = '5/hour'
+
+
+class GoogleLoginRateThrottle(AnonRateThrottle):
+    """Max 10 percobaan Google login per menit per IP."""
+    scope = 'google_login'
+    rate = '10/min'
+
+
+class ChangePasswordRateThrottle(UserRateThrottle):
+    """Max 5 ganti password per jam per user."""
+    scope = 'change_password'
+    rate = '5/hour'
+
+
+# ─── Permission Classes ───────────────────────────────────────────────────────
 
 class IsRole(BasePermission):
     """

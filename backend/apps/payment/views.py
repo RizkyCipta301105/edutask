@@ -1,6 +1,8 @@
 import hmac
 import hashlib
+import uuid
 import json
+import logging
 import requests
 from datetime import timedelta
 from django.utils import timezone
@@ -11,10 +13,75 @@ from apps.common.utils import success_response, error_response
 from .models import Subscription, PaymentProof
 from .serializers import SubscriptionSerializer, PaymentProofSerializer
 
+logger = logging.getLogger(__name__)
+
 PLANS = {
     'pro':  {'name': 'EduTask Pro',  'price': 4999},
     'team': {'name': 'EduTask Team', 'price': 9999},
 }
+
+# ─── KlikQRIS Helpers ─────────────────────────────────────────────────────────
+# Baca dari settings (di-load dari .env via django-decouple) — tidak hardcoded
+
+KLIKQRIS_BASE_URL = 'https://klikqris.com/api'
+KLIKQRIS_API_KEY  = getattr(settings, 'KLIKQRIS_API_KEY',  '')
+KLIKQRIS_MERCHANT = getattr(settings, 'KLIKQRIS_MERCHANT', '')
+
+
+def _klikqris_headers():
+    return {
+        'Content-Type': 'application/json',
+        'x-api-key': KLIKQRIS_API_KEY,
+        'id_merchant': KLIKQRIS_MERCHANT,
+    }
+
+
+def _klikqris_create(order_id: str, amount: int, keterangan: str = '') -> dict:
+    """Buat transaksi QRIS baru di KlikQRIS."""
+    payload = {
+        'order_id':    order_id,
+        'id_merchant': KLIKQRIS_MERCHANT,
+        'amount':      amount,
+        'keterangan':  keterangan,
+    }
+    try:
+        resp = requests.post(
+            f'{KLIKQRIS_BASE_URL}/qris/create',
+            json=payload,
+            headers=_klikqris_headers(),
+            timeout=15,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except requests.exceptions.ConnectionError:
+        raise RuntimeError('Tidak dapat terhubung ke KlikQRIS.')
+    except requests.exceptions.Timeout:
+        raise RuntimeError('KlikQRIS tidak merespons (timeout).')
+    except requests.exceptions.HTTPError as e:
+        detail = ''
+        try:
+            detail = e.response.json().get('message', '')
+        except Exception:
+            pass
+        raise RuntimeError(f'KlikQRIS error: {detail or str(e)}')
+
+
+def _klikqris_check(order_id: str) -> dict:
+    """Cek status transaksi di KlikQRIS."""
+    try:
+        resp = requests.get(
+            f'{KLIKQRIS_BASE_URL}/qris/status/{order_id}',
+            headers=_klikqris_headers(),
+            timeout=15,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except requests.exceptions.ConnectionError:
+        raise RuntimeError('Tidak dapat terhubung ke KlikQRIS.')
+    except requests.exceptions.Timeout:
+        raise RuntimeError('KlikQRIS tidak merespons (timeout).')
+    except requests.exceptions.HTTPError as e:
+        raise RuntimeError(f'KlikQRIS error: {str(e)}')
 
 
 def get_or_create_subscription(user):
@@ -23,47 +90,6 @@ def get_or_create_subscription(user):
         defaults={'plan': Subscription.Plan.FREE, 'status': Subscription.Status.ACTIVE}
     )
     return sub
-
-
-def _call_bayarin(method: str, path: str, **kwargs):
-    """Helper untuk memanggil Bayarin API dengan API Key dari settings."""
-    base_url = getattr(settings, 'BAYARIN_BASE_URL', 'http://localhost:8001')
-    api_key = getattr(settings, 'BAYARIN_API_KEY', '')
-    url = f"{base_url}{path}"
-    headers = {
-        'X-API-Key': api_key,
-        'Content-Type': 'application/json',
-    }
-    try:
-        resp = requests.request(method, url, headers=headers, timeout=10, **kwargs)
-        resp.raise_for_status()
-        return resp.json()
-    except requests.exceptions.ConnectionError:
-        raise RuntimeError('Tidak dapat terhubung ke Bayarin. Pastikan Bayarin backend berjalan.')
-    except requests.exceptions.Timeout:
-        raise RuntimeError('Bayarin tidak merespons (timeout).')
-    except requests.exceptions.HTTPError as e:
-        detail = ''
-        try:
-            detail = e.response.json().get('detail', '')
-        except Exception:
-            pass
-        raise RuntimeError(f'Bayarin error: {detail or str(e)}')
-
-
-def _verify_bayarin_signature(invoice_id: str, status: str, amount: int,
-                               timestamp: int, signature: str) -> bool:
-    """Verifikasi HMAC-SHA256 signature dari webhook Bayarin."""
-    secret = getattr(settings, 'BAYARIN_WEBHOOK_SECRET', '')
-    if not secret:
-        return False
-    message = f"{invoice_id}|{status}|{amount}|{timestamp}"
-    expected = hmac.new(
-        secret.encode('utf-8'),
-        message.encode('utf-8'),
-        hashlib.sha256
-    ).hexdigest()
-    return hmac.compare_digest(expected, signature)
 
 
 # ─── Views ────────────────────────────────────────────────────────────────────
@@ -83,7 +109,7 @@ class MySubscriptionView(APIView):
 class CreateInvoiceView(APIView):
     """
     POST /api/payment/create-invoice/
-    Buat invoice di Bayarin dan kembalikan payment_url ke frontend.
+    Buat transaksi QRIS di KlikQRIS dan kembalikan data QR ke frontend.
     """
     permission_classes = [IsAuthenticated]
 
@@ -96,168 +122,214 @@ class CreateInvoiceView(APIView):
         user = request.user
 
         if not user.is_email_verified:
-            return error_response(message='Anda harus memverifikasi email Anda terlebih dahulu sebelum berlangganan paket berbayar.')
+            return error_response(message='Verifikasi email Anda terlebih dahulu sebelum berlangganan.')
 
         # Cek apakah sudah ada invoice pending untuk plan ini
         existing = PaymentProof.objects.filter(
             user=user,
             plan=plan_key,
-            status=PaymentProof.Status.PENDING
+            status=PaymentProof.Status.PENDING,
+            order_id__startswith='EDUTASK-',
         ).first()
         if existing and existing.order_id:
-            # Kembalikan invoice yang sudah ada
-            frontend_url = getattr(settings, 'BAYARIN_FRONTEND_URL', 'http://localhost:5174')
-            return success_response(
-                data={
-                    'invoice_id': existing.order_id,
-                    'payment_url': f"{frontend_url}/pay/{existing.order_id}",
-                    'amount': existing.amount,
-                    'plan': plan_key,
-                    'status': 'pending',
-                },
-                message='Invoice sudah ada. Silakan selesaikan pembayaran.'
-            )
+            # Coba ambil ulang data QRIS dari KlikQRIS
+            try:
+                kq_data = _klikqris_check(existing.order_id)
+                tx = kq_data.get('data', {})
+                kq_status = tx.get('status', 'PENDING').upper()
+                if kq_status == 'PENDING':
+                    # amount = harga asli plan, total_amount = harga + kode unik dari KlikQRIS
+                    kq_total = tx.get('total_amount')
+                    plan_price = plan['price']
+                    total_amt = int(float(kq_total)) if kq_total else existing.amount
+                    return success_response(
+                        data={
+                            'order_id':    existing.order_id,
+                            'amount':      plan_price,
+                            'total_amount': total_amt,
+                            'qris_url':    tx.get('qris_url', ''),
+                            'qris_image':  tx.get('qris_image', ''),
+                            'expired_at':  tx.get('expired_at', ''),
+                            'signature':   tx.get('signature', ''),
+                            'plan':        plan_key,
+                            'status':      'PENDING',
+                        },
+                        message='Invoice masih aktif. Silakan selesaikan pembayaran.'
+                    )
+                # Jika sudah tidak pending, hapus agar buat baru
+                existing.delete()
+            except RuntimeError:
+                pass  # fallthrough ke buat baru
 
-        # Buat invoice baru di Bayarin
-        edutask_base = getattr(settings, 'EDUTASK_BASE_URL', 'http://localhost:8000')
-        webhook_url = f"{edutask_base}/api/payment/webhook/"
-
-        payload = {
-            'amount': plan['price'],
-            'description': f"EduTask {plan['name']} — {user.email}",
-            'customer_name': user.nama_lengkap,
-            'customer_email': user.email,
-            'payment_method': 'qris',
-            'callback_url': webhook_url,
-            'redirect_url': f"{getattr(settings, 'EDUTASK_FRONTEND_URL', 'http://localhost:5173')}/dashboard",
-        }
+        # Generate order_id unik
+        short_id = uuid.uuid4().hex[:8].upper()
+        order_id = f"EDUTASK-{short_id}"
 
         try:
-            data = _call_bayarin('POST', '/api/payments/create', json=payload)
+            result = _klikqris_create(
+                order_id=order_id,
+                amount=plan['price'],
+                keterangan=f"EduTask {plan['name']} — {user.email}",
+            )
         except RuntimeError as e:
             return error_response(message=str(e))
 
-        invoice_id = data.get('invoice_id', '')
-        payment_url = data.get('payment_url', '')
+        if not result.get('status'):
+            return error_response(message=result.get('message', 'Gagal membuat transaksi QRIS.'))
 
-        # Simpan sebagai PaymentProof pending dengan order_id = invoice_id Bayarin
+        tx = result.get('data', {})
+        total_amount = int(float(tx.get('total_amount', plan['price'])))
+
+        # Simpan PaymentProof pending — amount = harga asli plan (tanpa kode unik)
         PaymentProof.objects.create(
             user=user,
             plan=plan_key,
             amount=plan['price'],
-            order_id=invoice_id,
-            # proof_image tidak diperlukan untuk alur Bayarin (diisi dummy)
+            order_id=order_id,
         )
 
         return success_response(
             data={
-                'invoice_id': invoice_id,
-                'payment_url': payment_url,
-                'amount': plan['price'],
-                'plan': plan_key,
-                'qr_image_url': data.get('qr_image_url', ''),
+                'order_id':    order_id,
+                'amount':      plan['price'],
+                'total_amount': total_amount,
+                'qris_url':    tx.get('qris_url', ''),
+                'qris_image':  tx.get('qris_image', ''),
+                'expired_at':  tx.get('expired_at', ''),
+                'signature':   tx.get('signature', ''),
+                'plan':        plan_key,
+                'status':      'PENDING',
             },
-            message='Invoice berhasil dibuat. Silakan selesaikan pembayaran.'
+            message='Transaksi QRIS berhasil dibuat. Silakan scan QR Code.'
         )
 
 
 class CheckInvoiceView(APIView):
     """
-    GET /api/payment/check-invoice/?invoice_id=BAYARIN-xxx
-    Cek status invoice di Bayarin secara real-time.
+    GET /api/payment/check-invoice/?order_id=EDUTASK-XXXX
+    Cek status transaksi di KlikQRIS secara real-time.
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        invoice_id = request.query_params.get('invoice_id', '')
-        if not invoice_id:
-            return error_response(message='invoice_id wajib diisi.')
+        order_id = request.query_params.get('order_id', '')
+        if not order_id:
+            return error_response(message='order_id wajib diisi.')
 
-        # Pastikan invoice milik user ini
+        # Pastikan order milik user ini
         proof = PaymentProof.objects.filter(
             user=request.user,
-            order_id=invoice_id
+            order_id=order_id
         ).first()
         if not proof:
-            return error_response(message='Invoice tidak ditemukan.')
+            return error_response(message='Transaksi tidak ditemukan.')
 
         try:
-            data = _call_bayarin('GET', f'/api/payments/check?invoice_id={invoice_id}')
+            result = _klikqris_check(order_id)
         except RuntimeError as e:
             return error_response(message=str(e))
 
+        tx = result.get('data', {})
+        kq_status = tx.get('status', 'PENDING').upper()
+
+        # Map KlikQRIS status → internal
+        status_map = {'SUCCESS': 'paid', 'PENDING': 'pending', 'EXPIRED': 'expired'}
+        internal_status = status_map.get(kq_status, 'pending')
+
+        # Jika baru saja dibayar dan belum diproses, aktifkan subscription
+        if kq_status == 'SUCCESS' and proof.status != PaymentProof.Status.APPROVED:
+            proof.status = PaymentProof.Status.APPROVED
+            proof.reviewed_at = timezone.now()
+            proof.save()
+
+            plan_map = {'pro': Subscription.Plan.PRO, 'team': Subscription.Plan.TEAM}
+            sub = get_or_create_subscription(proof.user)
+            sub.plan = plan_map.get(proof.plan, Subscription.Plan.PRO)
+            sub.status = Subscription.Status.ACTIVE
+            sub.start_date = timezone.now()
+            sub.end_date = timezone.now() + timedelta(days=30)
+            sub.order_id = order_id
+            sub.save()
+
         return success_response(
             data={
-                'invoice_id': data.get('invoice_id'),
-                'status': data.get('status'),
-                'amount': data.get('amount'),
-                'paid_at': data.get('paid_at'),
-                'expires_at': data.get('expires_at'),
-                'plan': proof.plan,
+                'order_id':     order_id,
+                'status':       internal_status,
+                'amount':       tx.get('amount'),
+                'total_amount': tx.get('total_amount'),
+                'paid_at':      tx.get('paid_at'),
+                'expired_at':   tx.get('expired_at'),
+                'plan':         proof.plan,
             },
-            message='Status invoice berhasil diambil.'
+            message='Status transaksi berhasil diambil.'
         )
 
 
 class PaymentWebhookView(APIView):
     """
     POST /api/payment/webhook/
-    Menerima notifikasi dari Bayarin saat pembayaran berhasil.
-    Verifikasi signature lalu aktifkan subscription user.
+    Menerima notifikasi dari KlikQRIS saat status transaksi berubah.
+    Validasi signature lalu aktifkan subscription.
     """
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # Ambil signature dari header
-        signature = request.headers.get('X-Webhook-Signature', '')
-        timestamp_str = request.headers.get('X-Webhook-Timestamp', '0')
-        event = request.headers.get('X-Webhook-Event', '')
-
         try:
             body = json.loads(request.body)
         except (json.JSONDecodeError, Exception):
             return error_response(message='Invalid JSON payload.')
 
-        invoice_id = body.get('invoice_id', '')
-        status = body.get('status', '')
-        amount = body.get('amount', 0)
-        timestamp = int(timestamp_str) if timestamp_str.isdigit() else 0
+        order_id  = body.get('order_id', '')
+        status    = body.get('status', '').upper()
+        signature = body.get('signature', '')
 
-        # Verifikasi signature
-        if not _verify_bayarin_signature(invoice_id, status, amount, timestamp, signature):
-            # Log tapi jangan reject — mungkin webhook_secret belum di-set
-            # Di production, uncomment baris berikut:
-            # return error_response(message='Invalid webhook signature.', status_code=401)
-            pass
-
-        # Hanya proses event payment.paid
-        if event != 'payment.paid' or status != 'paid':
-            return success_response(message='Event diabaikan.')
-
-        # Cari PaymentProof berdasarkan invoice_id (order_id)
-        proof = PaymentProof.objects.filter(order_id=invoice_id).first()
+        # Validasi signature: bandingkan dengan signature saat create
+        proof = PaymentProof.objects.filter(order_id=order_id).first()
         if not proof:
-            return error_response(message='Invoice tidak ditemukan di sistem.')
+            # order_id tidak dikenal, kembalikan 200 agar KlikQRIS tidak retry
+            return success_response(message='Order tidak ditemukan, diabaikan.')
+
+        # Hanya proses status PAID/SUCCESS
+        if status not in ('PAID', 'SUCCESS'):
+            return success_response(message='Status diabaikan.')
 
         if proof.status == PaymentProof.Status.APPROVED:
             return success_response(message='Sudah diproses sebelumnya.')
 
-        # Tandai proof sebagai approved
+        # Verifikasi status ke KlikQRIS — WAJIB berhasil, tidak ada fallback
+        try:
+            result = _klikqris_check(order_id)
+            tx = result.get('data', {})
+            kq_status = tx.get('status', '').upper()
+
+            # Validasi signature jika tersedia
+            expected_sig = tx.get('signature', '')
+            if expected_sig and signature and signature != expected_sig:
+                return error_response(message='Signature tidak valid.')
+
+            if kq_status not in ('SUCCESS', 'PAID'):
+                return success_response(message='Status belum lunas, tidak diproses.')
+
+        except RuntimeError as e:
+            # Jika tidak bisa reach KlikQRIS, tolak — jangan aktifkan tanpa konfirmasi
+            logger.error(f'[Webhook] Gagal verifikasi ke KlikQRIS untuk {order_id}: {e}')
+            return error_response(
+                message='Tidak dapat memverifikasi pembayaran ke KlikQRIS.',
+                status_code=503,
+            )
+
+        # Aktifkan subscription
         proof.status = PaymentProof.Status.APPROVED
         proof.reviewed_at = timezone.now()
         proof.save()
 
-        # Aktifkan subscription
-        plan_map = {
-            'pro': Subscription.Plan.PRO,
-            'team': Subscription.Plan.TEAM,
-        }
+        plan_map = {'pro': Subscription.Plan.PRO, 'team': Subscription.Plan.TEAM}
         sub = get_or_create_subscription(proof.user)
         sub.plan = plan_map.get(proof.plan, Subscription.Plan.PRO)
         sub.status = Subscription.Status.ACTIVE
         sub.start_date = timezone.now()
         sub.end_date = timezone.now() + timedelta(days=30)
-        sub.order_id = invoice_id
+        sub.order_id = order_id
         sub.save()
 
         return success_response(

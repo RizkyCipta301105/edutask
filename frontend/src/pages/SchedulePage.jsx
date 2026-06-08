@@ -112,51 +112,62 @@ export default function SchedulePage() {
 
   return (
     <AppLayout>
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-4 border-black pb-6 gap-4 bg-pink-300 p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <div>
-            <h1 className="text-4xl font-black text-black uppercase">
-              {role === 'umum' 
-                ? 'Jadwal & Kalender' 
-                : role === 'mahasiswa' 
-                ? 'Jadwal & Kalender Akademik' 
-                : 'Jadwal Kuliah & Kalender'}
-            </h1>
-            <p className="font-bold text-black border-2 border-black bg-white inline-block px-3 py-1 mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              {role === 'umum' 
-                ? 'Pantau jadwal kegiatan mingguan dan tenggat waktu'
-                : role === 'mahasiswa'
-                ? 'Pantau jadwal kuliah dan kelola agenda pribadi'
-                : 'Pantau jadwal kuliah mingguan dan tenggat waktu'}
-            </p>
-          </div>
+        {/* ── Neo-Brut Header ── */}
+        <div className="relative mb-6 md:mb-8 overflow-hidden border-[5px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-[#FF6B9D]">
+          <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'repeating-linear-gradient(0deg, #000 0, #000 1.5px, transparent 0, transparent 12px)', backgroundSize: '100% 12px' }} />
           
-          <div className="flex flex-col md:flex-row gap-4 self-start md:self-auto">
-            {role === 'mahasiswa' && (
-              <button 
-                className="border-4 border-black bg-white px-6 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:bg-gray-100 transition-all flex items-center gap-2 cursor-pointer"
-                onClick={handleCleanup}
-              >
-                <Trash2 size={20} className="stroke-2 text-red-500" />
-                Bersihkan Ganda
-              </button>
-            )}
-            {role !== 'dosen' && (
-              <button 
-                className="border-4 border-black bg-yellow-300 px-6 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center gap-2 cursor-pointer"
-                onClick={() => {
-                  setEditingMk(null)
-                  setShowMataKuliahModal(true)
-                }}
-              >
-                <Plus size={20} className="stroke-2" />
-                {role === 'umum' 
-                  ? 'Tambah Kegiatan' 
-                  : 'Tambah Agenda Pribadi'}
-              </button>
-            )}
+          <div className="relative z-10 p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div>
+                <div className="inline-block bg-black text-white font-black text-xs uppercase px-3 py-1 mb-2 rotate-1">
+                  Kalender Akademik
+                </div>
+                <h1 className="text-3xl md:text-5xl font-black text-white uppercase leading-none" style={{ textShadow: '4px 4px 0px rgba(0,0,0,0.3)' }}>
+                  {role === 'umum' 
+                    ? 'Jadwal & Kalender' 
+                    : role === 'mahasiswa' 
+                    ? 'Jadwal Akademik' 
+                    : 'Jadwal Kuliah'}
+                </h1>
+                <div className="mt-2 border-[3px] border-black bg-white inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -rotate-1">
+                  <span className="font-black text-black text-xs md:text-sm uppercase">
+                    {role === 'umum' 
+                      ? 'Jadwal kegiatan & tenggat waktu'
+                      : role === 'mahasiswa'
+                      ? 'Jadwal kuliah & agenda pribadi'
+                      : 'Jadwal kuliah & tenggat waktu'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 self-start">
+                {role === 'mahasiswa' && (
+                  <button 
+                    className="border-[4px] border-black bg-white px-5 py-3 font-black uppercase text-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:bg-red-100 transition-all flex items-center gap-2 cursor-pointer text-xs md:text-sm"
+                    onClick={handleCleanup}
+                  >
+                    <Trash2 size={16} className="stroke-[3] text-red-600" />
+                    Bersihkan Ganda
+                  </button>
+                )}
+                {role !== 'dosen' && (
+                  <button 
+                    className="border-[4px] border-black bg-[#FFE500] px-5 py-3 font-black uppercase text-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all flex items-center gap-2 cursor-pointer text-xs md:text-sm"
+                    onClick={() => {
+                      setEditingMk(null)
+                      setShowMataKuliahModal(true)
+                    }}
+                  >
+                    <Plus size={16} className="stroke-[3]" />
+                    {role === 'umum' 
+                      ? 'Kegiatan' 
+                      : 'Agenda'}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -192,95 +203,107 @@ export default function SchedulePage() {
           />
         </div>
 
-        {/* 2. SEKTOR BAWAH: TIMETABLE MINGGUAN (GROUPED BY DAYS) */}
+        {/* 2. TIMETABLE MINGGUAN */}
         <div>
-          <div className="mb-6 flex items-center gap-2 bg-yellow-300 border-4 border-black p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] max-w-sm rotate-1">
-            <Sparkles size={24} className="stroke-2 text-black" />
-            <h2 className="text-2xl font-black text-black uppercase">Timetable Mingguan</h2>
+          <div className="mb-6 flex items-center gap-3 bg-[#FFE500] border-[5px] border-black p-3 md:p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] w-full sm:max-w-sm -rotate-1 hover:rotate-0 transition-transform">
+            <Sparkles size={20} className="stroke-2 text-black shrink-0" />
+            <h2 className="text-xl md:text-2xl font-black text-black uppercase">Timetable Mingguan</h2>
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div style={{ width: 40, height: 40, border: '4px solid #000', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div className="flex flex-col justify-center items-center py-16 gap-4">
+              <div className="w-12 h-12 border-[5px] border-black border-t-[#FF4D00] rounded-full animate-spin" />
+              <span className="font-black text-black uppercase text-sm border-[3px] border-black bg-[#FFE500] px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Memuat jadwal...</span>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[1, 2, 3, 4, 5, 6, 0].map(dayKey => {
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {[1, 2, 3, 4, 5, 6, 0].map((dayKey, idx) => {
                 const dayClasses = groupedSchedules[dayKey] || []
+                // Each day gets a distinct bold Neo-Brut color
+                const dayColors = {
+                  1: '#ffffff',   // Senin
+                  2: '#ffffff',   // Selasa
+                  3: '#FFE500',   // Rabu
+                  4: '#ffffff',   // Kamis
+                  5: '#ffffff',   // Jumat
+                  6: '#FFE500',   // Sabtu
+                  0: '#ffffff',   // Minggu
+                }
+                const cardBg = dayColors[dayKey]
+                const rotation = ['-rotate-1','rotate-0','rotate-1','rotate-0','-rotate-1','rotate-1','rotate-0'][idx % 7]
                 return (
-                  <div key={dayKey} className="bg-blue-300 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col min-h-[220px]">
-                    <div className="bg-white border-b-4 border-black px-4 py-3 flex items-center justify-between">
-                      <span className="font-black text-lg text-black uppercase tracking-wider">{DAYS_MAP[dayKey]}</span>
-                      <span className="bg-yellow-300 border-2 border-black text-black px-2 py-0.5 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                        {dayClasses.length} {role === 'umum' ? 'Kegiatan' : 'Kelas'}
+                  <div key={dayKey} className={`border-[5px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col min-h-[240px] hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all relative overflow-hidden`} style={{ backgroundColor: cardBg }}>
+                    {/* BG dots pattern */}
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '14px 14px' }} />
+                    
+                    {/* Day Header */}
+                    <div className="relative z-10 bg-black px-4 py-3 flex items-center justify-between">
+                      <span className="font-black text-lg text-white uppercase tracking-wider">{DAYS_MAP[dayKey]}</span>
+                      <span className="font-black text-xs uppercase px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] border-[2px] border-white text-white">
+                        {dayClasses.length} {role === 'umum' ? 'Acara' : 'Kelas'}
                       </span>
                     </div>
                     
-                    <div className="p-4 flex-1 flex flex-col gap-4">
+                    <div className="relative z-10 p-3 flex-1 flex flex-col gap-3">
                       {dayClasses.length === 0 ? (
-                        <div className="bg-white border-4 border-dashed border-black p-3 text-center my-auto">
-                          <span className="text-sm font-black text-black uppercase">
-                            {role === 'umum' ? 'Tidak ada kegiatan' : 'Tidak ada kelas'}
+                        <div className="bg-white border-[3px] border-dashed border-black p-3 text-center my-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,0.2)]">
+                          <span className="text-xs font-black text-black uppercase">
+                            {role === 'umum' ? 'Kosong' : 'Tidak ada kelas'}
                           </span>
                         </div>
                       ) : (
                         dayClasses.map(mk => (
                           <div 
                             key={mk.id} 
-                            className="bg-white border-4 border-black p-3 flex flex-col gap-2 relative group transition-transform hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                            style={{ borderLeftColor: mk.warna || '#000', borderLeftWidth: '8px' }}
+                            className="bg-white border-[4px] border-black p-3 flex flex-col gap-2 relative group transition-all hover:-translate-y-0.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+                            style={{ borderLeftColor: mk.warna || '#000', borderLeftWidth: '6px' }}
                           >
-                            {/* Card Header & Actions */}
-                            <div className="flex justify-between items-start gap-4">
-                              <div className="flex flex-col gap-0.5 min-w-0">
-                                <span className="font-black text-black uppercase leading-tight truncate">{mk.nama}</span>
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                                <span className="font-black text-black uppercase leading-tight text-sm truncate">{mk.nama}</span>
                                 {mk.is_academic && (
-                                  <span className="inline-flex items-center text-[10px] font-black text-white bg-black border-2 border-black px-1.5 py-0.5 uppercase tracking-wider self-start mt-1 shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
-                                    🔒 Akademik
+                                  <span className="inline-flex items-center text-[9px] font-black text-white bg-black px-1.5 py-0.5 uppercase tracking-wider self-start mt-0.5">
+                                    Akademik
                                   </span>
                                 )}
                               </div>
                               
                               {!mk.is_academic && (
-                                <div className="flex gap-2 absolute right-2 top-2">
+                                <div className="flex gap-1.5 shrink-0">
                                   <button 
-                                    onClick={() => {
-                                      setEditingMk(mk)
-                                      setShowMataKuliahModal(true)
-                                    }}
-                                    className="p-1.5 border-2 border-black bg-yellow-300 text-black hover:bg-yellow-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+                                    onClick={() => { setEditingMk(mk); setShowMataKuliahModal(true) }}
+                                    className="p-1 border-[2px] border-black bg-[#FFE500] text-black hover:translate-x-[1px] hover:translate-y-[1px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all"
                                     title="Edit"
                                   >
-                                    <Edit2 size={12} className="stroke-2" />
+                                    <Edit2 size={11} className="stroke-[2.5]" />
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteMataKuliah(mk.id)}
-                                    className="p-1.5 border-2 border-black bg-pink-400 text-black hover:bg-pink-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+                                    className="p-1 border-[2px] border-black bg-[#FF6B9D] text-black hover:translate-x-[1px] hover:translate-y-[1px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all"
                                     title="Hapus"
                                   >
-                                    <Trash2 size={12} className="stroke-2" />
+                                    <Trash2 size={11} className="stroke-[2.5]" />
                                   </button>
                                 </div>
                               )}
                             </div>
 
-                            {/* Details */}
                             {mk.nama_dosen && (
-                              <span className="text-xs text-black font-bold flex items-center gap-1 border-t-2 border-black pt-1 mt-1">
-                                <UserRound size={12} className="stroke-2" />
+                              <span className="text-[11px] text-black font-bold flex items-center gap-1 border-t-[2px] border-black pt-1">
+                                <UserRound size={11} className="stroke-[2.5]" />
                                 {mk.nama_dosen}
                               </span>
                             )}
                             
-                            <div className="flex items-center justify-between text-xs text-black font-black mt-2">
+                            <div className="flex items-center justify-between text-[11px] text-black font-black gap-1 flex-wrap">
                               {mk.jam_mulai && mk.jam_selesai && (
-                                <span className="flex items-center gap-1 bg-green-400 border-2 border-black px-1 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                  <Clock size={12} className="stroke-2" />
-                                  {mk.jam_mulai.substring(0, 5)} - {mk.jam_selesai.substring(0, 5)}
+                                <span className="flex items-center gap-1 bg-[#00E676] border-[2px] border-black px-1.5 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                  <Clock size={10} className="stroke-[2.5]" />
+                                  {mk.jam_mulai.substring(0, 5)}–{mk.jam_selesai.substring(0, 5)}
                                 </span>
                               )}
                               {mk.ruangan && (
-                                <span className="bg-white border-2 border-black px-1.5 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] max-w-[100px] truncate" title={mk.ruangan}>
+                                <span className="bg-white border-[2px] border-black px-1.5 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] max-w-[90px] truncate" title={mk.ruangan}>
                                   {mk.ruangan}
                                 </span>
                               )}

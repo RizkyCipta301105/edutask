@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Filter, ArrowUpDown } from 'lucide-react'
+import { ChevronDown, ChevronRight, MoreHorizontal, Plus, Filter, ArrowUpDown, BookOpen, Building2, User, CalendarDays } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const PRIORITAS_COLORS = {
@@ -28,50 +28,48 @@ export default function Backlog({ tasks = [], onTaskClick, onAddTask, searchQuer
   const filteredAndGroupedTasks = useMemo(() => {
     const q = (searchQuery || '').toLowerCase().trim()
     
-    // Filter tasks based on search query (judul or deskripsi)
     const filtered = (tasks || []).filter(task => {
       if (!q) return true
-      const judulMatch = task.judul?.toLowerCase().includes(q)
-      const deskripsiMatch = task.deskripsi?.toLowerCase().includes(q)
-      return judulMatch || deskripsiMatch
+      return task.judul?.toLowerCase().includes(q) || task.deskripsi?.toLowerCase().includes(q)
     })
 
-    // Group tasks by status internally
-    const groups = {
-      todo: [],
-      in_progress: [],
-      done: [],
-    }
+    const groups = { todo: [], in_progress: [], done: [] }
 
     filtered.forEach(task => {
       let status = task.status
       if (status === 'in-progress') status = 'in_progress'
       if (status === 'completed') status = 'done'
-
-      if (groups[status]) {
-        groups[status].push(task)
-      } else {
-        groups.todo.push(task) // default fallback
-      }
+      if (groups[status]) groups[status].push(task)
+      else groups.todo.push(task)
     })
 
-    return groups
-  }, [tasks, searchQuery])
+    // Sort setiap group berdasarkan sortBy
+    const sortGroup = (list) => {
+      if (sortBy === 'title') {
+        return [...list].sort((a, b) => (a.judul || '').localeCompare(b.judul || '', 'id'))
+      }
+      if (sortBy === 'priority') {
+        return [...list].sort((a, b) => (prioritasOrder[a.prioritas] ?? 3) - (prioritasOrder[b.prioritas] ?? 3))
+      }
+      if (sortBy === 'deadline') {
+        return [...list].sort((a, b) => {
+          if (!a.deadline) return 1
+          if (!b.deadline) return -1
+          return new Date(a.deadline) - new Date(b.deadline)
+        })
+      }
+      return list
+    }
 
-  const sortTasks = (taskList) => {
-    if (sortBy === 'title') {
-      return [...taskList].sort((a, b) => (a.judul || '').localeCompare(b.judul || ''))
+    return {
+      todo: sortGroup(groups.todo),
+      in_progress: sortGroup(groups.in_progress),
+      done: sortGroup(groups.done),
     }
-    if (sortBy === 'priority') {
-      return [...taskList].sort((a, b) =>
-        (prioritasOrder[a.prioritas] ?? 3) - (prioritasOrder[b.prioritas] ?? 3)
-      )
-    }
-    return taskList
-  }
+  }, [tasks, searchQuery, sortBy])
 
   const renderSection = (key, title) => {
-    const sectionTasks = sortTasks(filteredAndGroupedTasks[key] || [])
+    const sectionTasks = filteredAndGroupedTasks[key] || []
     
     return (
       <div key={key} className="mb-6 border-4 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
@@ -109,18 +107,18 @@ export default function Backlog({ tasks = [], onTaskClick, onAddTask, searchQuer
                       <div>
                         <div className="font-black text-black uppercase">{task.judul}</div>
                         {task.mata_kuliah_detail?.nama && (
-                          <div className="font-black text-black text-sm mt-1 uppercase">
-                            📚 {task.mata_kuliah_detail.nama}
+                          <div className="flex items-center gap-1 font-black text-black text-sm mt-1 uppercase">
+                            <BookOpen size={13} className="stroke-2" /> {task.mata_kuliah_detail.nama}
                           </div>
                         )}
                         {task.workspace_detail?.nama_ruang && (
-                          <div className="font-black text-black text-sm mt-1 uppercase">
-                            🏢 {task.workspace_detail.nama_ruang}
+                          <div className="flex items-center gap-1 font-black text-black text-sm mt-1 uppercase">
+                            <Building2 size={13} className="stroke-2" /> {task.workspace_detail.nama_ruang}
                           </div>
                         )}
                         {!task.mata_kuliah_detail && !task.workspace_detail && (
-                          <div className="font-black text-black text-sm mt-1 uppercase text-gray-600">
-                            👤 PRIBADI
+                          <div className="flex items-center gap-1 font-black text-black text-sm mt-1 uppercase text-gray-600">
+                            <User size={13} className="stroke-2" /> PRIBADI
                           </div>
                         )}
                       </div>
@@ -129,8 +127,8 @@ export default function Backlog({ tasks = [], onTaskClick, onAddTask, searchQuer
                           {p.label}
                         </span>
                         {task.deadline && (
-                          <span className="text-xs font-black px-2 py-1 border-2 border-black bg-pink-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">
-                            📅 {new Date(task.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                          <span className="flex items-center gap-1 text-xs font-black px-2 py-1 border-2 border-black bg-pink-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase">
+                            <CalendarDays size={11} className="stroke-2" /> {new Date(task.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                           </span>
                         )}
                       </div>
@@ -155,20 +153,30 @@ export default function Backlog({ tasks = [], onTaskClick, onAddTask, searchQuer
           {roleView === 'dosen' ? 'Daftar Evaluasi / Tugas' : (roleView === 'mahasiswa' ? 'Daftar Pekerjaan Kuliah' : 'Daftar Pekerjaan')}
           <ChevronDown size={24} className="stroke-2 text-black" />
         </div>
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-black uppercase cursor-pointer transition-all hover:bg-yellow-300 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${sortBy === 'priority' ? 'bg-black text-white' : 'bg-white text-black'}`}
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            type="button"
+            className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-black uppercase cursor-pointer transition-all hover:bg-yellow-300 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${sortBy === 'priority' ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'}`}
             onClick={() => setSortBy(prev => prev === 'priority' ? 'default' : 'priority')}
           >
             <Filter size={18} className="stroke-2" /> <span>Sort Prioritas</span>
-          </div>
-          <div
-            className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-black uppercase cursor-pointer transition-all hover:bg-pink-300 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${sortBy === 'title' ? 'bg-black text-white' : 'bg-white text-black'}`}
+          </button>
+          <button
+            type="button"
+            className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-black uppercase cursor-pointer transition-all hover:bg-pink-300 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${sortBy === 'title' ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'}`}
             onClick={() => setSortBy(prev => prev === 'title' ? 'default' : 'title')}
           >
             <ArrowUpDown size={18} className="stroke-2" />
             <span>Sort Judul</span>
-          </div>
+          </button>
+          <button
+            type="button"
+            className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-black uppercase cursor-pointer transition-all hover:bg-blue-200 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${sortBy === 'deadline' ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-black'}`}
+            onClick={() => setSortBy(prev => prev === 'deadline' ? 'default' : 'deadline')}
+          >
+            <CalendarDays size={18} className="stroke-2" />
+            <span>Sort Deadline</span>
+          </button>
         </div>
       </div>
 

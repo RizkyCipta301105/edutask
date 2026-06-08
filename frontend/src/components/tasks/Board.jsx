@@ -6,7 +6,7 @@ import {
   SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, MoreHorizontal, ChevronDown, Filter, ArrowUpDown, GripVertical, Menu, Inbox, MessageSquare } from 'lucide-react'
+import { Plus, MoreHorizontal, ChevronDown, Filter, ArrowUpDown, GripVertical, Menu, Inbox, MessageSquare, BookOpen, Building2, User, CalendarDays } from 'lucide-react'
 import toast from 'react-hot-toast'
 import taskService from '../../services/taskService'
 import { getApiErrorMessage } from '../../utils/apiErrors'
@@ -62,18 +62,18 @@ function SortableCard({ card, onTaskClick, viewMode }) {
         <div className="flex flex-wrap gap-2 mb-2">
           <span className={`text-xs font-bold px-2 py-1 border-2 border-black dark:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]`} style={{ backgroundColor: p.bg, color: 'black' }}>{p.label}</span>
           {!isCompact && card.mata_kuliah_detail?.nama && (
-            <span className="text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-pink-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">📚 {card.mata_kuliah_detail.nama}</span>
+            <span className="flex items-center gap-1 text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-pink-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"><BookOpen size={12} className="stroke-2" /> {card.mata_kuliah_detail.nama}</span>
           )}
           {!isCompact && card.workspace_detail?.nama_ruang && (
-            <span className="text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-blue-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">🏢 {card.workspace_detail.nama_ruang}</span>
+            <span className="flex items-center gap-1 text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-blue-300 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"><Building2 size={12} className="stroke-2" /> {card.workspace_detail.nama_ruang}</span>
           )}
           {!isCompact && !card.mata_kuliah_detail && !card.workspace_detail && (
-            <span className="text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-gray-200 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">👤 Pribadi</span>
+            <span className="flex items-center gap-1 text-xs font-bold px-2 py-1 border-2 border-black dark:border-white bg-gray-200 text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]"><User size={12} className="stroke-2" /> Pribadi</span>
           )}
         </div>
         {!isCompact && card.deadline && (
-          <div className="text-xs font-bold text-gray-700 dark:text-gray-300 mt-3 border-t-2 border-black dark:border-gray-500 pt-2">
-            📅 {new Date(card.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+          <div className="flex items-center gap-1 text-xs font-bold text-gray-700 dark:text-gray-300 mt-3 border-t-2 border-black dark:border-gray-500 pt-2">
+            <CalendarDays size={12} className="stroke-2" /> {new Date(card.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
           </div>
         )}
       </div>
@@ -118,7 +118,7 @@ function DroppableColumn({ columnId, title, cards, onTaskClick, onAddTask, onQui
   }
 
   return (
-    <div className="w-[320px] min-w-[320px] flex flex-col max-h-[85vh] bg-blue-300 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-4" ref={setNodeRef}>
+    <div className="w-[280px] sm:w-[300px] md:w-[320px] min-w-[280px] sm:min-w-[300px] md:min-w-[320px] flex flex-col max-h-[85vh] bg-blue-300 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-4 scroll-snap-align-start" ref={setNodeRef}>
       <div className="flex justify-between items-center mb-4 border-b-4 border-black pb-2 bg-white px-3 py-2 border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -rotate-1 hover:rotate-0 transition-transform">
         <span className="font-black uppercase text-lg text-black">{title} <span className="text-sm border-2 border-black bg-yellow-300 px-2 py-0.5 ml-2">{cards.length}</span></span>
         <div className="flex gap-2 text-black">

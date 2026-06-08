@@ -36,7 +36,7 @@ export default function Inbox({ user }) {
   useEffect(() => {
     fetchContacts()
     fetchThreads()
-    const interval = setInterval(fetchThreads, 10000)
+    const interval = setInterval(fetchThreads, 60000) // poll setiap 60 detik
     return () => clearInterval(interval)
   }, [])
 
@@ -47,7 +47,7 @@ export default function Inbox({ user }) {
       inboxService.markAsRead(activeThreadId).then(fetchThreads).catch(console.error)
       const interval = setInterval(() => {
         fetchMessages(activeThreadId, true)
-      }, 5000)
+      }, 30000) // poll setiap 30 detik
       return () => clearInterval(interval)
     } else {
       setMessages([])

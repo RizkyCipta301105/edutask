@@ -9,13 +9,22 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 border-b-4 border-black pb-6 gap-4 bg-[#fbcfe8] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <div>
-            <h1 className="text-4xl font-black text-black uppercase">Pengaturan Akun & Profil</h1>
-            <p className="font-bold text-black border-2 border-black bg-white inline-block px-3 py-1 mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Kelola data diri, keamanan kata sandi, preferensi notifikasi, dan sesi perangkat Anda</p>
+        {/* ── Neo-Brut Header ── */}
+        <div className="relative mb-6 md:mb-8 overflow-hidden border-[5px] border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-[#B87FFF]">
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #000 0, #000 2px, transparent 0, transparent 50%)', backgroundSize: '14px 14px' }} />
+          
+          <div className="relative z-10 p-4 md:p-6">
+            <div className="inline-block bg-black text-white font-black text-xs uppercase px-3 py-1 mb-2 rotate-1">
+               Pengaturan Akun
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black text-white uppercase leading-none" style={{ textShadow: '4px 4px 0px rgba(0,0,0,0.3)' }}>
+              Profil & Pengaturan
+            </h1>
+            <div className="mt-2 border-[3px] border-black bg-white inline-block px-3 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -rotate-1">
+              <span className="font-black text-black text-xs md:text-sm uppercase">Kelola data diri, keamanan & preferensi</span>
+            </div>
           </div>
         </div>
 

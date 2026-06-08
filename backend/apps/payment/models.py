@@ -46,32 +46,52 @@ class Subscription(models.Model):
             return False
         return True
 
+    # ── Batas workspace proyek per plan ──────────────────────────────────────
+    # Ruang Edukasi (is_workspace=False) untuk mahasiswa & dosen: UNLIMITED di semua plan.
+    # Workspace Proyek (is_workspace=True): dibatasi sesuai plan di bawah.
+    WORKSPACE_LIMITS = {
+        Plan.FREE:  {'max_workspace': 1,  'max_members_per_workspace': 3},
+        Plan.PRO:   {'max_workspace': 5,  'max_members_per_workspace': 7},
+        Plan.TEAM:  {'max_workspace': None, 'max_members_per_workspace': 30},  # None = unlimited
+    }
+
     @property
     def features(self):
+        plan_key = self.plan if self.plan in (self.Plan.FREE, self.Plan.PRO, self.Plan.TEAM) else self.Plan.FREE
+        limits = self.WORKSPACE_LIMITS.get(plan_key, self.WORKSPACE_LIMITS[self.Plan.FREE])
+
         base = {
+            # ── Fitur dasar (semua plan) ───────────────────────────────────
             'kanban': True,
             'calendar': True,
             'notifications': True,
-            'ruang_edukasi': False,
+
+            # ── Ruang Edukasi: FREE untuk mahasiswa & dosen (logika di view) ──
+            # Field ini hanya menandai apakah plan mendukung inbox/broadcast/analytics
             'inbox': False,
             'broadcast': False,
             'analytics': False,
             'export_csv': False,
-            'multiple_ruang': False,
-            'max_members': 1,
+
+            # ── Batas workspace proyek ──────────────────────────────────────
+            'max_workspace': limits['max_workspace'],               # None = unlimited
+            'max_members_per_workspace': limits['max_members_per_workspace'],
         }
+
         if not self.is_active:
+            # Saat expired/cancelled → turunkan ke limit FREE
+            base['max_workspace'] = self.WORKSPACE_LIMITS[self.Plan.FREE]['max_workspace']
+            base['max_members_per_workspace'] = self.WORKSPACE_LIMITS[self.Plan.FREE]['max_members_per_workspace']
             return base
+
         if self.plan in (self.Plan.PRO, self.Plan.TEAM):
             base.update({
-                'ruang_edukasi': True,
                 'inbox': True,
                 'broadcast': True,
                 'analytics': True,
                 'export_csv': True,
             })
-        if self.plan == self.Plan.TEAM:
-            base.update({'multiple_ruang': True, 'max_members': 10})
+
         return base
 
 

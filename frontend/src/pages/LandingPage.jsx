@@ -192,9 +192,13 @@ export default function LandingPage() {
                       <span className="text-white font-bold shrink-0">▸</span>
                       Notifikasi in-app
                     </li>
-                    <li className="flex items-center gap-3 text-sm text-gray-600">
-                      <span className="shrink-0">–</span>
-                      Ruang Edukasi
+                    <li className="flex items-center gap-3 text-sm text-gray-300">
+                      <span className="text-white font-bold shrink-0">▸</span>
+                      Ruang Edukasi (mahasiswa & dosen)
+                    </li>
+                    <li className="flex items-center gap-3 text-sm text-gray-300">
+                      <span className="text-white font-bold shrink-0">▸</span>
+                      1 Workspace Proyek (maks. 3 anggota)
                     </li>
                     <li className="flex items-center gap-3 text-sm text-gray-600">
                       <span className="shrink-0">–</span>
@@ -225,7 +229,11 @@ export default function LandingPage() {
                     </li>
                     <li className="flex items-center gap-3 text-sm text-gray-200">
                       <span className="text-white font-bold shrink-0">▸</span>
-                      Ruang Edukasi & kode join
+                      Ruang Edukasi unlimited (mahasiswa & dosen)
+                    </li>
+                    <li className="flex items-center gap-3 text-sm text-gray-200">
+                      <span className="text-white font-bold shrink-0">▸</span>
+                      5 Workspace Proyek (maks. 7 anggota)
                     </li>
                     <li className="flex items-center gap-3 text-sm text-gray-200">
                       <span className="text-white font-bold shrink-0">▸</span>
@@ -261,11 +269,11 @@ export default function LandingPage() {
                     </li>
                     <li className="flex items-center gap-3 text-sm text-gray-300">
                       <span className="text-white font-bold shrink-0">▸</span>
-                      Hingga 10 anggota
+                      Workspace Proyek unlimited (maks. 30 anggota)
                     </li>
                     <li className="flex items-center gap-3 text-sm text-gray-300">
                       <span className="text-white font-bold shrink-0">▸</span>
-                      Multiple Ruang Edukasi
+                      Ruang Edukasi unlimited (mahasiswa & dosen)
                     </li>
                     <li className="flex items-center gap-3 text-sm text-gray-300">
                       <span className="text-white font-bold shrink-0">▸</span>

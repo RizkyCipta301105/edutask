@@ -164,7 +164,6 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => toast.error('Gagal terhubung dengan Google.')}
-              useOneTap
               theme="outline"
               size="large"
               shape="rectangular"
@@ -209,7 +208,6 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() => toast.error('Gagal terhubung dengan Google.')}
-            useOneTap
             theme="outline"
             size="large"
             shape="rectangular"

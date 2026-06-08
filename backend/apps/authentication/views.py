@@ -10,6 +10,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from apps.common.utils import success_response, error_response, validation_error_response
+from apps.common.permissions import (
+    LoginRateThrottle, RegisterRateThrottle,
+    ChangePasswordRateThrottle,
+)
 
 from .jwt_utils import build_auth_tokens
 from .models import User, Kelas, RuangEdukasi
@@ -43,6 +47,7 @@ class RegisterView(APIView):
     Tidak memerlukan autentikasi.
     """
     permission_classes = [AllowAny]
+    throttle_classes = [RegisterRateThrottle]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -63,6 +68,7 @@ class RegisterView(APIView):
 
 class RoleRegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [RegisterRateThrottle]
     serializer_class = RegisterUmumSerializer
     success_message = 'Registrasi berhasil.'
 
@@ -105,6 +111,7 @@ class LoginView(TokenObtainPairView):
     """
     permission_classes = [AllowAny]
     serializer_class = CustomTokenObtainPairSerializer
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -245,8 +252,10 @@ class ChangePasswordView(APIView):
     """
     POST /api/auth/change-password/
     Ganti password user yang sedang login.
+    Semua refresh token lama di-blacklist otomatis setelah password berubah.
     """
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ChangePasswordRateThrottle]
 
     def post(self, request):
         serializer = ChangePasswordSerializer(
@@ -261,6 +270,16 @@ class ChangePasswordView(APIView):
 
         request.user.set_password(serializer.validated_data['password_baru'])
         request.user.save()
+
+        # Blacklist semua outstanding refresh token milik user ini
+        # agar sesi lama tidak bisa dipakai setelah password diganti
+        try:
+            from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+            tokens = OutstandingToken.objects.filter(user=request.user)
+            for token in tokens:
+                BlacklistedToken.objects.get_or_create(token=token)
+        except Exception:
+            pass  # token_blacklist app mungkin tidak terinstall, lewati saja
 
         return success_response(
             message='Password berhasil diubah. Silakan login kembali dengan password baru.'
@@ -287,10 +306,40 @@ class KelasListView(generics.ListAPIView):
 
 # ─── Ruang Edukasi (Workspace Public) ───────────────────────────────────────────
 
+def _get_subscription(user):
+    """Ambil subscription user, atau return None jika belum ada."""
+    try:
+        return user.subscription
+    except Exception:
+        return None
+
+
+def _get_plan(user):
+    """Return plan string: 'free' / 'pro' / 'team'."""
+    sub = _get_subscription(user)
+    if sub and sub.is_active:
+        return sub.plan
+    return 'free'
+
+
+# ── Batas workspace proyek per plan (mirror dari payment/models.py) ────────────
+WORKSPACE_PLAN_LIMITS = {
+    'free': {'max_workspace': 1,    'max_members': 3},
+    'pro':  {'max_workspace': 5,    'max_members': 7},
+    'team': {'max_workspace': None, 'max_members': 30},   # None = unlimited
+}
+
+
 class RuangEdukasiListCreateView(generics.ListCreateAPIView):
     """
-    GET /api/auth/ruang/ -> List ruang yang dikelola (dosen) atau diikuti (mhs).
-    POST /api/auth/ruang/ -> Buat ruang baru (Dosen/Umum).
+    GET  /api/auth/ruang/ → List ruang yang dikelola (kreator) atau diikuti (anggota).
+    POST /api/auth/ruang/ → Buat ruang baru dengan aturan:
+        • Ruang Edukasi (is_workspace=False):
+            - Hanya role mahasiswa dan dosen yang boleh membuat.
+            - Tidak ada batas jumlah ruang (unlimited) untuk semua plan.
+        • Workspace Proyek (is_workspace=True):
+            - Semua role boleh membuat.
+            - Batas jumlah workspace dan anggota mengikuti plan (FREE / PRO / TEAM).
     """
     permission_classes = [IsAuthenticated]
     serializer_class = RuangEdukasiSerializer
@@ -306,20 +355,51 @@ class RuangEdukasiListCreateView(generics.ListCreateAPIView):
         return success_response(data=serializer.data, message='Daftar ruang edukasi berhasil diambil.')
 
     def create(self, request, *args, **kwargs):
+        from rest_framework import status as drf_status
+
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return validation_error_response(serializer.errors)
-        
+
         is_workspace = serializer.validated_data.get('is_workspace', False)
-        if is_workspace:
-            if not hasattr(request.user, 'subscription') or not request.user.subscription.is_active or request.user.subscription.plan not in ['pro', 'team']:
-                from rest_framework import status
-                return validation_error_response({'detail': ['Pembuatan Workspace Proyek memerlukan langganan PRO atau TEAM.']}, status_code=status.HTTP_403_FORBIDDEN)
-                
-        ruang = serializer.save(kreator=request.user)
-        # Tambahkan kreator otomatis sebagai anggota agar filter tasks & ruang konsisten
-        ruang.anggota.add(request.user)
-        return success_response(data=self.get_serializer(ruang).data, message=f'Ruang {ruang.nama_ruang} berhasil dibuat.')
+        user = request.user
+        plan = _get_plan(user)
+        limits = WORKSPACE_PLAN_LIMITS[plan]
+
+        if not is_workspace:
+            # ── Ruang Edukasi ────────────────────────────────────────────────
+            # Hanya mahasiswa dan dosen yang boleh membuat ruang edukasi.
+            if user.role not in (User.Role.MAHASISWA, User.Role.DOSEN):
+                return error_response(
+                    message='Ruang Edukasi hanya dapat dibuat oleh mahasiswa atau dosen.',
+                    status_code=drf_status.HTTP_403_FORBIDDEN,
+                )
+            # Tidak ada batas jumlah ruang edukasi (unlimited semua plan).
+        else:
+            # ── Workspace Proyek ─────────────────────────────────────────────
+            # Hitung workspace proyek yang sudah dibuat user ini.
+            owned_workspace_count = RuangEdukasi.objects.filter(
+                kreator=user, is_workspace=True
+            ).count()
+
+            max_ws = limits['max_workspace']
+            if max_ws is not None and owned_workspace_count >= max_ws:
+                plan_label = plan.upper()
+                return error_response(
+                    message=(
+                        f'Batas workspace plan {plan_label} adalah {max_ws} workspace. '
+                        f'Upgrade plan untuk membuat lebih banyak workspace.'
+                    ),
+                    status_code=drf_status.HTTP_403_FORBIDDEN,
+                )
+
+        ruang = serializer.save(kreator=user)
+        # Kreator otomatis menjadi anggota pertama.
+        ruang.anggota.add(user)
+        return success_response(
+            data=self.get_serializer(ruang).data,
+            message=f'Ruang "{ruang.nama_ruang}" berhasil dibuat.',
+        )
 
 class RuangEdukasiDetailView(APIView):
     """
@@ -341,22 +421,49 @@ class RuangEdukasiDetailView(APIView):
 class RuangEdukasiJoinView(APIView):
     """
     POST /api/auth/ruang/join/
+    Bergabung ke ruang via kode join.
+    • Ruang Edukasi: unlimited anggota (tidak ada cek batas).
+    • Workspace Proyek: cek batas anggota berdasarkan plan kreator.
     """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        from rest_framework import status as drf_status
+
         serializer = JoinRuangSerializer(data=request.data)
         if not serializer.is_valid():
             return validation_error_response(serializer.errors)
-        
+
         kode = serializer.validated_data['kode_join'].strip().upper()
         try:
             ruang = RuangEdukasi.objects.get(kode_join=kode)
         except RuangEdukasi.DoesNotExist:
-            return error_response(message='Kode join tidak valid atau ruang tidak ditemukan.', status_code=status.HTTP_404_NOT_FOUND)
-        
+            return error_response(
+                message='Kode join tidak valid atau ruang tidak ditemukan.',
+                status_code=drf_status.HTTP_404_NOT_FOUND,
+            )
+
+        # Jika sudah menjadi anggota, kembalikan sukses saja
+        if ruang.anggota.filter(id=request.user.id).exists():
+            return success_response(message=f'Anda sudah menjadi anggota ruang "{ruang.nama_ruang}".')
+
+        if ruang.is_workspace:
+            # Cek batas anggota berdasarkan plan kreator workspace
+            kreator_plan = _get_plan(ruang.kreator)
+            limits = WORKSPACE_PLAN_LIMITS[kreator_plan]
+            max_members = limits['max_members']
+            current_count = ruang.anggota.count()  # sudah termasuk kreator
+            if current_count >= max_members:
+                return error_response(
+                    message=(
+                        f'Workspace ini sudah penuh ({max_members} anggota). '
+                        f'Kreator perlu upgrade plan untuk menambah lebih banyak anggota.'
+                    ),
+                    status_code=drf_status.HTTP_403_FORBIDDEN,
+                )
+
         ruang.anggota.add(request.user)
-        return success_response(message=f'Berhasil bergabung dengan ruang {ruang.nama_ruang}.')
+        return success_response(message=f'Berhasil bergabung dengan ruang "{ruang.nama_ruang}".')
 
 class RuangEdukasiMemberView(APIView):
     """

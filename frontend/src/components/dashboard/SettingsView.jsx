@@ -69,23 +69,24 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
       {user && (
         <div className="settings-row">
           <div className="settings-left">
-            <h3>Profil</h3>
+            <div className="inline-block bg-[#00cfff] border-[3px] border-black px-2 py-0.5 text-xs font-black uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] mb-2 -rotate-1">Profil</div>
+            <h3>Profil Pengguna</h3>
           </div>
-          <div className="settings-card">
+          <div className="settings-card" style={{ borderColor: '#000', boxShadow: '8px 8px 0px 0px #000' }}>
             <div className="settings-card-content">
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div style={{
-                  width: 56, height: 56, background: '#ea580c', border: '4px solid #000', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
+                  width: 64, height: 64, background: '#FF4D00', border: '5px solid #000', boxShadow: '5px 5px 0px 0px #000',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase'
+                  color: 'white', fontSize: '1.8rem', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0
                 }}>
                   {user.nama_lengkap?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: '1.2rem', marginBottom: 4, color: '#000', textTransform: 'uppercase' }}>{user.nama_lengkap || user.username}</div>
-                  <div style={{ color: '#000', fontSize: '0.9rem', fontWeight: 700 }}>{user.email}</div>
-                  <div style={{ display: 'flex', gap: '12px', marginTop: 4 }}>
-                    {user.role && <span style={{ color: '#000', fontSize: '0.8rem', fontWeight: 900, background: '#fef08a', border: '2px solid #000', padding: '2px 8px', textTransform: 'uppercase', boxShadow: '2px 2px 0px 0px rgba(0,0,0,1)' }}>Role: {user.role}</span>}
+                  <div style={{ fontWeight: 900, fontSize: '1.3rem', marginBottom: 6, color: '#000', textTransform: 'uppercase' }}>{user.nama_lengkap || user.username}</div>
+                  <div style={{ color: '#000', fontSize: '0.9rem', fontWeight: 700, marginBottom: 6 }}>{user.email}</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {user.role && <span style={{ color: '#000', fontSize: '0.75rem', fontWeight: 900, background: '#FFE500', border: '3px solid #000', padding: '2px 10px', textTransform: 'uppercase', boxShadow: '3px 3px 0px 0px #000' }}>Role: {user.role}</span>}
                   </div>
                 </div>
               </div>

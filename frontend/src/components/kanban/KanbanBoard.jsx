@@ -227,9 +227,9 @@ export default function KanbanBoard() {
             />
           </div>
           <div className="flex justify-between text-xs text-primary-400 mt-2">
-            <span>📋 {board.todo.length} To Do</span>
-            <span>⚙️ {board.in_progress.length} In Progress</span>
-            <span>✅ {board.done.length} Done</span>
+            <span>{board.todo.length} To Do</span>
+            <span>{board.in_progress.length} In Progress</span>
+            <span>{board.done.length} Done</span>
           </div>
         </div>
       )}

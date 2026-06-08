@@ -13,10 +13,9 @@ const paymentService = {
   },
 
   /**
-   * Buat invoice di Bayarin untuk upgrade plan.
-   * Backend akan memanggil Bayarin API dan mengembalikan payment_url.
+   * Buat transaksi QRIS baru di KlikQRIS via backend.
    * @param {string} plan - 'pro' | 'team'
-   * @returns {Promise<Object>} { invoice_id, payment_url, amount, plan, qr_image_url }
+   * @returns {Promise<Object>} { order_id, amount, total_amount, qris_url, qris_image, expired_at, signature, plan, status }
    */
   createInvoice: async (plan) => {
     const response = await api.post(`${PAYMENT_BASE}/create-invoice/`, { plan })
@@ -24,13 +23,13 @@ const paymentService = {
   },
 
   /**
-   * Cek status invoice di Bayarin secara real-time.
-   * @param {string} invoiceId - invoice_id dari Bayarin
-   * @returns {Promise<Object>} { invoice_id, status, amount, paid_at, expires_at, plan }
+   * Cek status transaksi di KlikQRIS secara real-time.
+   * @param {string} orderId - order_id transaksi (format EDUTASK-XXXXXXXX)
+   * @returns {Promise<Object>} { order_id, status, amount, total_amount, paid_at, expired_at, plan }
    */
-  checkInvoice: async (invoiceId) => {
+  checkInvoice: async (orderId) => {
     const response = await api.get(`${PAYMENT_BASE}/check-invoice/`, {
-      params: { invoice_id: invoiceId },
+      params: { order_id: orderId },
     })
     return getResponseData(response)
   },
@@ -45,7 +44,7 @@ const paymentService = {
   },
 
   /**
-   * Fallback: upload bukti transfer manual (jika Bayarin tidak tersedia).
+   * Fallback: upload bukti transfer manual.
    * @param {FormData} formData - berisi field 'plan' dan 'proof' (file)
    * @returns {Promise<Object>} { id, status }
    */

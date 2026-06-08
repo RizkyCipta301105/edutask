@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Search, Bell, Menu as MenuIcon, LayoutDashboard, ClipboardList,
   CalendarDays, Settings, HelpCircle, X, LogOut, ChevronDown,
-  Mail, Moon, Sun, User, Sparkles, BookOpen, Crown
+  Mail, Moon, Sun, User, Sparkles, BookOpen, Crown, GraduationCap, Lightbulb
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { normalizeUserRole, getRoleDashboardPath } from '../../utils/authHelpers'
@@ -173,21 +173,13 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
                     setSidebarOpen(false)
                   }}
                   className={`relative flex items-center gap-3 w-full text-left px-4 py-3 font-bold transition-all z-10 ${
-                    active 
-                      ? 'text-black translate-x-[-2px] translate-y-[-2px]' 
+                    active
+                      ? 'bg-blue-400 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black translate-x-[-2px] translate-y-[-2px]'
                       : 'border-2 border-black bg-white text-black hover:bg-pink-300 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]'
                   }`}
                 >
-                  {active && (
-                    <motion.div
-                      layoutId="sidebarActiveIndicator"
-                      className="absolute inset-0 bg-blue-400 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-[-1]"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <Icon size={20} className="stroke-2 relative z-10 shrink-0" /> 
-                  <span className="relative z-10 whitespace-nowrap text-[0.95rem]">{label}</span>
+                  <Icon size={20} className="stroke-2 shrink-0" />
+                  <span className="whitespace-nowrap text-[0.95rem]">{label}</span>
                 </button>
               )
             })}
@@ -195,7 +187,6 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
 
           {/* Bottom Sidebar Controls */}
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* Upgrade CTA untuk user Free */}
             {!subLoading && isFree && (
               <button
                 className="w-full flex items-center justify-center gap-2 border-2 border-black bg-green-400 px-4 py-3 font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
@@ -214,20 +205,20 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
         </aside>
 
         {/* Main Content Area */}
-        <main className="main-content !bg-white">
-          <header className="header relative z-[100] !border-b-4 !border-black !mb-6 !pb-4">
+        <main className="main-content bg-gray-100">
+          <header className="header relative z-[100] !border-b-4 !border-black !mb-4 !pb-3 flex items-center gap-2 flex-wrap md:flex-nowrap">
             {/* Mobile Burger Menu */}
-            <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+            <button className="mobile-menu-btn flex-shrink-0" onClick={() => setSidebarOpen(true)}>
               <MenuIcon size={24} />
             </button>
 
             {/* Search Bar */}
             {showSearch ? (
-              <div className="flex items-center gap-2 border-2 border-black bg-white px-3 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-full max-w-sm">
-                <Search size={20} className="text-black stroke-2" />
+              <div className="flex items-center gap-2 border-2 border-black bg-white px-3 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-full md:max-w-sm order-3 md:order-none mt-2 md:mt-0">
+                <Search size={20} className="text-black stroke-2 flex-shrink-0" />
                 <input
                   type="text"
-                  className="flex-1 border-none bg-transparent outline-none font-bold placeholder-gray-500"
+                  className="flex-1 min-w-0 border-none bg-transparent outline-none font-bold placeholder-gray-500 text-sm"
                   placeholder={role === 'umum' ? 'Cari tugas...' : 'Cari tugas akademis...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -235,32 +226,31 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
                 {searchQuery && (
                   <X
                     size={20}
-                    className="cursor-pointer text-black stroke-2 hover:text-red-500"
+                    className="cursor-pointer text-black stroke-2 hover:text-red-500 flex-shrink-0"
                     onClick={() => setSearchQuery('')}
                   />
                 )}
               </div>
             ) : (
-              <div className="flex-1" />
+              <div className="flex-1 hidden md:block" />
             )}
 
             {/* Header Right Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-3 ml-auto flex-shrink-0">
 
-              
               <div className="border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white p-1 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform">
                 <NotificationDropdown />
               </div>
               
-              {/* Help Button */}
-              <button className="h-10 w-10 flex flex-shrink-0 items-center justify-center border-2 border-black bg-pink-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" onClick={() => setShowHelpModal(true)} title="Bantuan">
-                <HelpCircle size={20} className="text-black stroke-2" />
+              {/* Help Button — hide on very small screens */}
+              <button className="hidden sm:flex h-9 w-9 md:h-10 md:w-10 flex-shrink-0 items-center justify-center border-2 border-black bg-pink-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" onClick={() => setShowHelpModal(true)} title="Bantuan">
+                <HelpCircle size={18} className="text-black stroke-2" />
               </button>
 
               {/* User Profile Avatar */}
               <div style={{ position: 'relative' }}>
                 <div 
-                  className="h-10 w-10 flex flex-shrink-0 cursor-pointer items-center justify-center border-2 border-black bg-blue-400 font-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
+                  className="h-9 w-9 md:h-10 md:w-10 flex flex-shrink-0 cursor-pointer items-center justify-center border-2 border-black bg-blue-400 font-black text-black text-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                 >
                   {userInitials}
@@ -290,17 +280,17 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
             </div>
           </header>
 
-          {/* Email Verification Banner */}
+          {/* Email Verification Banner — Neo Brutalism */}
           {user && !user.is_email_verified && (
-            <div className="mx-8 mt-6 rounded-xl border border-[#d09730] bg-[#fdfaf4] p-4 flex items-center justify-between">
+            <div className="mx-4 md:mx-8 mt-4 md:mt-6 border-[3px] border-black bg-[#FFE500] p-3 md:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#fceec9]">
-                  <Mail size={20} className="text-[#8b6914]" />
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center bg-black border-[2px] border-black">
+                  <Mail size={16} className="text-[#FFE500]" />
                 </div>
-                <div>
-                  <h4 className="font-semibold text-[#3d300a]">Verifikasi Email Anda</h4>
-                  <p className="text-sm text-[#8b6914]">
-                    Silakan verifikasi email {user.email} untuk mengakses semua fitur.
+                <div className="min-w-0">
+                  <h4 className="font-black text-black text-xs uppercase tracking-wide">Verifikasi Email Anda</h4>
+                  <p className="text-xs font-bold text-black mt-0.5 truncate">
+                    Verifikasi email {user.email} untuk akses semua fitur.
                   </p>
                 </div>
               </div>
@@ -315,9 +305,9 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
                     toast.error('Gagal mengirim email verifikasi.', { id: toastId })
                   }
                 }}
-                className="rounded-lg bg-[#4B3A2F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#3d3025]"
+                className="self-start sm:self-auto flex-shrink-0 border-[3px] border-black bg-black px-4 py-2 text-xs font-black text-white uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
               >
-                Kirim Ulang Email
+                Kirim Ulang
               </button>
             </div>
           )}
@@ -343,16 +333,16 @@ export default function AppLayout({ children, showSearch = false, searchQuery = 
               <p style={{ marginBottom: 16 }}>Bagaimana cara mengelola akademis Anda?</p>
               <ul style={{ listStyle: 'disc', marginLeft: 20, color: '#374151', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <li>
-                  Gunakan tab **Dashboard** untuk memantau kemajuan kelas (Ruang Edukasi) dan grafik analitik performa.
+                  Gunakan tab <strong>Dashboard</strong> untuk memantau kemajuan kelas (Ruang Edukasi) dan grafik analitik performa.
                 </li>
                 <li>
-                  Gunakan tab **Tugas Akademik** untuk mengelola tugas dalam bentuk Backlog maupun Kanban Board.
+                  Gunakan tab <strong>Tugas Akademik</strong> untuk mengelola tugas dalam bentuk Backlog maupun Kanban Board.
                 </li>
                 <li>
-                  Gunakan tab **Jadwal & Kalender** untuk melihat jadwal kuliah mingguan dan tenggat waktu tugas secara visual.
+                  Gunakan tab <strong>Jadwal & Kalender</strong> untuk melihat jadwal kuliah mingguan dan tenggat waktu tugas secara visual.
                 </li>
                 <li>
-                  Gunakan tab **Pengaturan** untuk mengubah profil atau mengganti kata sandi keamanan Anda.
+                  Gunakan tab <strong>Pengaturan</strong> untuk mengubah profil atau mengganti kata sandi keamanan Anda.
                 </li>
               </ul>
               <button className="btn-dark" style={{ width: '100%', marginTop: 24 }} onClick={() => setShowHelpModal(false)}>Dimengerti</button>
