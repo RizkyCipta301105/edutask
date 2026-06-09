@@ -394,6 +394,21 @@ python manage.py test apps
 
 ---
 
+## Non-Functional Requirements (NFR)
+
+| ID NFR | Parameter | Implementasi |
+|--------|-----------|-------------|
+| NFR-01 | **Response Time** | Timeout 15 detik pada setiap request ke KlikQRIS API. Email dikirim via `threading.Thread` (non-blocking, tidak menahan response). Frontend polling check-invoice berjalan di background tanpa memblokir UI. |
+| NFR-02 | **Security** | JWT untuk autentikasi semua endpoint terproteksi. Password di-hash dengan `BCryptSHA256PasswordHasher`. File `.env` tidak di-commit (terdaftar di `.gitignore`). Webhook KlikQRIS diverifikasi ulang ke server sebelum mengaktifkan subscription. Google OAuth divalidasi di sisi backend. Email verification wajib sebelum upgrade ke plan berbayar. |
+| NFR-03 | **Availability** | Backend dan frontend dapat di-deploy secara independen. Dua jalur konfirmasi pembayaran: polling (`check-invoice`) dan webhook KlikQRIS. Email error tidak di-suppress (`fail_silently=False`) agar kegagalan terdeteksi dan dapat di-handle. |
+| NFR-04 | **Portability** | Frontend React berjalan di semua browser modern (Chrome, Firefox, Edge, Safari). Backend Django kompatibel di Linux, Windows, dan Docker. Seluruh konfigurasi environment dikelola via variabel di `.env` — mudah dipindahkan antar host. |
+| NFR-05 | **Ergonomy (Usability)** | Setiap form memiliki loading state, pesan error yang informatif, dan success state. Rate throttle pada contact form (5 request/jam) mencegah spam. UI responsif menggunakan Tailwind CSS, mendukung berbagai ukuran layar. |
+| NFR-06 | **Reliability** | Kombinasi polling dan webhook memastikan status pembayaran selalu tersinkronisasi. Subscription tidak diaktifkan tanpa konfirmasi eksplisit dari KlikQRIS. Semua critical path memiliki `logger.error(...)` untuk pemantauan error di production. |
+| NFR-07 | **Maintainability** | Kodebase terstruktur modular per Django app: `authentication`, `payment`, `tasks`, `schedules`, `inbox`, `common`. File `.env.example` tersedia untuk onboarding developer baru. Migrasi database terdokumentasi per perubahan skema. |
+| NFR-08 | **Memory / Scalability** | Pengiriman email menggunakan daemon thread — tidak mengakumulasi memori di proses utama. Pengecekan status KlikQRIS dilakukan on-demand (tidak ada background polling berat). Database PostgreSQL mendukung skalabilitas horizontal dengan connection pooling. |
+
+---
+
 ## Tim
 
 **Sumber Rejeki** — Teknologi Rekayasa Internet, PENS 2026
