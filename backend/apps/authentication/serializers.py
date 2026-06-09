@@ -215,31 +215,17 @@ class RegisterDosenSerializer(BaseRoleRegisterSerializer):
 class UserProfileSerializer(NamaLengkapValidationMixin, serializers.ModelSerializer):
     """Serializer untuk data profil user (read & update)."""
 
-    foto_profil_url = serializers.SerializerMethodField()
-
     class Meta:
         model = User
         fields = [
             'id', 'email', 'nama_lengkap', 'tipe_akun', 'role',
             'prodi', 'mata_kuliah', 'chat_code',
-            'foto_profil', 'foto_profil_url',
             'is_email_verified', 'tanggal_daftar', 'last_login'
         ]
         read_only_fields = [
             'id', 'email', 'tipe_akun', 'role', 'prodi',
             'mata_kuliah', 'chat_code', 'is_email_verified', 'tanggal_daftar', 'last_login'
         ]
-        extra_kwargs = {
-            'foto_profil': {'write_only': True, 'required': False}
-        }
-
-    def get_foto_profil_url(self, obj):
-        request = self.context.get('request')
-        if obj.foto_profil and request:
-            return request.build_absolute_uri(obj.foto_profil.url)
-        return None
-
-
 # ─── Change Password Serializer ───────────────────────────────────────────────
 
 class ChangePasswordSerializer(serializers.Serializer):

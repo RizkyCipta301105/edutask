@@ -31,7 +31,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Informasi Pribadi', {'fields': ('nama_lengkap', 'foto_profil')}),
+        ('Informasi Pribadi', {'fields': ('nama_lengkap', )}),
         ('Role & Data Akademik', {'fields': ('role', 'prodi', 'mata_kuliah')}),
         ('Tipe & Status Akun', {'fields': ('tipe_akun', 'is_active', 'is_email_verified')}),
         ('Hak Akses', {'fields': ('is_staff', 'is_superuser', 'user_permissions')}),

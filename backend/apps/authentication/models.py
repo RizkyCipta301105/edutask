@@ -109,9 +109,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Identitas dasar
     email = models.EmailField(unique=True, verbose_name='Email')
     nama_lengkap = models.CharField(max_length=100, verbose_name='Nama Lengkap')
-    foto_profil = models.ImageField(
-        upload_to='profil/', null=True, blank=True, verbose_name='Foto Profil'
-    )
 
     # Tipe akun
     tipe_akun = models.CharField(
@@ -185,12 +182,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_pens_user(self):
         return self.tipe_akun == self.TipeAkun.PENS or self.role == self.Role.MAHASISWA
-
-    def get_foto_profil_url(self):
-        if self.foto_profil:
-            return self.foto_profil.url
-        # Return default avatar placeholder
-        return None
 
 class VerificationToken(models.Model):
     class TokenType(models.TextChoices):
