@@ -6,6 +6,7 @@ from django.urls import path
 from . import views
 from . import verification_views
 from . import google_views
+from . import contact_views
 
 urlpatterns = [
     # Register & Login
@@ -43,4 +44,7 @@ urlpatterns = [
 
     # OAuth
     path('google/', google_views.GoogleLoginView.as_view(), name='auth-google-login'),
+
+    # Contact Form
+    path('contact/', contact_views.ContactFormView.as_view(), name='auth-contact'),
 ]

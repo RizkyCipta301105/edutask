@@ -18,6 +18,11 @@ const ForgotPasswordPage = React.lazy(() => import('./pages/ForgotPasswordPage')
 const ResetPasswordPage = React.lazy(() => import('./pages/ResetPasswordPage'))
 const VerifyEmailPage = React.lazy(() => import('./pages/VerifyEmailPage'))
 const CheckoutPage = React.lazy(() => import('./pages/CheckoutPage'))
+const AboutPage = React.lazy(() => import('./pages/AboutPage'))
+const CareersPage = React.lazy(() => import('./pages/CareersPage'))
+const PrivacyPolicyPage = React.lazy(() => import('./pages/PrivacyPolicyPage'))
+const BlogPage = React.lazy(() => import('./pages/BlogPage'))
+const ContactPage = React.lazy(() => import('./pages/ContactPage'))
 
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-gray-50">
@@ -54,6 +59,11 @@ export default function App() {
             {/* Public routes accessible to both guests and logged-in users */}
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/contact" element={<ContactPage />} />
 
             {/* Protected routes - redirect to login if not authenticated */}
             <Route element={<ProtectedRoute />}>

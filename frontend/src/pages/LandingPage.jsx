@@ -341,9 +341,9 @@ export default function LandingPage() {
           <div className="md:col-span-2 space-y-4">
             <h4 className="font-bold uppercase text-[#ea580c] text-sm tracking-wider border-b-2 border-gray-800 pb-1">Company</h4>
             <ul className="space-y-2.5 text-xs text-gray-400">
-              <li><a href="#" className="hover:text-yellow-300 hover:underline transition-all uppercase">ABOUT</a></li>
-              <li><a href="#" className="hover:text-yellow-300 hover:underline transition-all uppercase">CAREERS</a></li>
-              <li><a href="#" className="hover:text-yellow-300 hover:underline transition-all uppercase">PRIVACY POLICY</a></li>
+              <li><Link to="/about" className="hover:text-yellow-300 hover:underline transition-all uppercase">ABOUT</Link></li>
+              <li><Link to="/careers" className="hover:text-yellow-300 hover:underline transition-all uppercase">CAREERS</Link></li>
+              <li><Link to="/privacy" className="hover:text-yellow-300 hover:underline transition-all uppercase">PRIVACY POLICY</Link></li>
             </ul>
           </div>
 
@@ -351,9 +351,9 @@ export default function LandingPage() {
           <div className="md:col-span-3 space-y-4">
             <h4 className="font-bold uppercase text-[#ea580c] text-sm tracking-wider border-b-2 border-gray-800 pb-1">Resources</h4>
             <ul className="space-y-2.5 text-xs text-gray-400">
-              <li><a href="#" className="hover:text-yellow-300 hover:underline transition-all uppercase">BLOG POSTS</a></li>
-              <li><a href="#" className="hover:text-yellow-300 hover:underline transition-all uppercase">CONTACT US</a></li>
-              <li><a href="#" className="hover:text-yellow-300 hover:underline transition-all uppercase">CUSTOMER SUPPORT</a></li>
+              <li><Link to="/blog" className="hover:text-yellow-300 hover:underline transition-all uppercase">BLOG POSTS</Link></li>
+              <li><Link to="/contact" className="hover:text-yellow-300 hover:underline transition-all uppercase">CONTACT US</Link></li>
+              <li><Link to="/contact" className="hover:text-yellow-300 hover:underline transition-all uppercase">CUSTOMER SUPPORT</Link></li>
             </ul>
           </div>
 
