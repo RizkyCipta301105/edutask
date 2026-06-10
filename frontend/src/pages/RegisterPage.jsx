@@ -71,7 +71,7 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
   const auth = useAuth()
   const [loading, setLoading] = useState(false)
   const [accepted, setAccepted] = useState(false)
-  const [values, setValues] = useState({ nama_lengkap: '', email: '', password: '', mata_kuliah: '' })
+  const [values, setValues] = useState({ nama_lengkap: '', email: '', password: '' })
 
   useEffect(() => {
     document.documentElement.classList.remove('dark')
@@ -122,9 +122,7 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     }
     try {
       setLoading(true)
-      const payload = { nama_lengkap: values.nama_lengkap, email: values.email, password: values.password }
-      if (type === 'dosen') payload.mata_kuliah = values.mata_kuliah
-      const user = await config.register(payload)
+      const user = await config.register({ nama_lengkap: values.nama_lengkap, email: values.email, password: values.password })
       toast.success(config.success)
       navigate(getRoleDashboardPath(normalizeUserRole(user)), { replace: true })
     } catch (err) {
@@ -146,6 +144,27 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
       setLoading(false)
     }
   }
+
+  const RoleSelector = () => (
+    <div className="mt-6 mb-8">
+      <div className="my-6 flex items-center gap-5">
+        <div className="h-[4px] flex-1 bg-black" />
+        <span className="text-sm font-black uppercase tracking-wide text-black text-center">ATAU DAFTAR</span>
+        <div className="h-[4px] flex-1 bg-black" />
+      </div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <Link to="/register/mahasiswa" className={`flex items-center justify-center border-4 border-black px-1 py-3 text-xs sm:text-sm font-black uppercase transition-all ${type === 'mahasiswa' ? 'bg-yellow-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]' : 'bg-white hover:bg-yellow-300 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px]'}`}>
+          Mahasiswa
+        </Link>
+        <Link to="/register/umum" className={`flex items-center justify-center border-4 border-black px-1 py-3 text-xs sm:text-sm font-black uppercase transition-all ${type === 'umum' ? 'bg-green-400 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]' : 'bg-white hover:bg-green-400 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px]'}`}>
+          Umum
+        </Link>
+        <Link to="/register/dosen" className={`flex items-center justify-center border-4 border-black px-1 py-3 text-xs sm:text-sm font-black uppercase transition-all ${type === 'dosen' ? 'bg-pink-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]' : 'bg-white hover:bg-pink-300 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px]'}`}>
+          Dosen
+        </Link>
+      </div>
+    </div>
+  )
 
   // ── Form Umum ──────────────────────────────────────────────────────────────
   if (type === 'umum') {
@@ -177,7 +196,9 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
             />
           </div>
 
-          <p className="text-center text-sm font-bold text-gray-600">
+          <RoleSelector />
+
+          <p className="text-center text-sm font-bold text-gray-600 mt-6">
             Sudah punya akun? <Link to="/login" className="font-black text-[#ea580c] hover:underline hover:decoration-4 hover:underline-offset-4">Masuk di sini</Link>
           </p>
         </form>
@@ -192,9 +213,6 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
         <div className="grid gap-5 md:grid-cols-1">
           <AuthInput label="Nama Lengkap" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Masukkan nama lengkap anda" icon={User} autoComplete="name" />
           <AuthInput label={type === 'dosen' ? 'Email Dosen' : 'Email Kampus'} name="email" type="email" value={values.email} onChange={handleChange} placeholder={type === 'dosen' ? 'Masukkan email dosen' : 'Masukkan Email kampus'} icon={Mail} autoComplete="email" />
-          {type === 'dosen' && (
-            <AuthInput label="Mata Kuliah" name="mata_kuliah" value={values.mata_kuliah} onChange={handleChange} placeholder="Mata kuliah yang diampu" icon={Lightbulb} autoComplete="off" />
-          )}
           <AuthInput label="Password" name="password" type="password" value={values.password} onChange={handleChange} placeholder="Masukkan Password anda" icon={Lock} autoComplete="new-password" />
         </div>
 
@@ -223,6 +241,8 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
             text="signup_with"
           />
         </div>
+
+        <RoleSelector />
 
         <p className="text-center text-sm font-bold text-gray-600">
           Sudah punya akun? <Link to="/login" className="font-black text-[#ea580c] hover:underline hover:decoration-4 hover:underline-offset-4">Masuk di sini</Link>

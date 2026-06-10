@@ -193,10 +193,8 @@ class RegisterMahasiswaSerializer(BaseRoleRegisterSerializer):
 
 
 class RegisterDosenSerializer(BaseRoleRegisterSerializer):
-    mata_kuliah = serializers.CharField(required=True, max_length=120)
-
     class Meta(BaseRoleRegisterSerializer.Meta):
-        fields = ['nama_lengkap', 'email', 'mata_kuliah', 'password']
+        fields = ['nama_lengkap', 'email', 'password']
 
     def validate_email(self, value):
         value = super().validate_email(value)
@@ -206,11 +204,9 @@ class RegisterDosenSerializer(BaseRoleRegisterSerializer):
         return value
 
     def create(self, validated_data):
-        mata_kuliah = validated_data.pop('mata_kuliah')
         return self.create_user(
             validated_data,
             User.Role.DOSEN,
-            mata_kuliah=mata_kuliah,
         )
 
 
