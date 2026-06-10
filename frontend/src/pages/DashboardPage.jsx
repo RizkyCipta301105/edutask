@@ -316,11 +316,9 @@ export default function DashboardPage({ roleView = null }) {
         )
       case 'Workspace':
         return (
-          <FeatureGate feature="inbox">
-            <Suspense fallback={<TabLoading />}>
-              <RuangEdukasiList role={roleView} user={user} isWorkspaceMode={true} />
-            </Suspense>
-          </FeatureGate>
+          <Suspense fallback={<TabLoading />}>
+            <RuangEdukasiList role={roleView} user={user} isWorkspaceMode={true} />
+          </Suspense>
         )
       case 'Report':
         return (
