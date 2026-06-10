@@ -2,32 +2,54 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
-from django.core.mail import send_mail
-import threading
-from django.shortcuts import get_object_or_404
 from django.conf import settings
 from apps.common.permissions import PasswordResetRateThrottle
+import threading
+import logging
+import requests
+
+logger = logging.getLogger(__name__)
+
+
+def _send_email(subject, message, recipient_email, recipient_name=""):
+    """Kirim email via Resend HTTP API (tidak pakai SMTP)."""
+    api_key = getattr(settings, 'RESEND_API_KEY', None)
+
+    if not api_key:
+        logger.error("RESEND_API_KEY tidak dikonfigurasi.")
+        return
+
+    url = "https://api.resend.com/emails"
+    payload = {
+        "from": f"EduTask <{settings.EMAIL_HOST_USER}>",
+        "to": [recipient_email],
+        "subject": subject,
+        "text": message,
+    }
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    try:
+        resp = requests.post(url, json=payload, headers=headers, timeout=15)
+        if resp.status_code not in (200, 201):
+            logger.error(f"Resend API error {resp.status_code}: {resp.text}")
+        else:
+            logger.info(f"Email sent via Resend to {recipient_email}")
+    except Exception as e:
+        logger.error(f"Email failed to send: {e}")
+
 
 class EmailThread(threading.Thread):
-    def __init__(self, subject, message, from_email, recipient_list):
+    def __init__(self, subject, message, recipient_email, recipient_name=""):
         self.subject = subject
         self.message = message
-        self.from_email = from_email
-        self.recipient_list = recipient_list
+        self.recipient_email = recipient_email
+        self.recipient_name = recipient_name
         threading.Thread.__init__(self)
 
     def run(self):
-        try:
-            send_mail(
-                self.subject,
-                self.message,
-                self.from_email,
-                self.recipient_list,
-                fail_silently=False,
-            )
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"Email failed to send: {e}")
+        _send_email(self.subject, self.message, self.recipient_email, self.recipient_name)
 from .models import VerificationToken, User
 from apps.common.utils import success_response, error_response
 
@@ -54,8 +76,8 @@ class SendVerificationEmailView(APIView):
         EmailThread(
             subject="Verifikasi Email EduTask",
             message=f"Halo {user.nama_lengkap},\n\nKlik link berikut untuk memverifikasi alamat email Anda:\n{verify_url}\n\nLink ini berlaku selama 24 jam.",
-            from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
-            recipient_list=[user.email]
+            recipient_email=user.email,
+            recipient_name=user.nama_lengkap,
         ).start()
 
         return success_response(message="Email verifikasi telah dikirim. Silakan cek kotak masuk Anda.")
@@ -116,8 +138,8 @@ class ForgotPasswordView(APIView):
         EmailThread(
             subject="Reset Password EduTask",
             message=f"Halo {user.nama_lengkap},\n\nAnda meminta reset password. Klik link berikut untuk membuat password baru:\n{reset_url}\n\nLink ini berlaku selama 1 jam.",
-            from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
-            recipient_list=[user.email]
+            recipient_email=user.email,
+            recipient_name=user.nama_lengkap,
         ).start()
 
         return success_response(message="Jika email terdaftar, instruksi reset password telah dikirim.")

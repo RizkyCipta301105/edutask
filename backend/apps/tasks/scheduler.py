@@ -19,20 +19,31 @@ logger = logging.getLogger(__name__)
 
 
 def _send_email(user, subject, message):
-    """Kirim email ke user. Gagal diam-diam agar tidak crash scheduler."""
+    """Kirim email ke user via Resend HTTP API."""
     if not user.email:
         return
     try:
-        from django.core.mail import send_mail
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
-    except Exception:
-        pass
+        import requests as req
+        api_key = getattr(settings, 'RESEND_API_KEY', None)
+        if not api_key:
+            logger.error("RESEND_API_KEY tidak dikonfigurasi.")
+            return
+        url = "https://api.resend.com/emails"
+        payload = {
+            "from": f"EduTask <{settings.EMAIL_HOST_USER}>",
+            "to": [user.email],
+            "subject": subject,
+            "text": message,
+        }
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        resp = req.post(url, json=payload, headers=headers, timeout=15)
+        if resp.status_code not in (200, 201):
+            logger.error(f"Resend API error {resp.status_code}: {resp.text}")
+    except Exception as e:
+        logger.error(f"Email failed to send: {e}")
 
 
 def _already_emailed_today(task, email_title):

@@ -213,4 +213,7 @@ KLIKQRIS_MERCHANT   = config('KLIKQRIS_MERCHANT_ID', default='178038526372')
 EDUTASK_BASE_URL = config('EDUTASK_BASE_URL', default='http://localhost:8000')
 EDUTASK_FRONTEND_URL = config('EDUTASK_FRONTEND_URL', default='http://localhost:5173')
 
+# ─── Resend Email API ─────────────────────────────────────────────────────────
+RESEND_API_KEY = config('RESEND_API_KEY', default=None)
+
 
