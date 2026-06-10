@@ -68,7 +68,7 @@ export default function RuangEdukasiList({ role, user, isWorkspaceMode = false }
       })
       fetchRuang()
     } catch (err) {
-      toast.error('Gagal membuat ruang.')
+      toast.error(err.response?.data?.message || 'Gagal membuat ruang.')
     }
   }
 
