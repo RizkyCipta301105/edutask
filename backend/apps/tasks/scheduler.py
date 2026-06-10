@@ -29,8 +29,9 @@ def _send_email(user, subject, message):
             logger.error("RESEND_API_KEY tidak dikonfigurasi.")
             return
         url = "https://api.resend.com/emails"
+        from_email = getattr(settings, 'RESEND_FROM_EMAIL', 'onboarding@resend.dev')
         payload = {
-            "from": f"EduTask <{settings.EMAIL_HOST_USER}>",
+            "from": f"EduTask <{from_email}>",
             "to": [user.email],
             "subject": subject,
             "text": message,
