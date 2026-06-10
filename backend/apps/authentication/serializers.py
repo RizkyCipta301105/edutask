@@ -10,7 +10,9 @@ from apps.common.serializers import NamaLengkapValidationMixin, PasswordValidati
 from .jwt_utils import apply_user_claims
 from .models import User, Kelas, RuangEdukasi
 
-CAMPUS_EMAIL_DOMAINS = ('@student.pens.ac.id', '@pens.ac.id')
+# Domain kampus utama
+CAMPUS_DOMAIN = 'pens.ac.id'
+
 PRODI_CHOICES = {
     'Teknologi Rekayasa Internet',
     'Teknik Informatika',
@@ -178,8 +180,9 @@ class RegisterMahasiswaSerializer(BaseRoleRegisterSerializer):
 
     def validate_email(self, value):
         value = super().validate_email(value)
-        if not value.endswith(CAMPUS_EMAIL_DOMAINS):
-            raise serializers.ValidationError('Email harus menggunakan domain kampus.')
+        domain = value.split('@')[-1]
+        if domain != CAMPUS_DOMAIN and not domain.endswith(f'.{CAMPUS_DOMAIN}'):
+            raise serializers.ValidationError('Email harus menggunakan domain kampus (*.pens.ac.id).')
         return value
 
     def create(self, validated_data):
@@ -197,8 +200,9 @@ class RegisterDosenSerializer(BaseRoleRegisterSerializer):
 
     def validate_email(self, value):
         value = super().validate_email(value)
-        if not value.endswith(CAMPUS_EMAIL_DOMAINS):
-            raise serializers.ValidationError('Email dosen harus menggunakan domain kampus.')
+        domain = value.split('@')[-1]
+        if domain != CAMPUS_DOMAIN and not domain.endswith(f'.{CAMPUS_DOMAIN}'):
+            raise serializers.ValidationError('Email dosen harus menggunakan domain kampus (*.pens.ac.id).')
         return value
 
     def create(self, validated_data):
