@@ -113,7 +113,8 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     e.preventDefault()
     if (!accepted) { toast.error('Syarat dan ketentuan harus disetujui.'); return }
     if ((type === 'mahasiswa' || type === 'dosen') && values.email) {
-      const domain = values.email.split('@').pop()
+      const emailClean = values.email.trim().toLowerCase()
+      const domain = emailClean.split('@').pop()
       if (domain !== 'pens.ac.id' && !domain.endsWith('.pens.ac.id')) {
         toast.error(`Email ${type} harus menggunakan domain kampus (*.pens.ac.id).`)
         return
