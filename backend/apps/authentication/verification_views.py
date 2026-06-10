@@ -20,8 +20,9 @@ def _send_email(subject, message, recipient_email, recipient_name=""):
         return
 
     url = "https://api.resend.com/emails"
+    from_email = getattr(settings, 'RESEND_FROM_EMAIL', 'onboarding@resend.dev')
     payload = {
-        "from": f"EduTask <{settings.EMAIL_HOST_USER}>",
+        "from": f"EduTask <{from_email}>",
         "to": [recipient_email],
         "subject": subject,
         "text": message,

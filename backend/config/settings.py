@@ -215,5 +215,6 @@ EDUTASK_FRONTEND_URL = config('EDUTASK_FRONTEND_URL', default='http://localhost:
 
 # ─── Resend Email API ─────────────────────────────────────────────────────────
 RESEND_API_KEY = config('RESEND_API_KEY', default=None)
+RESEND_FROM_EMAIL = config('RESEND_FROM_EMAIL', default='onboarding@resend.dev')
 
 
