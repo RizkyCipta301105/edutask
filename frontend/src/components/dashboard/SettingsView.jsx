@@ -200,58 +200,60 @@ export default function SettingsView({ onLogout, user, roleView = 'umum' }) {
         </div>
       </div>
 
-      {/* Change Password */}
-      <div className="settings-row">
-        <div className="settings-left">
-          <h3>Ubah Password</h3>
-        </div>
-        <div className="settings-card">
-          <div className="settings-card-content">
-            {passwordMsg.text && (
-              <div style={{
-                padding: '12px 16px', marginBottom: 16, fontSize: '0.9rem', fontWeight: 700,
-                border: '4px solid #000', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
-                background: passwordMsg.type === 'error' ? '#fca5a5' : '#86efac',
-                color: '#000', textTransform: 'uppercase',
-              }}>
-                {passwordMsg.text}
+      {/* Change Password (disembunyikan untuk Google OAuth) */}
+      {user?.tipe_akun !== 'gmail' && (
+        <div className="settings-row">
+          <div className="settings-left">
+            <h3>Ubah Password</h3>
+          </div>
+          <div className="settings-card">
+            <div className="settings-card-content">
+              {passwordMsg.text && (
+                <div style={{
+                  padding: '12px 16px', marginBottom: 16, fontSize: '0.9rem', fontWeight: 700,
+                  border: '4px solid #000', boxShadow: '4px 4px 0px 0px rgba(0,0,0,1)',
+                  background: passwordMsg.type === 'error' ? '#fca5a5' : '#86efac',
+                  color: '#000', textTransform: 'uppercase',
+                }}>
+                  {passwordMsg.text}
+                </div>
+              )}
+              <div className="settings-form-group">
+                <label>Password saat ini</label>
+                <div className="settings-input-wrapper">
+                  <input type={showPasswords.current ? 'text' : 'password'} placeholder="Masukkan password saat ini" value={passwords.current} onChange={e => setPasswords(p => ({ ...p, current: e.target.value }))} />
+                  <span style={{ cursor: 'pointer' }} onClick={() => togglePasswordVisibility('current')}>
+                    {showPasswords.current ? <Eye size={16} color="#6b7280" /> : <EyeOff size={16} color="#6b7280" />}
+                  </span>
+                </div>
               </div>
-            )}
-            <div className="settings-form-group">
-              <label>Password saat ini</label>
-              <div className="settings-input-wrapper">
-                <input type={showPasswords.current ? 'text' : 'password'} placeholder="Masukkan password saat ini" value={passwords.current} onChange={e => setPasswords(p => ({ ...p, current: e.target.value }))} />
-                <span style={{ cursor: 'pointer' }} onClick={() => togglePasswordVisibility('current')}>
-                  {showPasswords.current ? <Eye size={16} color="#6b7280" /> : <EyeOff size={16} color="#6b7280" />}
-                </span>
+              <div className="settings-form-group">
+                <label>Password baru</label>
+                <div className="settings-input-wrapper">
+                  <input type={showPasswords.newPass ? 'text' : 'password'} placeholder="Min. 8 karakter" value={passwords.newPass} onChange={e => setPasswords(p => ({ ...p, newPass: e.target.value }))} />
+                  <span style={{ cursor: 'pointer' }} onClick={() => togglePasswordVisibility('newPass')}>
+                    {showPasswords.newPass ? <Eye size={16} color="#6b7280" /> : <EyeOff size={16} color="#6b7280" />}
+                  </span>
+                </div>
+              </div>
+              <div className="settings-form-group">
+                <label>Konfirmasi password baru</label>
+                <div className="settings-input-wrapper">
+                  <input type={showPasswords.confirm ? 'text' : 'password'} placeholder="Masukkan ulang password" value={passwords.confirm} onChange={e => setPasswords(p => ({ ...p, confirm: e.target.value }))} />
+                  <span style={{ cursor: 'pointer' }} onClick={() => togglePasswordVisibility('confirm')}>
+                    {showPasswords.confirm ? <Eye size={16} color="#6b7280" /> : <EyeOff size={16} color="#6b7280" />}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="settings-form-group">
-              <label>Password baru</label>
-              <div className="settings-input-wrapper">
-                <input type={showPasswords.newPass ? 'text' : 'password'} placeholder="Min. 8 karakter" value={passwords.newPass} onChange={e => setPasswords(p => ({ ...p, newPass: e.target.value }))} />
-                <span style={{ cursor: 'pointer' }} onClick={() => togglePasswordVisibility('newPass')}>
-                  {showPasswords.newPass ? <Eye size={16} color="#6b7280" /> : <EyeOff size={16} color="#6b7280" />}
-                </span>
-              </div>
-            </div>
-            <div className="settings-form-group">
-              <label>Konfirmasi password baru</label>
-              <div className="settings-input-wrapper">
-                <input type={showPasswords.confirm ? 'text' : 'password'} placeholder="Masukkan ulang password" value={passwords.confirm} onChange={e => setPasswords(p => ({ ...p, confirm: e.target.value }))} />
-                <span style={{ cursor: 'pointer' }} onClick={() => togglePasswordVisibility('confirm')}>
-                  {showPasswords.confirm ? <Eye size={16} color="#6b7280" /> : <EyeOff size={16} color="#6b7280" />}
-                </span>
-              </div>
+            <div className="settings-card-footer">
+              <button className="btn-dark" onClick={handlePasswordChange} disabled={loading}>
+                {loading ? 'Mengubah...' : 'Ubah password'}
+              </button>
             </div>
           </div>
-          <div className="settings-card-footer">
-            <button className="btn-dark" onClick={handlePasswordChange} disabled={loading}>
-              {loading ? 'Mengubah...' : 'Ubah password'}
-            </button>
-          </div>
         </div>
-      </div>
+      )}
 
       {/* Preferences / Notifications */}
       <div className="settings-row">
