@@ -3,38 +3,32 @@ from django.db.models.signals import m2m_changed, pre_save, post_delete
 from django.dispatch import receiver
 from apps.tasks.models import PenugasanDosen, Task, MataKuliah, Notification
 from apps.authentication.models import User
+from apps.common.email_utils import send_email
 
 
 def _send_broadcast_email(user, penugasan):
     """Kirim email notifikasi tugas baru dari dosen ke mahasiswa."""
     if not user.email:
         return
-    try:
-        from django.core.mail import send_mail
-        from django.conf import settings
-
-        deadline_str = (
-            penugasan.deadline.strftime('%d %B %Y')
-            if penugasan.deadline else 'Tidak ditentukan'
-        )
-        send_mail(
-            subject=f'[EduTask] Tugas Baru: "{penugasan.judul}"',
-            message=(
-                f'Halo {user.nama_lengkap},\n\n'
-                f'Dosen {penugasan.dosen.nama_lengkap} telah memberikan tugas baru:\n\n'
-                f'  Judul      : {penugasan.judul}\n'
-                f'  Mata Kuliah: {penugasan.mata_kuliah}\n'
-                f'  Deadline   : {deadline_str}\n'
-                f'  Prioritas  : {penugasan.get_prioritas_display()}\n\n'
-                f'Buka EduTask untuk melihat detail dan mulai mengerjakan tugas.\n\n'
-                f'— EduTask'
-            ),
-            from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
-    except Exception:
-        pass
+    deadline_str = (
+        penugasan.deadline.strftime('%d %B %Y')
+        if penugasan.deadline else 'Tidak ditentukan'
+    )
+    send_email(
+        subject=f'[EduTask] Tugas Baru: "{penugasan.judul}"',
+        message=(
+            f'Halo {user.nama_lengkap},\n\n'
+            f'Dosen {penugasan.dosen.nama_lengkap} telah memberikan tugas baru:\n\n'
+            f'  Judul      : {penugasan.judul}\n'
+            f'  Mata Kuliah: {penugasan.mata_kuliah}\n'
+            f'  Deadline   : {deadline_str}\n'
+            f'  Prioritas  : {penugasan.get_prioritas_display()}\n\n'
+            f'Buka EduTask untuk melihat detail dan mulai mengerjakan tugas.\n\n'
+            f'— EduTask'
+        ),
+        recipient_email=user.email,
+        recipient_name=user.nama_lengkap,
+    )
 
 
 @receiver(m2m_changed, sender=PenugasanDosen.ruang_tujuan.through)

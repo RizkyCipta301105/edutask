@@ -1,16 +1,14 @@
 """
 Contact form endpoint — mengirim email ke edutask.noreply@gmail.com
 """
-import threading
 import logging
 
-from django.core.mail import send_mail
-from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.throttling import AnonRateThrottle
 
 from apps.common.utils import success_response, error_response
+from apps.common.email_utils import EmailThread
 
 logger = logging.getLogger(__name__)
 
@@ -24,27 +22,6 @@ TOPIC_CHOICES = {
 
 class ContactFormRateThrottle(AnonRateThrottle):
     rate = '5/hour'
-
-
-class _EmailThread(threading.Thread):
-    def __init__(self, subject, message, from_email, recipient_list):
-        super().__init__(daemon=True)
-        self.subject = subject
-        self.message = message
-        self.from_email = from_email
-        self.recipient_list = recipient_list
-
-    def run(self):
-        try:
-            send_mail(
-                self.subject,
-                self.message,
-                self.from_email,
-                self.recipient_list,
-                fail_silently=False,
-            )
-        except Exception as exc:
-            logger.error('Contact form email failed: %s', exc)
 
 
 class ContactFormView(APIView):
@@ -89,11 +66,11 @@ class ContactFormView(APIView):
             f"Balas langsung ke: {email}"
         )
 
-        _EmailThread(
+        EmailThread(
             subject=f'[EduTask Contact] {subject}',
             message=body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=['edutask.noreply@gmail.com'],
+            recipient_email='edutask.noreply@gmail.com',
+            recipient_name='EduTask Team',
         ).start()
 
         # Email konfirmasi ke pengirim
@@ -106,11 +83,11 @@ class ContactFormView(APIView):
             f"— Tim EduTask"
         )
 
-        _EmailThread(
+        EmailThread(
             subject='EduTask — Pesan kamu sudah kami terima',
             message=confirm_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
+            recipient_email=email,
+            recipient_name=name,
         ).start()
 
         return success_response(message='Pesan berhasil dikirim. Cek inbox email kamu untuk konfirmasi.')

@@ -190,14 +190,16 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-# ─── Email ───────────────────────────────────────────────────────────────────
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = f'EduTask <{EMAIL_HOST_USER}>'
+# ─── Email (Brevo API) ────────────────────────────────────────────────────────
+# Brevo bekerja via HTTPS (port 443), tidak diblokir Railway.
+# Daftar & dapatkan API key di: https://app.brevo.com/settings/keys/api
+# Untuk production: verifikasi domain di Brevo → Senders & IP → Domains,
+# lalu set BREVO_FROM_EMAIL ke email dari domain tersebut (misal noreply@domainmu.com).
+BREVO_API_KEY    = config('BREVO_API_KEY', default=None)
+BREVO_FROM_EMAIL = config('BREVO_FROM_EMAIL', default='noreply@edutask.id')
+BREVO_FROM_NAME  = config('BREVO_FROM_NAME', default='EduTask')
+
+DEFAULT_FROM_EMAIL = f'EduTask <{BREVO_FROM_EMAIL}>'
 
 # ─── Google OAuth ─────────────────────────────────────────────────────────────
 GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default=None)
@@ -210,11 +212,7 @@ APSCHEDULER_RUN_NOW_TIMEOUT = 25  # Timeout (detik) untuk job yang dijalankan ma
 # ─── KlikQRIS Payment Gateway ─────────────────────────────────────────────────
 KLIKQRIS_API_KEY    = config('KLIKQRIS_API_KEY',    default='0zxexZuuVkwYWE0cp8OFIXvPYCHxpBeqf7qaQ2Iv')
 KLIKQRIS_MERCHANT   = config('KLIKQRIS_MERCHANT_ID', default='178038526372')
-EDUTASK_BASE_URL = config('EDUTASK_BASE_URL', default='http://localhost:8000')
+EDUTASK_BASE_URL    = config('EDUTASK_BASE_URL',     default='http://localhost:8000')
 EDUTASK_FRONTEND_URL = config('EDUTASK_FRONTEND_URL', default='http://localhost:5173')
-
-# ─── Resend Email API ─────────────────────────────────────────────────────────
-RESEND_API_KEY = config('RESEND_API_KEY', default=None)
-RESEND_FROM_EMAIL = config('RESEND_FROM_EMAIL', default='onboarding@resend.dev')
 
 

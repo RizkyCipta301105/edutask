@@ -4,53 +4,10 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from django.conf import settings
 from apps.common.permissions import PasswordResetRateThrottle
-import threading
+from apps.common.email_utils import EmailThread
 import logging
-import requests
 
 logger = logging.getLogger(__name__)
-
-
-def _send_email(subject, message, recipient_email, recipient_name=""):
-    """Kirim email via Resend HTTP API (tidak pakai SMTP)."""
-    api_key = getattr(settings, 'RESEND_API_KEY', None)
-
-    if not api_key:
-        logger.error("RESEND_API_KEY tidak dikonfigurasi.")
-        return
-
-    url = "https://api.resend.com/emails"
-    from_email = getattr(settings, 'RESEND_FROM_EMAIL', 'onboarding@resend.dev')
-    payload = {
-        "from": f"EduTask <{from_email}>",
-        "to": [recipient_email],
-        "subject": subject,
-        "text": message,
-    }
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    try:
-        resp = requests.post(url, json=payload, headers=headers, timeout=15)
-        if resp.status_code not in (200, 201):
-            logger.error(f"Resend API error {resp.status_code}: {resp.text}")
-        else:
-            logger.info(f"Email sent via Resend to {recipient_email}")
-    except Exception as e:
-        logger.error(f"Email failed to send: {e}")
-
-
-class EmailThread(threading.Thread):
-    def __init__(self, subject, message, recipient_email, recipient_name=""):
-        self.subject = subject
-        self.message = message
-        self.recipient_email = recipient_email
-        self.recipient_name = recipient_name
-        threading.Thread.__init__(self)
-
-    def run(self):
-        _send_email(self.subject, self.message, self.recipient_email, self.recipient_name)
 from .models import VerificationToken, User
 from apps.common.utils import success_response, error_response
 

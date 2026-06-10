@@ -14,37 +14,16 @@ from apscheduler.triggers.cron import CronTrigger
 from django_apscheduler.jobstores import DjangoJobStore
 from django_apscheduler.models import DjangoJobExecution
 from django.conf import settings
+from apps.common.email_utils import send_email
 
 logger = logging.getLogger(__name__)
 
 
 def _send_email(user, subject, message):
-    """Kirim email ke user via Resend HTTP API."""
+    """Kirim email reminder ke user via Resend HTTP API."""
     if not user.email:
         return
-    try:
-        import requests as req
-        api_key = getattr(settings, 'RESEND_API_KEY', None)
-        if not api_key:
-            logger.error("RESEND_API_KEY tidak dikonfigurasi.")
-            return
-        url = "https://api.resend.com/emails"
-        from_email = getattr(settings, 'RESEND_FROM_EMAIL', 'onboarding@resend.dev')
-        payload = {
-            "from": f"EduTask <{from_email}>",
-            "to": [user.email],
-            "subject": subject,
-            "text": message,
-        }
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-        resp = req.post(url, json=payload, headers=headers, timeout=15)
-        if resp.status_code not in (200, 201):
-            logger.error(f"Resend API error {resp.status_code}: {resp.text}")
-    except Exception as e:
-        logger.error(f"Email failed to send: {e}")
+    send_email(subject=subject, message=message, recipient_email=user.email, recipient_name=user.nama_lengkap)
 
 
 def _already_emailed_today(task, email_title):

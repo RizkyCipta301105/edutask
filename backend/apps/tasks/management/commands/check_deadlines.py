@@ -1,25 +1,16 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.core.mail import send_mail
 from django.conf import settings
 from datetime import timedelta
 from apps.tasks.models import Task, Notification
+from apps.common.email_utils import send_email
 
 
 def send_reminder_email(user, subject, message):
-    """Kirim email reminder ke user."""
+    """Kirim email reminder ke user via Resend HTTP API."""
     if not user.email:
         return
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=f"EduTask <{settings.EMAIL_HOST_USER}>",
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
-    except Exception:
-        pass
+    send_email(subject=subject, message=message, recipient_email=user.email, recipient_name=user.nama_lengkap)
 
 
 def already_emailed_today(task, email_title):
