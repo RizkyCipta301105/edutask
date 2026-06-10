@@ -71,7 +71,7 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
   const auth = useAuth()
   const [loading, setLoading] = useState(false)
   const [accepted, setAccepted] = useState(false)
-  const [values, setValues] = useState({ nama_lengkap: '', email: '', password: '' })
+  const [values, setValues] = useState({ nama_lengkap: '', email: '', password: '', mata_kuliah: '' })
 
   useEffect(() => {
     document.documentElement.classList.remove('dark')
@@ -122,7 +122,9 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
     }
     try {
       setLoading(true)
-      const user = await config.register({ nama_lengkap: values.nama_lengkap, email: values.email, password: values.password })
+      const payload = { nama_lengkap: values.nama_lengkap, email: values.email, password: values.password }
+      if (type === 'dosen') payload.mata_kuliah = values.mata_kuliah
+      const user = await config.register(payload)
       toast.success(config.success)
       navigate(getRoleDashboardPath(normalizeUserRole(user)), { replace: true })
     } catch (err) {
@@ -190,6 +192,9 @@ export default function RegisterPage({ type = 'mahasiswa' }) {
         <div className="grid gap-5 md:grid-cols-1">
           <AuthInput label="Nama Lengkap" name="nama_lengkap" value={values.nama_lengkap} onChange={handleChange} placeholder="Masukkan nama lengkap anda" icon={User} autoComplete="name" />
           <AuthInput label={type === 'dosen' ? 'Email Dosen' : 'Email Kampus'} name="email" type="email" value={values.email} onChange={handleChange} placeholder={type === 'dosen' ? 'Masukkan email dosen' : 'Masukkan Email kampus'} icon={Mail} autoComplete="email" />
+          {type === 'dosen' && (
+            <AuthInput label="Mata Kuliah" name="mata_kuliah" value={values.mata_kuliah} onChange={handleChange} placeholder="Mata kuliah yang diampu" icon={Lightbulb} autoComplete="off" />
+          )}
           <AuthInput label="Password" name="password" type="password" value={values.password} onChange={handleChange} placeholder="Masukkan Password anda" icon={Lock} autoComplete="new-password" />
         </div>
 
